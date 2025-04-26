@@ -1,5 +1,5 @@
 import container from "../config/container";
-import PricingRepository from "../repositories/mongoose/PricingRepository";
+import PricingRepository from "../repositories/mongoose/ServiceRepository";
 // import CacheService from "./CacheService";
 // import { processFileUris } from "./FileService";
 

@@ -4,7 +4,7 @@ import process from "node:process";
 import { asClass, asValue, AwilixContainer,createContainer } from "awilix";
 import dotenv from "dotenv";
 
-import MongoosePricingRepository from "../repositories/mongoose/PricingRepository";
+import MongooseServiceRepository from "../repositories/mongoose/ServiceRepository";
 import MongooseUserRepository from "../repositories/mongoose/UserRepository";
 import CacheService from "../services/CacheService";
 import PricingService from "../services/PricingService";
@@ -18,7 +18,7 @@ function initContainer(databaseType: string): AwilixContainer {
   switch (databaseType) {
     case "mongoDB":
       userRepository = new MongooseUserRepository();
-      pricingRepository = new MongoosePricingRepository();
+      pricingRepository = new MongooseServiceRepository();
       break;
     default:
       throw new Error(`Unsupported database type: ${databaseType}`);
