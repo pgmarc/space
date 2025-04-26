@@ -4,8 +4,7 @@
   "description": "Adaptia API is an open-source project designed to provide a robust and scalable API for various applications.",
   "main": "src/main/index.ts",
   "scripts": {
-    "start": "tsx src/main/index.ts",
-    "dev": "nodemon src/main/index.ts",
+    "dev": "tsx src/main/index.ts",
     "test": "jest",
     "build": "tsc",
     "lint": "eslint .",
