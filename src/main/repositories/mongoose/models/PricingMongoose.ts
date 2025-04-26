@@ -1,51 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
+import Feature from './schemas/Feature';
+import UsageLimit from './schemas/UsageLimit';
+import Plan from './schemas/Plan';
+import AddOn from './schemas/AddOn';
 
 const pricingSchema = new Schema(
   {
-    name: { type: String, required: true },
-    owner: { type: String, required: true },
-    _collectionId: { type: Schema.Types.ObjectId, ref: 'PricingCollection', required: false },
+    _serviceId: { type: String, required: true },
     version: { type: String, required: true },
-    extractionDate: { type: Date, required: true },
-    url: { type: String, required: false },
-    currency: { type: String, required: true },
-    yaml: { type: String, required: true },
-    private: { type: Boolean, required: true, default: false },
-    analytics: {
-      numberOfFeatures: { type: Number, required: false },
-      numberOfInformationFeatures: { type: Number, required: false },
-      numberOfIntegrationFeatures: { type: Number, required: false },
-      numberOfIntegrationApiFeatures: { type: Number, required: false },
-      numberOfIntegrationExtensionFeatures: { type: Number, required: false },
-      numberOfIntegrationIdentityProviderFeatures: { type: Number, required: false },
-      numberOfIntegrationWebSaaSFeatures: { type: Number, required: false },
-      numberOfIntegrationMarketplaceFeatures: { type: Number, required: false },
-      numberOfIntegrationExternalDeviceFeatures: { type: Number, required: false },
-      numberOfDomainFeatures: { type: Number, required: false },
-      numberOfAutomationFeatures: { type: Number, required: false },
-      numberOfBotAutomationFeatures: { type: Number, required: false },
-      numberOfFilteringAutomationFeatures: { type: Number, required: false },
-      numberOfTrackingAutomationFeatures: { type: Number, required: false },
-      numberOfTaskAutomationFeatures: { type: Number, required: false },
-      numberOfManagementFeatures: { type: Number, required: false },
-      numberOfGuaranteeFeatures: { type: Number, required: false },
-      numberOfSupportFeatures: { type: Number, required: false },
-      numberOfPaymentFeatures: { type: Number, required: false },
-      numberOfUsageLimits: { type: Number, required: false },
-      numberOfRenewableUsageLimits: { type: Number, required: false },
-      numberOfNonRenewableUsageLimits: { type: Number, required: false },
-      numberOfResponseDrivenUsageLimits: { type: Number, required: false },
-      numberOfTimeDrivenUsageLimits: { type: Number, required: false },
-      numberOfPlans: { type: Number, required: false },
-      numberOfFreePlans: { type: Number, required: false },
-      numberOfPaidPlans: { type: Number, required: false },
-      numberOfAddOns: { type: Number, required: false },
-      numberOfReplacementAddons: { type: Number, required: false },
-      numberOfExtensionAddons: { type: Number, required: false },
-      configurationSpaceSize: { type: Number, required: false },
-      minSubscriptionPrice: { type: Number, required: false },
-      maxSubscriptionPrice: { type: Number, required: false },
-    },
+    curreny: { type: String, required: true },
+    createdAt: { type: Date, required: true, default: Date.now },
+    features: { type: Map, of: Feature, required: true },
+    usageLimits: { type: Map, of: UsageLimit },
+    plans: { type: Map, of: Plan },
+    addOns: { type: Map, of: AddOn }
   },
   {
     toJSON: {
@@ -59,15 +27,15 @@ const pricingSchema = new Schema(
   }
 );
 
-pricingSchema.virtual('collection', {
-  ref: 'PricingCollection',
-  localField: '_collectionId',
+pricingSchema.virtual('service', {
+  ref: 'Service',
+  localField: '_serviceId',
   foreignField: '_id',
   justOne: true,
 });
 
 // Adding unique index for [name, owner, version]
-pricingSchema.index({ name: 1, owner: 1, version: 1, _collectionId: 1 }, { unique: true });
+pricingSchema.index({ _serviceId: 1, version: 1 }, { unique: true });
 
 const pricingModel = mongoose.model('Pricing', pricingSchema, 'pricings');
 
