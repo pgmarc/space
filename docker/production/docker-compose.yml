@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  mongodb:
+      image: mongo:7.0.16
+      ports:
+        - "27017:27017"
+      env_file:
+        - ../../.env.production
+      volumes:
+        - 'adaptia-mongodb:/data/db'
+        - '../../api/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
+      networks:
+        - adaptia-network
+  redis:
+    image: redis:7.4.2
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    volumes:
+      - 'redis_data:/data'
+    networks:
+      - adaptia-network
+  server:
+    restart: always
+    container_name: adaptia-server
+    build:
+        context: ../../src/main
+        dockerfile: ./docker/production/Dockerfile
+    ports:
+      - 8080:8080
+    env_file:
+      - ../../.env.production
+    volumes:
+      - 'adaptia-statics:/usr/src/server/public'
+    depends_on:
+      - mongodb
+      - redis
+    links:
+      - mongodb
+      - redis
+    networks:
+      - adaptia-network
+volumes:
+  adaptia-mongodb:
+    driver: local
+  adaptia-statics:
+    driver: local
+  redis_data:
+    driver: local
+networks:
+  adaptia-network:
+    driver: bridge
