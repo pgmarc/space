@@ -1,21 +1,21 @@
 import container from "../config/container";
-import PricingRepository from "../repositories/mongoose/ServiceRepository";
+import ServiceRepository, { ServiceQueryFilters } from "../repositories/mongoose/ServiceRepository";
 // import CacheService from "./CacheService";
 // import { processFileUris } from "./FileService";
 
-class PricingService {
+class ServiceService {
     
-    private pricingRepository: PricingRepository;
+    private serviceRepository: ServiceRepository;
     // private cacheService: CacheService;
 
     constructor () {
-      this.pricingRepository = container.resolve('pricingRepository');
+      this.serviceRepository = container.resolve('serviceRepository');
       // this.cacheService = container.resolve('cacheService');
     }
 
-    async index () {
-      const pricings = await this.pricingRepository.findAll();
-      return pricings;
+    async index (queryParams: ServiceQueryFilters) {
+      const services = await this.serviceRepository.findAll(queryParams);
+      return services;
     }
   
     async show () {
@@ -39,5 +39,5 @@ class PricingService {
     }
   }
   
-  export default PricingService;
+  export default ServiceService;
   

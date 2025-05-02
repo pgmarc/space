@@ -4,7 +4,7 @@ import RepositoryBase from '../RepositoryBase';
 import PricingMongoose from './models/PricingMongoose';
 import ServiceMongoose from './models/ServiceMongoose';
 
-type ServiceQueryFilters = {
+export type ServiceQueryFilters = {
   name?: string;
   page?: number;
   offset?: number;
