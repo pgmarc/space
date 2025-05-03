@@ -102,6 +102,46 @@ describe('Get public user information', function () {
     });
   })
 
+  describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
+    it('Should return 200: Given existent service name and pricing version', async function () {
+      const response = await request(app).get('/api/services/zoom/pricings/2024');
+      expect(response.status).toEqual(200);
+      expect(response.body.features).toBeDefined();
+      expect(Object.keys(response.body.features).length).toBeGreaterThan(0);
+      expect(response.body.usageLimits).toBeDefined();
+      expect(response.body.plans).toBeDefined();
+      expect(response.body.addOns).toBeDefined();
+      expect(response.body.id).toBeUndefined();
+      expect(response.body._serviceId).toBeUndefined();
+      expect(response.body._id).toBeUndefined();
+    });
+
+    it('Should return 200: Given existent service name in upper case and pricing version', async function () {
+      const response = await request(app).get('/api/services/ZOOM/pricings/2024');
+      expect(response.status).toEqual(200);
+      expect(response.body.features).toBeDefined();
+      expect(Object.keys(response.body.features).length).toBeGreaterThan(0);
+      expect(response.body.usageLimits).toBeDefined();
+      expect(response.body.plans).toBeDefined();
+      expect(response.body.addOns).toBeDefined();
+      expect(response.body.id).toBeUndefined();
+      expect(response.body._serviceId).toBeUndefined();
+      expect(response.body._id).toBeUndefined();
+    });
+
+    it('Should return 404 due to service not found', async function () {
+      const response = await request(app).get('/api/services/unexistent-service/pricings/2024');
+      expect(response.status).toEqual(404);
+      expect(response.body.error).toBe("Service unexistent-service not found");
+    });
+
+    it('Should return 404 due to pricing not found', async function () {
+      const response = await request(app).get('/api/services/zoom/pricings/unexistent-version');
+      expect(response.status).toEqual(404);
+      expect(response.body.error).toBe("Pricing version unexistent-version not found for service zoom");
+    });
+  })
+
   afterAll(async function () {
     await shutdownApp();
   });
