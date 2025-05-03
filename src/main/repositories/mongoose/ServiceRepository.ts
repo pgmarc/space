@@ -35,6 +35,16 @@ class ServiceRepository extends RepositoryBase {
     return service.toJSON();
   }
 
+  async findPricingsByServiceId(serviceId: string, versionsToRetrieve: string[]) {
+    console.log({ _serviceId: serviceId, version: { $in: versionsToRetrieve } })
+    const pricings = await PricingMongoose.find({ _serviceId: serviceId, version: { $in: versionsToRetrieve } });
+    if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
+      return null;
+    }
+
+    return pricings.map((p) => p.toJSON());
+  }
+
   async create(data: any[], ...args: any) {
     // TODO: Implement method
     return await PricingMongoose.insertMany(data);

@@ -1,10 +1,20 @@
 import mongoose, { Schema } from 'mongoose';
 
+const pricingDataSchema = new Schema(
+  {
+    id: { 
+      type: Schema.Types.ObjectId,
+      ref: 'Pricing'
+    },
+    url: { type: String },
+  }
+)
+
 const serviceSchema = new Schema(
   {
     name: { type: String, required: true },
-    activePricings: [{ type: String }],
-    archivedPricings: [{ type: String }]
+    activePricings: {type: Map, of: pricingDataSchema},
+    archivedPricings: {type: Map, of: pricingDataSchema}
   },
   {
     toJSON: {
@@ -18,15 +28,9 @@ const serviceSchema = new Schema(
   }
 );
 
-serviceSchema.virtual('pricings', {
-  ref: 'Pricing',
-  localField: '_id',
-  foreignField: '_serviceId',
-});
-
 // Middleware to ensure activePricings has at least one value
 serviceSchema.pre('save', function (next) {
-  if (!this.activePricings || this.activePricings.length === 0) {
+  if (!this.activePricings || Object.keys(this.activePricings).length === 0) {
     return next(new Error('activePricings must have at least one value.'));
   }
   next();

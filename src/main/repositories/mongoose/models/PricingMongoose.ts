@@ -8,7 +8,7 @@ const pricingSchema = new Schema(
   {
     _serviceId: { type: String, required: true },
     version: { type: String, required: true },
-    curreny: { type: String, required: true },
+    currency: { type: String, required: true },
     createdAt: { type: Date, required: true, default: Date.now },
     features: { type: Map, of: Feature, required: true },
     usageLimits: { type: Map, of: UsageLimit },
@@ -21,6 +21,9 @@ const pricingSchema = new Schema(
       transform: function (doc, resultObject, options) {
         delete resultObject._id;
         delete resultObject.__v;
+        delete resultObject._serviceId;
+        delete resultObject.id;
+        
         return resultObject;
       },
     },
