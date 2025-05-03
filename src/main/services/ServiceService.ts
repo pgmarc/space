@@ -5,6 +5,7 @@ import { ExpectedPricingType, parsePricingToSpacePricingObject } from "../utils/
 import { retrievePricingFromYaml } from "pricing4ts";
 import fetch from "node-fetch";
 import https from "https";
+import path from "path";
 // import CacheService from "./CacheService";
 // import { processFileUris } from "./FileService";
 
@@ -48,11 +49,11 @@ class ServiceService {
           throw new Error(`Neither Pricing URL or id found for version ${version} in service ${serviceName}`);
         }
 
-        const isLocalUrl = pricingUrl.startsWith('file://') || pricingUrl.startsWith('/');
+        const isLocalUrl = pricingUrl.startsWith('/');
         let remotePricing;
         if (isLocalUrl) {
           // Handle local URL
-          remotePricing = retrievePricingFromPath(pricingUrl);
+            remotePricing = retrievePricingFromPath("public/" + pricingUrl);
         } else {
           // Handle remote URL
           const agent = new https.Agent({ rejectUnauthorized: false });
@@ -65,7 +66,7 @@ class ServiceService {
         }
 
         const parsedPricing = parsePricingToSpacePricingObject(remotePricing);
-          remotePricings.push(parsedPricing);
+        remotePricings.push(parsedPricing);
       }
       
       return (locallySavedPricings as unknown as ExpectedPricingType[]).concat(remotePricings);

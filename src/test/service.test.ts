@@ -5,6 +5,7 @@ import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateFakeUser, userCredentials } from './utils/testData';
 import { getLoggedInAdmin, getLoggedInUser, getNewloggedInUser } from './utils/auth';
+import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
 
 dotenv.config();
 
@@ -58,6 +59,28 @@ describe('Get public user information', function () {
       expect(response.body[0].usageLimits).toBeDefined();
       expect(response.body[0].plans).toBeDefined();
       expect(response.body[0].addOns).toBeDefined();
+
+      const serviceResponse = await request(app).get('/api/services/zoom');
+      expect(serviceResponse.status).toEqual(200);
+      expect(serviceResponse.body.name.toLowerCase()).toBe("zoom");
+      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(Object.keys(serviceResponse.body.activePricings).sort());
+    });
+
+    it('Should return 200: Given existent service name in lower case and "archived" in query', async function () {
+      const response = await request(app).get('/api/services/zoom/pricings?pricingStatus=archived');
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0].features).toBeDefined();
+      expect(Object.keys(response.body[0].features).length).toBeGreaterThan(0);
+      expect(response.body[0].usageLimits).toBeDefined();
+      expect(response.body[0].plans).toBeDefined();
+      expect(response.body[0].addOns).toBeDefined();
+
+      const serviceResponse = await request(app).get('/api/services/zoom');
+      expect(serviceResponse.status).toEqual(200);
+      expect(serviceResponse.body.name.toLowerCase()).toBe("zoom");
+      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(Object.keys(serviceResponse.body.archivedPricings).sort());
     });
 
     it('Should return 200: Given existent service name in upper case', async function () {

@@ -37,7 +37,7 @@ class ServiceController {
 
       if (!pricingStatus) {
         pricingStatus = 'active';
-      }else if (pricingStatus !== 'active' && pricingStatus !== 'inactive') {
+      }else if (pricingStatus !== 'active' && pricingStatus !== 'archived') {
         res.status(400).send({ error: 'Invalid pricing status' });
         return;
       }
