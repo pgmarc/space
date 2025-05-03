@@ -1,0 +1,26 @@
+[
+  {
+    "_id": {
+      "$oid": "68162b0f0837988da2dcfe6a"
+    },
+    "name": "Zoom",
+    "activePricings": {
+      "2024": {
+        "id": {
+          "$oid": "68162ba1a887819d643e6e1f"
+        }
+      },
+      "2023": {
+        "url": "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2023.yml"
+      }
+    },
+    "archivedPricings": {
+      "2022": {
+        "url": "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2022.yml"
+      },
+      "2021": {
+        "url": "./test-pricings/zoom/2021.yml"
+      }
+    }
+  }
+]
