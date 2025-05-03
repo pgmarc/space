@@ -11,8 +11,9 @@ class ServiceController {
   constructor() {
     this.serviceService = container.resolve('serviceService');
     this.index = this.index.bind(this);
-    this.show = this.show.bind(this);
     this.indexPricings = this.indexPricings.bind(this);
+    this.show = this.show.bind(this);
+    this.showPricing = this.showPricing.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
     this.destroy = this.destroy.bind(this);
@@ -61,6 +62,24 @@ class ServiceController {
       const service = await this.serviceService.show(serviceName);
 
       return res.json(service);
+
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async showPricing(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const pricingVersion = req.params.pricingVersion;
+      
+      const pricing = await this.serviceService.showPricing(serviceName, pricingVersion);
+
+      return res.json(pricing);
 
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
