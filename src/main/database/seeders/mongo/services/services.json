@@ -19,7 +19,7 @@
         "url": "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2022.yml"
       },
       "2021": {
-        "url": "/test-pricings/zoom/2021.yml"
+        "url": "public/test-pricings/zoom/2021.yml"
       }
     }
   }

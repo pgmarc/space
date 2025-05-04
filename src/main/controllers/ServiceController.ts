@@ -92,7 +92,18 @@ class ServiceController {
 
   async create(req: any, res: any) {
     try {
-      const service = await this.serviceService.create(req.file);
+      const receivedFile = req.file;
+      let service;
+
+      if (!receivedFile) {
+        if (!req.body.pricing) {
+          res.status(400).send({ error: 'No file or URL provided' });
+          return;
+        }
+        service = await this.serviceService.create(req.body.pricing, 'url');
+      }else{
+        service = await this.serviceService.create(req.file, 'file');
+      }
       res.status(201).json(service);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {

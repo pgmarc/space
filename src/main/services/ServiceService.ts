@@ -5,7 +5,7 @@ import { ExpectedPricingType, parsePricingToSpacePricingObject } from '../utils/
 import { Pricing, retrievePricingFromYaml } from 'pricing4ts';
 import fetch from 'node-fetch';
 import https from 'https';
-import path from 'path';
+import path, { parse } from 'path';
 import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
@@ -99,13 +99,13 @@ class ServiceService {
     }
   }
 
-  async create(pricingFile: any) {
+  async create(receivedPricing: any, pricingType: "file" | "url") {
     try{
 
-      // Step 1: Validate and parse the uploaded file
-      const uploadedPricing: Pricing = retrievePricingFromPath(typeof pricingFile === "string" ? pricingFile : pricingFile.path);
+      // Step 1: Validate and parse the uploaded file/url
+      const uploadedPricing: Pricing = pricingType === "file" ? await this._getPricingFromPath(receivedPricing.path) : await this._getPricingFromRemoteUrl(receivedPricing);
+      const pricingData: ExpectedPricingType = parsePricingToSpacePricingObject(uploadedPricing);
 
-      const pricingData = parsePricingToSpacePricingObject(uploadedPricing);
       const validationErrors: string[] = validatePricingData(pricingData);
 
       if (validationErrors.length > 0) {
@@ -132,11 +132,13 @@ class ServiceService {
       await this.pricingRepository.addServiceIdToPricing(savedPricing.id.toString(), service._id.toString());
 
       // Step 6: If everythign was ok, remove the uploaded file
-      const directory = path.dirname(pricingFile.path);
-      if (fs.readdirSync(directory).length === 1) {
-        fs.rmdirSync(directory, { recursive: true });
-      } else {
-        fs.rmSync(pricingFile.path);
+      if (pricingType === "file") {
+        const directory = path.dirname(receivedPricing.path);
+        if (fs.readdirSync(directory).length === 1) {
+          fs.rmdirSync(directory, { recursive: true });
+        } else {
+          fs.rmSync(receivedPricing.path);
+        }
       }
 
       // Step 7: Return the saved service
@@ -157,12 +159,12 @@ class ServiceService {
   }
 
   async _getPricingFromUrl(url: string) {
-    const isLocalUrl = url.startsWith('/');
+    const isLocalUrl = url.startsWith('public/');
     return parsePricingToSpacePricingObject(await (isLocalUrl ? this._getPricingFromPath(url) : this._getPricingFromRemoteUrl(url)));
   }
 
   async _getPricingFromPath(path: string) {
-    const pricing = retrievePricingFromPath("public/" + path);
+    const pricing = retrievePricingFromPath(path);
     return pricing;
   }
 
