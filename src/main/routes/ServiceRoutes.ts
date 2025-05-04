@@ -1,34 +1,35 @@
 import express from 'express';
 
-import PricingController from '../controllers/ServiceController';
-import * as PricingValidator from '../controllers/validation/PricingValidation';
+import ServiceController from '../controllers/ServiceController';
+import * as ServiceValidator from '../controllers/validation/ServiceValidation';
 import { isLoggedIn } from '../middlewares/AuthMiddleware';
 import { handlePricingUpload } from '../middlewares/FileHandlerMiddleware';
 import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
 
 const loadFileRoutes = function (app: express.Application) {
-  const pricingController = new PricingController();
+  const serviceController = new ServiceController();
   const upload = handlePricingUpload(['pricing'], './public/static/pricings/uploaded');
 
   const baseUrl = process.env.BASE_URL_PATH;
 
   app
     .route(baseUrl + '/services')
-    .get(pricingController.index)
-    .post(upload, pricingController.create)
-    .delete(pricingController.prune);
+    .get(serviceController.index)
+    .post(upload, serviceController.create)
+    .delete(serviceController.prune);
   
   app
     .route(baseUrl + '/services/:serviceName')
-    .get(pricingController.show)
+    .get(serviceController.show)
+    .put(ServiceValidator.update, handleValidation, serviceController.update)
 
   app
     .route(baseUrl + '/services/:serviceName/pricings')
-    .get(pricingController.indexPricings)
+    .get(serviceController.indexPricings)
 
   app
     .route(baseUrl + '/services/:serviceName/pricings/:pricingVersion')
-    .get(pricingController.showPricing)
+    .get(serviceController.showPricing)
 };
 
 export default loadFileRoutes;

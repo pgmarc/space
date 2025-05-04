@@ -176,9 +176,17 @@ class ServiceService {
     return service;
   }
 
-  async update() {
-    // TODO: Implement method
-    return null;
+  async update(serviceName: string, newServiceData: any) {
+    
+    const service = await this.serviceRepository.findByName(serviceName);
+
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`);
+    }
+
+    const updatedService = await this.serviceRepository.update(service.id, newServiceData);
+
+    return updatedService;
   }
 
   async destroy() {

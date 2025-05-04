@@ -50,16 +50,15 @@ class ServiceRepository extends RepositoryBase {
   }
 
   async update(id: string, data: any, ...args: any) {
-    // TODO: Implement method
-    const pricing = await PricingMongoose.findOne({ _id: id });
-    if (!pricing) {
+    const service = await ServiceMongoose.findOne({ _id: id });
+    if (!service) {
       return null;
     }
 
-    pricing.set(data);
-    await pricing.save();
+    service.set(data);
+    await service.save();
 
-    return pricing.toJSON();
+    return service.toJSON();
   }
 
   async destroy(id: string, ...args: any) {

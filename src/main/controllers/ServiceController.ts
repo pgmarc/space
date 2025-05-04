@@ -116,7 +116,12 @@ class ServiceController {
 
   async update(req: any, res: any) {
     try {
-      res.json({message: "TODO: Implement method"});
+      const newServiceData = req.body;
+      const serviceName = req.params.serviceName;
+
+      const service = await this.serviceService.update(serviceName, newServiceData);
+      
+      res.json(service);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
     }
