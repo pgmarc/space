@@ -136,5 +136,7 @@ dist
 .pnp.*
 
 # Script outputs
-
 scripts/output/
+
+# Static files
+public/static
