@@ -28,11 +28,23 @@ describe('Get public user information', function () {
   })
 
   describe('POST /services', function () {
-    it('Should return 201 and the created service', async function () {
+    it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
       const pricingFilePath = getPricingFile();
       const response = await request(app)
         .post('/api/services')
         .attach('pricing', pricingFilePath);
+      expect(response.status).toEqual(201);
+      expect(response.body).toBeDefined();
+      expect(Object.keys(response.body.activePricings).length).greaterThan(0);
+      expect(response.body.archivedPricings).toBeUndefined();
+    });
+
+    it('Should return 201 and the created service: Given url in the request', async function () {
+      const response = await request(app)
+        .post('/api/services')
+        .send({
+          pricing: "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml",
+        })
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
