@@ -186,6 +186,11 @@ class ServiceService {
     return null;
   }
 
+  async prune(){
+    const result = await this.serviceRepository.prune();
+    return result;
+  }
+
   async _getPricingFromUrl(url: string) {
     const isLocalUrl = url.startsWith('public/');
     return parsePricingToSpacePricingObject(

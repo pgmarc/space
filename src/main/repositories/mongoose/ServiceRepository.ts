@@ -77,6 +77,16 @@ class ServiceRepository extends RepositoryBase {
 
     return true;
   }
+
+  async prune() {
+    const result = await ServiceMongoose.deleteMany({});
+
+    if (result.deletedCount === 0) {
+      return null;
+    }
+
+    return result.deletedCount;
+  }
 }
 
 export default ServiceRepository;

@@ -15,7 +15,8 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/services')
     .get(pricingController.index)
-    .post(upload, pricingController.create);
+    .post(upload, pricingController.create)
+    .delete(pricingController.prune);
   
   app
     .route(baseUrl + '/services/:serviceName')

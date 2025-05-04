@@ -16,7 +16,7 @@ class ServiceController {
     this.showPricing = this.showPricing.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
-    this.destroy = this.destroy.bind(this);
+    this.prune = this.prune.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -122,9 +122,10 @@ class ServiceController {
     }
   }
 
-  async destroy(req: any, res: any) {
+  async prune(req: any, res: any) {
     try{
-      res.json({message: "TODO: Implement method"});
+      const result = await this.serviceService.prune();
+      res.json({message: `Pruned ${result} services`});
     }catch(err: any){
       res.status(500).send({ error: err.message });
     }
