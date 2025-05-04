@@ -36,6 +36,8 @@ describe('Get public user information', function () {
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
+      expect((Object.values(response.body.activePricings)[0] as any).id).toBeDefined();
+      expect((Object.values(response.body.activePricings)[0] as any).url).toBeUndefined();
       expect(response.body.archivedPricings).toBeUndefined();
     });
 
@@ -48,6 +50,8 @@ describe('Get public user information', function () {
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
+      expect((Object.values(response.body.activePricings)[0] as any).id).toBeUndefined();
+      expect((Object.values(response.body.activePricings)[0] as any).url).toBeDefined();
       expect(response.body.archivedPricings).toBeUndefined();
     });
   })

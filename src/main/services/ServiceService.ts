@@ -93,59 +93,87 @@ class ServiceService {
     }
 
     if (pricingLocator.id) {
-      return await this.pricingRepository.findById(pricingLocator.id);;
+      return await this.pricingRepository.findById(pricingLocator.id);
     } else {
       return await this._getPricingFromUrl(pricingLocator.url);
     }
   }
 
-  async create(receivedPricing: any, pricingType: "file" | "url") {
-    try{
-
-      // Step 1: Validate and parse the uploaded file/url
-      const uploadedPricing: Pricing = pricingType === "file" ? await this._getPricingFromPath(receivedPricing.path) : await this._getPricingFromRemoteUrl(receivedPricing);
-      const pricingData: ExpectedPricingType = parsePricingToSpacePricingObject(uploadedPricing);
-
-      const validationErrors: string[] = validatePricingData(pricingData);
-
-      if (validationErrors.length > 0) {
-        throw new Error(`Validation errors: ${validationErrors.join(', ')}`);
+  async create(receivedPricing: any, pricingType: 'file' | 'url') {
+    try {
+      if (pricingType === 'file') {
+        return await this._createFromFile(receivedPricing);
+      }else{
+        return await this._createFromUrl(receivedPricing);
       }
-
-      // Step 2: Save the pricing data to the database
-      const savedPricing = await this.pricingRepository.create(pricingData);
-
-      // Step 3: Create the service data
-      const serviceData = {
-        name: uploadedPricing.saasName,
-        activePricings: {
-          [uploadedPricing.version]: {
-            id: savedPricing.id,
-          },
-        }
-      }
-
-      // Step 4: Save the service data to the database
-      const service = await this.serviceRepository.create(serviceData);
-
-      // Step 5: Update the uploaded pricing with the service ID
-      await this.pricingRepository.addServiceIdToPricing(savedPricing.id.toString(), service._id.toString());
-
-      // Step 6: If everythign was ok, remove the uploaded file
-      if (pricingType === "file") {
-        const directory = path.dirname(receivedPricing.path);
-        if (fs.readdirSync(directory).length === 1) {
-          fs.rmdirSync(directory, { recursive: true });
-        } else {
-          fs.rmSync(receivedPricing.path);
-        }
-      }
-
-      // Step 7: Return the saved service
-      return service;
-    }catch(err){
+    } catch (err) {
       throw new Error((err as Error).message);
     }
+  }
+
+  async _createFromFile(pricingFile: any) {
+    // Step 1: Parse and validate pricing
+    
+    const uploadedPricing: Pricing = await this._getPricingFromPath(pricingFile.path);
+
+    const pricingData: ExpectedPricingType = parsePricingToSpacePricingObject(uploadedPricing);
+
+    const validationErrors: string[] = validatePricingData(pricingData);
+
+    if (validationErrors.length > 0) {
+      throw new Error(`Validation errors: ${validationErrors.join(', ')}`);
+    }
+
+    // Step 2: Save the pricing data to the database
+    const savedPricing = await this.pricingRepository.create(pricingData);
+
+    // Step 3: Create the service data
+    const serviceData = {
+      name: uploadedPricing.saasName,
+      activePricings: {
+        [uploadedPricing.version]: {
+          id: savedPricing.id,
+        },
+      },
+    };
+
+    // Step 4: Save the service data to the database
+    const service = await this.serviceRepository.create(serviceData);
+
+    // Step 5: Update the uploaded pricing with the service ID
+    await this.pricingRepository.addServiceIdToPricing(
+      savedPricing.id.toString(),
+      service._id.toString()
+    );
+
+    // Step 6: If everythign was ok, remove the uploaded file
+
+    const directory = path.dirname(pricingFile.path);
+    if (fs.readdirSync(directory).length === 1) {
+      fs.rmdirSync(directory, { recursive: true });
+    } else {
+      fs.rmSync(pricingFile.path);
+    }
+
+    // Step 7: Return the saved service
+    return service;
+  }
+
+  async _createFromUrl(pricingUrl: string) {
+    const uploadedPricing: Pricing = await this._getPricingFromRemoteUrl(pricingUrl);
+
+    const serviceData = {
+      name: uploadedPricing.saasName,
+      activePricings: {
+        [uploadedPricing.version]: {
+          url: pricingUrl,
+        },
+      },
+    }
+
+    const service = await this.serviceRepository.create(serviceData);
+
+    return service;
   }
 
   async update() {
@@ -160,7 +188,9 @@ class ServiceService {
 
   async _getPricingFromUrl(url: string) {
     const isLocalUrl = url.startsWith('public/');
-    return parsePricingToSpacePricingObject(await (isLocalUrl ? this._getPricingFromPath(url) : this._getPricingFromRemoteUrl(url)));
+    return parsePricingToSpacePricingObject(
+      await (isLocalUrl ? this._getPricingFromPath(url) : this._getPricingFromRemoteUrl(url))
+    );
   }
 
   async _getPricingFromPath(path: string) {
@@ -172,9 +202,7 @@ class ServiceService {
     const agent = new https.Agent({ rejectUnauthorized: false });
     const response = await fetch(url, { agent });
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch pricing from URL: ${url}, status: ${response.status}`
-      );
+      throw new Error(`Failed to fetch pricing from URL: ${url}, status: ${response.status}`);
     }
     const remotePricingYaml = await response.text();
     return retrievePricingFromYaml(remotePricingYaml);
