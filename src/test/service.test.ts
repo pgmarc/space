@@ -172,6 +172,31 @@ describe('Get public user information', function () {
     });
   })
 
+  describe('DELETE /services', function () {
+    it('Should return 200', async function () {
+      // Checks if there are services to delete
+      const responseIndexBeforeDelete = await request(app)
+        .get('/api/services')
+
+      expect(responseIndexBeforeDelete.status).toEqual(200);
+      expect(Array.isArray(responseIndexBeforeDelete.body)).toBe(true);
+      expect(responseIndexBeforeDelete.body.length).greaterThan(0);
+
+      // Deletes all services
+      const responseDelete = await request(app)
+        .delete('/api/services')
+      expect(responseDelete.status).toEqual(200);
+
+      // Checks if there are no services after delete
+      const responseIndexAfterDelete = await request(app)
+        .get('/api/services')
+
+      expect(responseIndexAfterDelete.status).toEqual(200);
+      expect(Array.isArray(responseIndexAfterDelete.body)).toBe(true);
+      expect(responseIndexAfterDelete.body.length).toBe(0);
+    });
+  })
+
   afterAll(async function () {
     await shutdownApp();
   });
