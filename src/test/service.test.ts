@@ -78,6 +78,38 @@ describe('Get public user information', function () {
     });
   })
 
+  describe('PUT /services/{serviceName}', function () {
+    it('Should return 200 and the updated pricing', async function () {
+      const responseBefore = await request(app).get('/api/services/zoom');
+      expect(responseBefore.status).toEqual(200);
+      expect(responseBefore.body.name.toLowerCase()).toBe("zoom");
+
+      const responseUpdate = await request(app).put('/api/services/zoom').send({name: "New Zoom"});
+      expect(responseUpdate.status).toEqual(200);
+      expect(responseUpdate.body).toBeDefined();
+      expect(responseUpdate.body.name).toEqual("New Zoom");
+
+      const responseAfter = await request(app).get('/api/services/New Zoom');
+      expect(responseAfter.status).toEqual(200);
+      expect(responseAfter.body.name.toLowerCase()).toBe("new zoom");
+
+      await request(app).put('/api/services/zoom').send({name: "Zoom"});
+    });
+
+    it('Should return 200: Given existent service name in upper case', async function () {
+      const response = await request(app).get('/api/services/ZOOM');
+      expect(response.status).toEqual(200);
+      expect(Array.isArray(response.body)).toBe(false);
+      expect(response.body.name.toLowerCase()).toBe("zoom");
+    });
+
+    it('Should return 404 due to service not found', async function () {
+      const response = await request(app).get('/api/services/unexistent-service');
+      expect(response.status).toEqual(404);
+      expect(response.body.error).toBe("Service unexistent-service not found");
+    });
+  })
+
   describe('GET /services/{serviceName}/pricings', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
       const response = await request(app).get('/api/services/zoom/pricings');
