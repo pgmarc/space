@@ -45,9 +45,8 @@ class ServiceRepository extends RepositoryBase {
     return pricings.map((p) => p.toJSON());
   }
 
-  async create(data: any[], ...args: any) {
-    // TODO: Implement method
-    return await PricingMongoose.insertMany(data);
+  async create(data: any, ...args: any) {
+    return await ServiceMongoose.insertOne(data);
   }
 
   async update(id: string, data: any, ...args: any) {

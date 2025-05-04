@@ -6,7 +6,7 @@ import AddOn from './schemas/AddOn';
 
 const pricingSchema = new Schema(
   {
-    _serviceId: { type: String, required: true },
+    _serviceId: { type: String },
     version: { type: String, required: true },
     currency: { type: String, required: true },
     createdAt: { type: Date, required: true, default: Date.now },
@@ -27,6 +27,15 @@ const pricingSchema = new Schema(
         return resultObject;
       },
     },
+    toObject: {
+      virtuals: true,
+      transform: function (doc, resultObject, options) {
+        delete resultObject._id;
+        delete resultObject.__v;
+
+        return resultObject;
+      },
+    }
   }
 );
 

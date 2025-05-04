@@ -4,7 +4,7 @@ const planSchema = new Schema(
   {
     name: { type: String, required: true },
     description: { type: String },
-    price: { type: Number, required: true },
+    price: { type: Schema.Types.Mixed, required: true }, // number or string
     private: { type: Boolean, default: false },
     features: {
       type: Map,

@@ -1,4 +1,4 @@
-import { NextFunction,Request, Response } from 'express';
+import { NextFunction, RequestHandler } from 'express';
 import fs from 'fs';
 import multer from 'multer';
 import {v4 as uuidv4} from 'uuid';
@@ -14,7 +14,7 @@ const addFilenameToBody = (...fieldNames: string[]) => (req: any, res: any, next
   return next();
 };
 
-const handleFileUpload = (imageFieldNames: string[], folder: string) => {
+const handleFileUpload = (imageFieldNames: string[], folder: string): RequestHandler => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       fs.mkdirSync(folder, { recursive: true });
@@ -33,15 +33,15 @@ const handleFileUpload = (imageFieldNames: string[], folder: string) => {
   }
 };
 
-const handlePricingUpload = (pricingFieldNames: string[], folder: string) => {
+const handlePricingUpload = (pricingFieldNames: string[], folder: string): RequestHandler => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      fs.mkdirSync(folder + `/${req.body.saasName}`, { recursive: true });
+      fs.mkdirSync(folder, { recursive: true });
       cb(null, folder);
     },
     filename: function (req, file, cb) {
       if (file) {
-        cb(null, req.body.saasName + "/" + req.body.version + '.' + file.originalname.split('.').pop());
+        cb(null, uuidv4() + file.originalname.split('.').pop());
       } else {
         cb(new Error('File does not exist'), "fail.yml");
       }
@@ -56,7 +56,7 @@ const handlePricingUpload = (pricingFieldNames: string[], folder: string) => {
   }
 };
 
-const handleCollectionUpload = (collectionFieldNames: string[], folder: string) => {
+const handleCollectionUpload = (collectionFieldNames: string[], folder: string): RequestHandler => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       fs.mkdirSync(folder + `/`, { recursive: true });

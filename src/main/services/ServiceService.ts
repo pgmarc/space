@@ -2,11 +2,13 @@ import { retrievePricingFromPath } from 'pricing4ts/server';
 import container from '../config/container';
 import ServiceRepository, { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository';
 import { ExpectedPricingType, parsePricingToSpacePricingObject } from '../utils/pricing-yaml2json';
-import { retrievePricingFromYaml } from 'pricing4ts';
+import { Pricing, retrievePricingFromYaml } from 'pricing4ts';
 import fetch from 'node-fetch';
 import https from 'https';
 import path from 'path';
+import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
+import { validatePricingData } from './validation/PricingServiceValidation';
 // import CacheService from "./CacheService";
 // import { processFileUris } from "./FileService";
 
@@ -97,9 +99,51 @@ class ServiceService {
     }
   }
 
-  async create(pricingFile: any, owner: string, collectionId?: string) {
-    // TODO: Implement method
-    return null;
+  async create(pricingFile: any) {
+    try{
+
+      // Step 1: Validate and parse the uploaded file
+      const uploadedPricing: Pricing = retrievePricingFromPath(typeof pricingFile === "string" ? pricingFile : pricingFile.path);
+
+      const pricingData = parsePricingToSpacePricingObject(uploadedPricing);
+      const validationErrors: string[] = validatePricingData(pricingData);
+
+      if (validationErrors.length > 0) {
+        throw new Error(`Validation errors: ${validationErrors.join(', ')}`);
+      }
+
+      // Step 2: Save the pricing data to the database
+      const savedPricing = await this.pricingRepository.create(pricingData);
+
+      // Step 3: Create the service data
+      const serviceData = {
+        name: uploadedPricing.saasName,
+        activePricings: {
+          [uploadedPricing.version]: {
+            id: savedPricing.id,
+          },
+        }
+      }
+
+      // Step 4: Save the service data to the database
+      const service = await this.serviceRepository.create(serviceData);
+
+      // Step 5: Update the uploaded pricing with the service ID
+      await this.pricingRepository.addServiceIdToPricing(savedPricing.id.toString(), service._id.toString());
+
+      // Step 6: If everythign was ok, remove the uploaded file
+      const directory = path.dirname(pricingFile.path);
+      if (fs.readdirSync(directory).length === 1) {
+        fs.rmdirSync(directory, { recursive: true });
+      } else {
+        fs.rmSync(pricingFile.path);
+      }
+
+      // Step 7: Return the saved service
+      return service;
+    }catch(err){
+      throw new Error((err as Error).message);
+    }
   }
 
   async update() {

@@ -9,12 +9,33 @@ const subscriptionConstraintSchema = new Schema(
   { _id: false }
 );
 
+const addOnFeaturesSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    value: { type: Schema.Types.Mixed, required: true }, // boolean, number or string
+  }
+)
+
+const addOnUsageLimitsSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    value: { type: Schema.Types.Mixed, required: true }, // boolean or number
+  }
+)
+
+const addOnUsagelimitsExtensionsSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    value: { type: Number, required: true }, // number
+  }
+)
+
 const addOnSchema = new Schema(
   {
     name: { type: String, required: true },
     description: { type: String }, // Opcional
     private: { type: Boolean, default: false },
-    price: { type: Number, required: true },
+    price: { type: Schema.Types.Mixed, required: true }, // number or string
     
     availableFor: [{ type: String }], // Lista de nombres de planes
     dependsOn: [{ type: String }],     // Lista de nombres de otros addons
@@ -22,15 +43,15 @@ const addOnSchema = new Schema(
     
     features: {
       type: Map,
-      of: Schema.Types.Mixed, // boolean, number or string
-    },           // Array de cambios de features
+      of: addOnFeaturesSchema, 
+    },
     usageLimits: {
       type: Map,
-      of: Schema.Types.Mixed, // boolean or number
+      of: addOnUsageLimitsSchema,
     },
     usageLimitsExtensions: {
       type: Map,
-      of: Number
+      of: addOnUsagelimitsExtensionsSchema
     },
     subscriptionConstraint: {
       type: subscriptionConstraintSchema,

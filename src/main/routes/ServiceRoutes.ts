@@ -8,14 +8,14 @@ import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
 
 const loadFileRoutes = function (app: express.Application) {
   const pricingController = new PricingController();
-  const upload = handlePricingUpload(['yaml'], './public/static/pricings/uploaded');
+  const upload = handlePricingUpload(['pricing'], './public/static/pricings/uploaded');
 
   const baseUrl = process.env.BASE_URL_PATH;
 
   app
     .route(baseUrl + '/services')
     .get(pricingController.index)
-    // .post(isLoggedIn, upload, pricingController.create);
+    .post(upload, pricingController.create);
   
   app
     .route(baseUrl + '/services/:serviceName')

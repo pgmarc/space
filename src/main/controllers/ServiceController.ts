@@ -92,7 +92,8 @@ class ServiceController {
 
   async create(req: any, res: any) {
     try {
-      res.json({message: "TODO: Implement method"});
+      const service = await this.serviceService.create(req.file);
+      res.status(201).json(service);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
