@@ -6,6 +6,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateFakeUser, userCredentials } from './utils/testData';
 import { getLoggedInAdmin, getLoggedInUser, getNewloggedInUser } from './utils/auth';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
+import { getPricingFile } from './utils/service';
 
 dotenv.config();
 
@@ -23,6 +24,19 @@ describe('Get public user information', function () {
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
+    });
+  })
+
+  describe('POST /services', function () {
+    it('Should return 201 and the created service', async function () {
+      const pricingFilePath = getPricingFile();
+      const response = await request(app)
+        .post('/api/services')
+        .attach('pricing', pricingFilePath);
+      expect(response.status).toEqual(201);
+      expect(response.body).toBeDefined();
+      expect(Object.keys(response.body.activePricings).length).greaterThan(0);
+      expect(response.body.archivedPricings).toBeUndefined();
     });
   })
 
