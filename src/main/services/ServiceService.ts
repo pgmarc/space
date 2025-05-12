@@ -5,16 +5,16 @@ import { ExpectedPricingType, parsePricingToSpacePricingObject } from '../utils/
 import { Pricing, retrievePricingFromYaml } from 'pricing4ts';
 import fetch from 'node-fetch';
 import https from 'https';
-import path, { parse } from 'path';
+import path from 'path';
 import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
+import { Service } from '../../types/models/Service';
 // import CacheService from "./CacheService";
-// import { processFileUris } from "./FileService";
 
 class ServiceService {
-  private serviceRepository: ServiceRepository;
-  private pricingRepository: PricingRepository;
+  private readonly serviceRepository: ServiceRepository;
+  private readonly pricingRepository: PricingRepository;
   // private cacheService: CacheService;
 
   constructor() {
@@ -48,8 +48,8 @@ class ServiceService {
     );
 
     const locallySavedPricings =
-      (await this.serviceRepository.findPricingsByServiceId(
-        service.id,
+      (await this.serviceRepository.findPricingsByServiceName(
+        service.name,
         versionsToRetrieveLocally
       )) ?? [];
 
@@ -103,7 +103,7 @@ class ServiceService {
     try {
       if (pricingType === 'file') {
         return await this._createFromFile(receivedPricing);
-      }else{
+      } else {
         return await this._createFromUrl(receivedPricing);
       }
     } catch (err) {
@@ -111,10 +111,45 @@ class ServiceService {
     }
   }
 
-  async _createFromFile(pricingFile: any) {
+  async addPricingToService(
+    serviceName: string,
+    receivedPricing: any,
+    pricingType: 'file' | 'url'
+  ) {
+    try {
+      if (pricingType === 'file') {
+        return await this._createFromFile(receivedPricing, serviceName);
+      } else {
+        return await this._createFromUrl(receivedPricing, serviceName);
+      }
+    } catch (err) {
+      throw new Error((err as Error).message);
+    }
+  }
+
+  async _createFromFile(pricingFile: any, serviceName?: string) {
+    let service: Service | null = null;
+
     // Step 1: Parse and validate pricing
-    
+
     const uploadedPricing: Pricing = await this._getPricingFromPath(pricingFile.path);
+
+    // Step 1.1: Load the service if already exists
+    if (serviceName) {
+      service = await this.serviceRepository.findByName(serviceName);
+      if (!service) {
+        throw new Error(`Service ${serviceName} not found`);
+      }
+
+      if (
+        service.activePricings[uploadedPricing.version] ||
+        service.archivedPricings[uploadedPricing.version]
+      ) {
+        throw new Error(
+          `Pricing version ${uploadedPricing.version} already exists for service ${serviceName}`
+        );
+      }
+    }
 
     const pricingData: ExpectedPricingType = parsePricingToSpacePricingObject(uploadedPricing);
 
@@ -126,27 +161,40 @@ class ServiceService {
 
     // Step 2: Save the pricing data to the database
     const savedPricing = await this.pricingRepository.create(pricingData);
+    if (!savedPricing) {
+      throw new Error(`Pricing ${uploadedPricing.version} not saved`);
+    }
+    // Step 3:
+    // - If the service does not exist, creates it
+    // - If the service exists, updates it with the new pricing
+    if (!service) {
+      const serviceData = {
+        name: uploadedPricing.saasName,
+        activePricings: {
+          [uploadedPricing.version]: {
+            id: savedPricing.id,
+          },
+        },
+      };
 
-    // Step 3: Create the service data
-    const serviceData = {
-      name: uploadedPricing.saasName,
-      activePricings: {
-        [uploadedPricing.version]: {
+      service = await this.serviceRepository.create(serviceData);
+    } else {
+      const updatedService = await this.serviceRepository.update(service.name, {
+        [`activePricings.${uploadedPricing.version}`]: {
           id: savedPricing.id,
         },
-      },
-    };
+      });
 
-    // Step 4: Save the service data to the database
-    const service = await this.serviceRepository.create(serviceData);
+      service = updatedService;
+    }
 
-    // Step 5: Update the uploaded pricing with the service ID
-    await this.pricingRepository.addServiceIdToPricing(
+    // Step 4: Link the pricing to the service
+    await this.pricingRepository.addServiceNameToPricing(
       savedPricing.id.toString(),
-      service._id.toString()
+      service!.name.toString()
     );
 
-    // Step 6: If everythign was ok, remove the uploaded file
+    // Step 5: If everythign was ok, remove the uploaded file
 
     const directory = path.dirname(pricingFile.path);
     if (fs.readdirSync(directory).length === 1) {
@@ -155,36 +203,60 @@ class ServiceService {
       fs.rmSync(pricingFile.path);
     }
 
-    // Step 7: Return the saved service
+    // Step 6: Return the saved service
     return service;
   }
 
-  async _createFromUrl(pricingUrl: string) {
+  async _createFromUrl(pricingUrl: string, serviceName?: string) {
     const uploadedPricing: Pricing = await this._getPricingFromRemoteUrl(pricingUrl);
 
-    const serviceData = {
-      name: uploadedPricing.saasName,
-      activePricings: {
-        [uploadedPricing.version]: {
+    if (!serviceName) {
+      // Create a new service
+      const serviceData = {
+        name: uploadedPricing.saasName,
+        activePricings: {
+          [uploadedPricing.version]: {
+            url: pricingUrl,
+          },
+        },
+      };
+
+      const service = await this.serviceRepository.create(serviceData);
+      return service;
+    } else {
+      // Update an existing service
+      const service = await this.serviceRepository.findByName(serviceName);
+      if (!service) {
+        throw new Error(`Service ${serviceName} not found`);
+      }
+
+      if (
+        service.activePricings[uploadedPricing.version] ||
+        service.archivedPricings[uploadedPricing.version]
+      ) {
+        throw new Error(
+          `Pricing version ${uploadedPricing.version} already exists for service ${serviceName}`
+        );
+      }
+
+      const updatedService = await this.serviceRepository.update(service.name, {
+        [`activePricings.${uploadedPricing.version}`]: {
           url: pricingUrl,
         },
-      },
+      });
+
+      return updatedService;
     }
-
-    const service = await this.serviceRepository.create(serviceData);
-
-    return service;
   }
 
   async update(serviceName: string, newServiceData: any) {
-    
     const service = await this.serviceRepository.findByName(serviceName);
 
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
 
-    const updatedService = await this.serviceRepository.update(service.id, newServiceData);
+    const updatedService = await this.serviceRepository.update(service.name, newServiceData);
 
     return updatedService;
   }
@@ -194,12 +266,12 @@ class ServiceService {
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
-    const result = await this.serviceRepository.destroy(service.id);
+    const result = await this.serviceRepository.destroy(service.name);
 
     return result;
   }
 
-  async prune(){
+  async prune() {
     const result = await this.serviceRepository.prune();
     return result;
   }

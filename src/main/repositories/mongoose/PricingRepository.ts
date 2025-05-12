@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
-
 import RepositoryBase from '../RepositoryBase';
 import PricingMongoose from './models/PricingMongoose';
+import { Pricing } from '../../../types/models/Pricing';
+import { toPlainObject } from '../../utils/mongoose';
 
 class PricingRepository extends RepositoryBase {
   async findById(id: string): Promise<any> {
@@ -12,18 +12,18 @@ class PricingRepository extends RepositoryBase {
     return pricing.toJSON();
   }
 
-  async create(data: any): Promise<any> {
+  async create(data: any): Promise<Pricing | null> {
     const pricing = await PricingMongoose.create(data);
     if (!pricing) {
       return null;
     }
-    return pricing.toObject();
+    return toPlainObject<Pricing>(pricing.toObject());
   }
 
-  async addServiceIdToPricing(pricingId: string, serviceId: string): Promise<any> {
+  async addServiceNameToPricing(pricingId: string, serviceName: string): Promise<any> {
     const pricing = await PricingMongoose.updateOne(
       { _id: pricingId },
-      { $set: { _serviceId: serviceId } }
+      { $set: { _serviceName: serviceName } }
     );
 
     if (!pricing) {

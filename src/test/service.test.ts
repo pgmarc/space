@@ -5,10 +5,11 @@ import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
 import { createService, getPricingFile } from './utils/services/service';
+import { zoomPricingPath } from './utils/services/ServiceTestData';
 
 dotenv.config();
 
-describe('Get public user information', function () {
+describe('Services API Test Suite', function () {
   let app: Server;
 
   beforeAll(async function () {
@@ -195,6 +196,23 @@ describe('Get public user information', function () {
     });
   })
 
+  describe('POST /services/{serviceName}/pricings', function () {
+    it('Should return 200', async function () {
+      const responseBefore = await request(app).get('/api/services/zoom');
+      expect(responseBefore.status).toEqual(200);
+      expect(responseBefore.body.activePricings).toBeDefined();
+
+      const previousActivePricingsAmount = Object.keys(responseBefore.body.activePricings).length;
+      
+      const newPricingVersion = zoomPricingPath;
+      
+      const response = await request(app).post('/api/services/zoom/pricings').attach('pricing', newPricingVersion);
+      expect(response.status).toEqual(200);
+      expect(responseBefore.body.activePricings).toBeDefined();
+      expect(Object.keys(responseBefore.body.activePricings.length)).toBeGreaterThan(previousActivePricingsAmount);
+    });
+  })
+
   describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
       const response = await request(app).get('/api/services/zoom/pricings/2024');
@@ -205,7 +223,7 @@ describe('Get public user information', function () {
       expect(response.body.plans).toBeDefined();
       expect(response.body.addOns).toBeDefined();
       expect(response.body.id).toBeUndefined();
-      expect(response.body._serviceId).toBeUndefined();
+      expect(response.body._serviceName).toBeUndefined();
       expect(response.body._id).toBeUndefined();
     });
 
@@ -218,7 +236,7 @@ describe('Get public user information', function () {
       expect(response.body.plans).toBeDefined();
       expect(response.body.addOns).toBeDefined();
       expect(response.body.id).toBeUndefined();
-      expect(response.body._serviceId).toBeUndefined();
+      expect(response.body._serviceName).toBeUndefined();
       expect(response.body._id).toBeUndefined();
     });
 

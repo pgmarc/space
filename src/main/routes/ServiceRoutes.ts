@@ -27,6 +27,7 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/services/:serviceName/pricings')
     .get(serviceController.indexPricings)
+    .post(upload, serviceController.addPricingToService);
 
   app
     .route(baseUrl + '/services/:serviceName/pricings/:pricingVersion')

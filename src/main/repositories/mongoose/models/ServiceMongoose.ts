@@ -17,7 +17,7 @@ const serviceSchema = new Schema(
     archivedPricings: {type: Map, of: pricingDataSchema}
   },
   {
-    toJSON: {
+    toObject: {
       virtuals: true,
       transform: function (doc, resultObject, options) {
         delete resultObject._id;

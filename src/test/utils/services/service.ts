@@ -2,6 +2,9 @@ import fs from 'fs';
 import request from 'supertest';
 import { getApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
+import { faker } from '@faker-js/faker';
+import { Feature, UsageLimit, Plan, AddOn, Pricing } from '../../../types/models/Pricing';
+
 
 function getPricingFile(){
   const filePath = zoomPricingPath;
@@ -64,5 +67,39 @@ async function createService(testService?: string){
     throw new Error(`File not found at ${pricingFilePath}`);
   }
 }
+
+export function generateFeature(name: string): Feature {
+  
+  const featureType = faker.helpers.arrayElement(['BOOLEAN', 'TEXT', 'NUMERIC']);
+  
+  return {
+    name: name ?? faker.word.words(1),
+    description: faker.lorem.sentence(),
+    valueType: faker.helpers.arrayElement(['BOOLEAN', 'TEXT', 'NUMERIC']),
+    defaultValue: true,
+    value: undefined,
+    type: faker.helpers.arrayElement([
+      'INFORMATION', 'INTEGRATION', 'DOMAIN', 'AUTOMATION',
+      'MANAGEMENT', 'GUARANTEE', 'SUPPORT', 'PAYMENT',
+    ]),
+    integrationType: faker.helpers.arrayElement([
+      'API', 'EXTENSION', 'IDENTITY_PROVIDER', 'WEB_SAAS',
+      'MARKETPLACE', 'EXTERNAL_DEVICE', undefined,
+    ]),
+    pricingUrls: [faker.internet.url()],
+    automationType: faker.helpers.arrayElement([
+      'BOT', 'FILTERING', 'TRACKING', 'TASK_AUTOMATION', undefined,
+    ]),
+    paymentType: faker.helpers.arrayElement([
+      'CARD', 'GATEWAY', 'INVOICE', 'ACH', 'WIRE_TRANSFER', 'OTHER', undefined,
+    ]),
+    docUrl: faker.internet.url(),
+    expression: faker.lorem.words(3),
+    serverExpression: faker.lorem.words(2),
+    render: faker.helpers.arrayElement(['AUTO', 'ENABLED', 'DISABLED']),
+    tag: faker.word.noun(),
+  };
+}
+
 
 export {getPricingFile, createService};

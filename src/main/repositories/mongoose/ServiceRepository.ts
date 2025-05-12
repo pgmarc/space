@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import RepositoryBase from '../RepositoryBase';
 import PricingMongoose from './models/PricingMongoose';
 import ServiceMongoose from './models/ServiceMongoose';
+import { Service } from '../../../types/models/Service';
+import { toPlainObject } from '../../utils/mongoose';
 
 export type ServiceQueryFilters = {
   name?: string;
@@ -26,18 +28,17 @@ class ServiceRepository extends RepositoryBase {
     return services.map((service) => service.toJSON());
   }
 
-  async findByName(name: string): Promise<any> {
+  async findByName(name: string): Promise<Service | null> {
     const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' }  });
     if (!service) {
       return null;
     }
 
-    return service.toJSON();
+    return toPlainObject<Service>(service.toJSON());
   }
 
-  async findPricingsByServiceId(serviceId: string, versionsToRetrieve: string[]) {
-    console.log({ _serviceId: serviceId, version: { $in: versionsToRetrieve } })
-    const pricings = await PricingMongoose.find({ _serviceId: serviceId, version: { $in: versionsToRetrieve } });
+  async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[]) {
+    const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve } });
     if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
       return null;
     }
@@ -46,11 +47,14 @@ class ServiceRepository extends RepositoryBase {
   }
 
   async create(data: any, ...args: any) {
-    return await ServiceMongoose.insertOne(data);
+    
+    const service = await ServiceMongoose.insertOne(data)
+    
+    return toPlainObject<Service>(service.toJSON());
   }
 
-  async update(id: string, data: any, ...args: any) {
-    const service = await ServiceMongoose.findOne({ _id: id });
+  async update(name: string, data: any, ...args: any) {
+    const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' } });
     if (!service) {
       return null;
     }
@@ -58,11 +62,12 @@ class ServiceRepository extends RepositoryBase {
     service.set(data);
     await service.save();
 
-    return service.toJSON();
+    return toPlainObject<Service>(service.toJSON());
   }
 
-  async destroy(id: string, ...args: any) {
-    const result = await ServiceMongoose.deleteOne({ _id: id });
+  async destroy(name: string, ...args: any) {
+    const result = await ServiceMongoose.deleteOne({ name: { $regex: name, $options: 'i' } });
+    
     if (!result) {
       return null;
     }
@@ -71,7 +76,7 @@ class ServiceRepository extends RepositoryBase {
     }
   
     if (result.deletedCount === 1) {
-      await PricingMongoose.deleteMany({ _serviceId: new mongoose.Types.ObjectId(id) });
+      await PricingMongoose.deleteMany({ _serviceName: name });
     }
 
     return true;

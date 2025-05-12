@@ -13,6 +13,7 @@ class ServiceController {
     this.showPricing = this.showPricing.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
+    this.addPricingToService = this.addPricingToService.bind(this);
     this.prune = this.prune.bind(this);
     this.destroy = this.destroy.bind(this);
   }
@@ -98,6 +99,32 @@ class ServiceController {
       } else {
         service = await this.serviceService.create(req.file, 'file');
       }
+      res.status(201).json(service);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async addPricingToService(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const receivedFile = req.file;
+      let service;
+
+      if (!receivedFile) {
+        if (!req.body.pricing) {
+          res.status(400).send({ error: 'No file or URL provided' });
+          return;
+        }
+        service = await this.serviceService.addPricingToService(serviceName, req.body.pricing, 'url');
+      } else {
+        service = await this.serviceService.addPricingToService(serviceName, req.file, 'file');
+      }
+
       res.status(201).json(service);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {

@@ -3,7 +3,7 @@
     "_id": {
       "$oid": "68162ba1a887819d643e6e1f"
     },
-    "_serviceId": "68162b0f0837988da2dcfe6a",
+    "_serviceName": "Zoom",
     "version": "2024",
     "currency": "USD",
     "createdAt": "2024-07-17T00:00:00.000Z",
