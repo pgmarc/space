@@ -2,8 +2,8 @@ import fs from 'fs';
 import request from 'supertest';
 import { getApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
+import { generatePricingFile } from './pricing';
 import { faker } from '@faker-js/faker';
-import { Feature, UsageLimit, Plan, AddOn, Pricing } from '../../../types/models/Pricing';
 
 
 function getPricingFile(){
@@ -68,38 +68,18 @@ async function createService(testService?: string){
   }
 }
 
-export function generateFeature(name: string): Feature {
+async function createRandomService(){
+  const app = await getApp();
+  const response = await request(app)
+          .post('/api/services')
+          .attach('pricing', await generatePricingFile(faker.word.noun()));
   
-  const featureType = faker.helpers.arrayElement(['BOOLEAN', 'TEXT', 'NUMERIC']);
-  
-  return {
-    name: name ?? faker.word.words(1),
-    description: faker.lorem.sentence(),
-    valueType: faker.helpers.arrayElement(['BOOLEAN', 'TEXT', 'NUMERIC']),
-    defaultValue: true,
-    value: undefined,
-    type: faker.helpers.arrayElement([
-      'INFORMATION', 'INTEGRATION', 'DOMAIN', 'AUTOMATION',
-      'MANAGEMENT', 'GUARANTEE', 'SUPPORT', 'PAYMENT',
-    ]),
-    integrationType: faker.helpers.arrayElement([
-      'API', 'EXTENSION', 'IDENTITY_PROVIDER', 'WEB_SAAS',
-      'MARKETPLACE', 'EXTERNAL_DEVICE', undefined,
-    ]),
-    pricingUrls: [faker.internet.url()],
-    automationType: faker.helpers.arrayElement([
-      'BOT', 'FILTERING', 'TRACKING', 'TASK_AUTOMATION', undefined,
-    ]),
-    paymentType: faker.helpers.arrayElement([
-      'CARD', 'GATEWAY', 'INVOICE', 'ACH', 'WIRE_TRANSFER', 'OTHER', undefined,
-    ]),
-    docUrl: faker.internet.url(),
-    expression: faker.lorem.words(3),
-    serverExpression: faker.lorem.words(2),
-    render: faker.helpers.arrayElement(['AUTO', 'ENABLED', 'DISABLED']),
-    tag: faker.word.noun(),
-  };
+  if (response.status !== 201) {
+    throw new Error(`Failed to create service: ${response.text}`);
+  }
+  const service = response.body;
+
+  return service;
 }
 
-
-export {getPricingFile, createService};
+export {getPricingFile, createService, createRandomService};

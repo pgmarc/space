@@ -140,3 +140,6 @@ scripts/output/
 
 # Static files
 public/static
+
+# Generated files for testing purposes
+src/test/data/generated/

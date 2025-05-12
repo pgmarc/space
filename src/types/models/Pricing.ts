@@ -1,5 +1,5 @@
 export interface Pricing {
-  id: string;
+  id?: string;
   version: string;
   currency: string;
   createdAt: string; // o Date si no haces `JSON.stringify`
@@ -18,8 +18,8 @@ export interface Feature {
   name: string;
   description?: string;
   valueType: "BOOLEAN" | "TEXT" | "NUMERIC";
-  defaultValue: any;
-  value?: any;
+  defaultValue: string | boolean;
+  value?: string | boolean | undefined;
   type: "INFORMATION" | "INTEGRATION" | "DOMAIN" | "AUTOMATION" | "MANAGEMENT" | "GUARANTEE" | "SUPPORT" | "PAYMENT";
   integrationType?: "API" | "EXTENSION" | "IDENTITY_PROVIDER" | "WEB_SAAS" | "MARKETPLACE" | "EXTERNAL_DEVICE";
   pricingUrls?: string[];
@@ -28,7 +28,7 @@ export interface Feature {
   docUrl?: string;
   expression?: string;
   serverExpression?: string;
-  render: "AUTO" | "ENABLED" | "DISABLED";
+  render: "auto" | "enabled" | "disabled";
   tag?: string;
 }
 
@@ -36,11 +36,12 @@ export interface UsageLimit {
   name: string;
   description?: string;
   valueType: "BOOLEAN" | "NUMERIC";
-  defaultValue: any;
-  value?: any;
+  defaultValue: number | boolean;
+  value?: number | boolean | undefined;
   type: "RENEWABLE" | "NON_RENEWABLE";
   trackable?: boolean;
   period?: Period;
+  linkedFeatures?: string[];
 }
 
 export interface Plan {
@@ -48,8 +49,8 @@ export interface Plan {
   description?: string;
   price: string | number;
   private?: boolean;
-  features: Record<string, string | number | boolean>;
-  usageLimits?: Record<string, string | number | boolean>;
+  features: Record<string, string | boolean>;
+  usageLimits?: Record<string, number | boolean>;
 }
 
 export interface AddOn {
@@ -60,9 +61,9 @@ export interface AddOn {
   availableFor?: string[];
   dependsOn?: string[];
   excludes?: string[];
-  features?: Record<string, AddOnFeature>;
-  usageLimits?: Record<string, AddOnUsageLimit>;
-  usageLimitsExtensions?: Record<string, AddOnUsageLimitExtension>;
+  features?: Record<string, string | boolean>;
+  usageLimits?: Record<string, number | boolean>;
+  usageLimitsExtensions?: Record<string, number>;
   subscriptionConstraint?: SubscriptionConstraint;
 }
 
@@ -74,21 +75,6 @@ export interface AddOn {
 export interface Period {
   value: number;
   unit: "SEC" | "MIN" | "HOUR" | "DAY" | "MONTH" | "YEAR";
-}
-
-export interface AddOnFeature {
-  name: string;
-  value: string | number | boolean;
-}
-
-export interface AddOnUsageLimit {
-  name: string;
-  value: string | number | boolean;
-}
-
-export interface AddOnUsageLimitExtension {
-  name: string;
-  value: number;
 }
 
 export interface SubscriptionConstraint {

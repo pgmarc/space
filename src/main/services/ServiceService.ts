@@ -190,7 +190,7 @@ class ServiceService {
 
     // Step 4: Link the pricing to the service
     await this.pricingRepository.addServiceNameToPricing(
-      savedPricing.id.toString(),
+      savedPricing.id!.toString(),
       service!.name.toString()
     );
 

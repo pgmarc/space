@@ -9,13 +9,6 @@ const subscriptionConstraintSchema = new Schema(
   { _id: false }
 );
 
-const addOnFeaturesSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    value: { type: Schema.Types.Mixed, required: true }, // boolean, number or string
-  }
-)
-
 const addOnUsageLimitsSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -43,15 +36,15 @@ const addOnSchema = new Schema(
     
     features: {
       type: Map,
-      of: addOnFeaturesSchema, 
+      of: Schema.Types.Mixed,
     },
     usageLimits: {
       type: Map,
-      of: addOnUsageLimitsSchema,
+      of: Schema.Types.Mixed,
     },
     usageLimitsExtensions: {
       type: Map,
-      of: addOnUsagelimitsExtensionsSchema
+      of: Schema.Types.Number,
     },
     subscriptionConstraint: {
       type: subscriptionConstraintSchema,

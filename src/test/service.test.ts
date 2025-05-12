@@ -4,7 +4,7 @@ import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
-import { createService, getPricingFile } from './utils/services/service';
+import { createRandomService, createService, getPricingFile } from './utils/services/service';
 import { zoomPricingPath } from './utils/services/ServiceTestData';
 
 dotenv.config();
@@ -128,7 +128,7 @@ describe('Services API Test Suite', function () {
   describe('DELETE /services/{serviceName}', function () {
     it('Should return 204', async function () {
       
-      const createdService = await createService();
+      const createdService = await createRandomService();
       
       const responseBefore = await request(app).get(`/api/services/${createdService.name}`);
       expect(responseBefore.status).toEqual(200);
@@ -207,9 +207,9 @@ describe('Services API Test Suite', function () {
       const newPricingVersion = zoomPricingPath;
       
       const response = await request(app).post('/api/services/zoom/pricings').attach('pricing', newPricingVersion);
-      expect(response.status).toEqual(200);
+      expect(response.status).toEqual(201);
       expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(responseBefore.body.activePricings.length)).toBeGreaterThan(previousActivePricingsAmount);
+      expect(Object.keys(response.body.activePricings).length).toBeGreaterThan(previousActivePricingsAmount);
     });
   })
 
