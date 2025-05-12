@@ -70,9 +70,10 @@ async function createService(testService?: string){
 
 async function createRandomService(){
   const app = await getApp();
+  const pricingFilePath = await generatePricingFile(faker.word.noun())
   const response = await request(app)
           .post('/api/services')
-          .attach('pricing', await generatePricingFile(faker.word.noun()));
+          .attach('pricing', pricingFilePath);
   
   if (response.status !== 201) {
     throw new Error(`Failed to create service: ${response.text}`);

@@ -1,12 +1,12 @@
-export interface TestPricing {
+export interface LeanPricing {
   id?: string;
   version: string;
   currency: string;
   createdAt: string; // o Date si no haces `JSON.stringify`
-  features: Record<string, TestFeature>;
-  usageLimits?: Record<string, TestUsageLimit>;
-  plans?: Record<string, TestPlan>;
-  addOns?: Record<string, TestAddOn>;
+  features: Record<string, LeanFeature>;
+  usageLimits?: Record<string, LeanUsageLimit>;
+  plans?: Record<string, LeanPlan>;
+  addOns?: Record<string, LeanAddOn>;
 }
 
 
@@ -14,7 +14,7 @@ export interface TestPricing {
 // -------------- Main Types --------------
 // ----------------------------------------
 
-export interface TestFeature {
+export interface LeanFeature {
   name: string;
   description?: string;
   valueType: "BOOLEAN" | "TEXT" | "NUMERIC";
@@ -32,7 +32,7 @@ export interface TestFeature {
   tag?: string;
 }
 
-export interface TestUsageLimit {
+export interface LeanUsageLimit {
   name: string;
   description?: string;
   valueType: "BOOLEAN" | "NUMERIC";
@@ -40,11 +40,12 @@ export interface TestUsageLimit {
   value?: number | boolean | undefined;
   type: "RENEWABLE" | "NON_RENEWABLE";
   trackable?: boolean;
-  period?: TestPeriod;
+  period?: LeanPeriod;
   linkedFeatures?: string[];
 }
 
-export interface TestPlan {
+export interface LeanPlan {
+  name?: string;
   description?: string;
   price: string | number;
   private?: boolean;
@@ -52,17 +53,18 @@ export interface TestPlan {
   usageLimits?: Record<string, number | boolean>;
 }
 
-export interface TestAddOn {
+export interface LeanAddOn {
+  name: string;
   description?: string;
   private?: boolean;
   price: string | number;
   availableFor?: string[];
   dependsOn?: string[];
   excludes?: string[];
-  features?: Record<string, { value: string | boolean}>;
-  usageLimits?: Record<string, { value: number | boolean}>;
-  usageLimitsExtensions?: Record<string, { value: number}>;
-  subscriptionConstraint?: TestSubscriptionConstraint;
+  features?: Record<string, string | boolean>;
+  usageLimits?: Record<string, number | boolean>;
+  usageLimitsExtensions?: Record<string, number>;
+  subscriptionConstraint?: LeanSubscriptionConstraint;
 }
 
 
@@ -70,12 +72,12 @@ export interface TestAddOn {
 // ------------- Auxiliar Types -----------
 // ----------------------------------------
 
-export interface TestPeriod {
+export interface LeanPeriod {
   value: number;
   unit: "SEC" | "MIN" | "HOUR" | "DAY" | "MONTH" | "YEAR";
 }
 
-export interface TestSubscriptionConstraint {
+export interface LeanSubscriptionConstraint {
   minQuantity?: number;
   maxQuantity?: number;
   quantityStep?: number;

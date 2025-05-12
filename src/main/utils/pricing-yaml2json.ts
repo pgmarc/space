@@ -1,15 +1,15 @@
 import { Plan as ParsedPlan, Pricing as ParsedPricing, Feature as ParsedFeature, UsageLimit as ParsedUsageLimit, AddOn as ParsedAddOn} from "pricing4ts";
-import { Feature, UsageLimit, Plan, AddOn } from "../../types/models/Pricing";
 import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
+import { LeanAddOn, LeanFeature, LeanPlan, LeanUsageLimit } from "../types/models/Pricing";
 
 export interface ExpectedPricingType {
   version: string;
   currency: string;
   createdAt: Date;
-  features: Record<string, Feature>;
-  usageLimits?: Record<string, UsageLimit>;
-  plans?: Record<string, Plan>;
-  addOns?: Record<string, AddOn>;
+  features: Record<string, LeanFeature>;
+  usageLimits?: Record<string, LeanUsageLimit>;
+  plans?: Record<string, LeanPlan>;
+  addOns?: Record<string, LeanAddOn>;
 }
 
 export function parsePricingToSpacePricingObject(pricing: ParsedPricing): ExpectedPricingType {
@@ -31,8 +31,8 @@ export function parsePricingToSpacePricingObject(pricing: ParsedPricing): Expect
   return json;
 }
 
-function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<string, Feature> {
-  const formattedFeatures: Record<string, Feature> = {};
+function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<string, LeanFeature> {
+  const formattedFeatures: Record<string, LeanFeature> = {};
   for (const featureName in features) {
     const feature = features[featureName];
     formattedFeatures[featureName] = {
@@ -44,8 +44,8 @@ function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<
   return formattedFeatures;
 }
 
-function formatPricingUsageLimits(usageLimits: Record<string, ParsedUsageLimit>): Record<string, UsageLimit> {
-  const formattedUsageLimits: Record<string, UsageLimit> = {};
+function formatPricingUsageLimits(usageLimits: Record<string, ParsedUsageLimit>): Record<string, LeanUsageLimit> {
+  const formattedUsageLimits: Record<string, LeanUsageLimit> = {};
   for (const usageLimitName in usageLimits) {
     const usageLimit = usageLimits[usageLimitName];
     formattedUsageLimits[usageLimitName] = {
@@ -59,8 +59,8 @@ function formatPricingUsageLimits(usageLimits: Record<string, ParsedUsageLimit>)
   return formattedUsageLimits;
 }
 
-function formatPricingPlans(plans: Record<string, ParsedPlan>): Record<string, Plan> {
-  const formattedPlans: Record<string, Plan> = {};
+function formatPricingPlans(plans: Record<string, ParsedPlan>): Record<string, LeanPlan> {
+  const formattedPlans: Record<string, LeanPlan> = {};
 
   for (const planName in plans) {
     const plan = plans[planName];
@@ -81,8 +81,8 @@ function formatPricingPlans(plans: Record<string, ParsedPlan>): Record<string, P
 
 }
 
-function formatPricingAddOns(addOns: Record<string, ParsedAddOn>): Record<string, AddOn> {
-  const formattedAddOns: Record<string, AddOn> = {};
+function formatPricingAddOns(addOns: Record<string, ParsedAddOn>): Record<string, LeanAddOn> {
+  const formattedAddOns: Record<string, LeanAddOn> = {};
 
   for (const addOnName in addOns) {
     const addOn = addOns[addOnName];

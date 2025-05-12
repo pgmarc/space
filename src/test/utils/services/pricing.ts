@@ -1,6 +1,12 @@
 import { writeFile } from 'fs/promises';
 import { faker } from '@faker-js/faker';
-import { Feature, UsageLimit, Plan, AddOn, Pricing } from '../../../types/models/Pricing';
+import {
+  TestFeature,
+  TestUsageLimit,
+  TestPlan,
+  TestAddOn,
+  TestPricing,
+} from '../../../types/models/Pricing';
 import yaml from 'js-yaml';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
@@ -8,7 +14,8 @@ import { mkdir } from 'fs/promises';
 import fs from 'fs';
 
 export async function generatePricingFile(serviceName?: string, version?: string): Promise<string> {
-  let pricing: Pricing & { saasName?: string; syntaxVersion?: string } = generatePricing(version);
+  let pricing: TestPricing & { saasName?: string; syntaxVersion?: string } =
+    generatePricing(version);
   if (serviceName) {
     pricing = {
       saasName: serviceName,
@@ -36,32 +43,40 @@ export async function generatePricingFile(serviceName?: string, version?: string
   return filePath;
 }
 
-export function generatePricing(version?: string): Pricing {
+export function generatePricing(version?: string): TestPricing {
   const featureCount = faker.number.int({ min: 1, max: 15 });
   const usageLimitCount = faker.number.int({ min: 1, max: 5 });
   const planCount = faker.number.int({ min: 1, max: 5 });
   const addOnCount = faker.number.int({ min: 0, max: 5 });
 
-  const features: Record<string, Feature> = {};
-  const usageLimits: Record<string, UsageLimit> = {};
-  const plans: Record<string, Plan> = {};
-  const addOns: Record<string, AddOn> = {};
+  const features: Record<string, TestFeature> = {};
+  const usageLimits: Record<string, TestUsageLimit> = {};
+  const plans: Record<string, TestPlan> = {};
+  const addOns: Record<string, TestAddOn> = {};
 
-  const featureKeys = Array.from({ length: featureCount }, () => faker.word.noun());
-  const usageLimitKeys = Array.from({ length: usageLimitCount }, () => faker.word.noun());
+  const featureKeys = Array.from({ length: featureCount }, () => faker.word.noun({length: {min: 4, max: 20}}));
+  const usageLimitKeys = Array.from({ length: usageLimitCount }, () => faker.word.noun({length: {min: 4, max: 20}}));
 
   featureKeys.forEach(key => (features[key] = generateFeature(key)));
-  usageLimitKeys.forEach(key => (usageLimits[key] = generateUsageLimit(key)));
+  usageLimitKeys.forEach(
+    key =>
+      (usageLimits[key] = generateUsageLimit(
+        key,
+        faker.datatype.boolean({ probability: 0.95 })
+          ? undefined
+          : [faker.helpers.arrayElement(featureKeys)]
+      ))
+  );
 
   for (let i = 0; i < planCount; i++) {
-    const planName = faker.word.noun().toUpperCase();
+    const planName = faker.word.noun({length: {min: 4, max: 20}}).toUpperCase();
     plans[planName] = generatePlan(features, usageLimits);
   }
 
   const planKeys = Object.keys(plans);
 
   for (let i = 0; i < addOnCount; i++) {
-    const addOnName = faker.word.noun().toLowerCase();
+    const addOnName = faker.word.noun({length: {min: 4, max: 20}}).toLowerCase();
     const randoAddOnType = faker.number.int({ min: 0, max: 2 });
     switch (randoAddOnType) {
       case 0:
@@ -70,7 +85,7 @@ export function generatePricing(version?: string): Pricing {
           faker.number.int({ min: 1, max: featureKeys.length })
         );
         addOns[addOnName] = generateAddOn(
-          randomFeatureKeys,
+          Object.values(features).filter(feature => randomFeatureKeys.includes(feature.name)),
           [],
           [],
           faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
@@ -84,7 +99,9 @@ export function generatePricing(version?: string): Pricing {
         );
         addOns[addOnName] = generateAddOn(
           [],
-          randomUsageLimitKeys,
+          Object.values(usageLimits).filter(usageLimit =>
+            randomUsageLimitKeys.includes(usageLimit.name)
+          ),
           [],
           faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
           Object.keys(addOns)
@@ -95,13 +112,20 @@ export function generatePricing(version?: string): Pricing {
           usageLimitKeys,
           faker.number.int({ min: 1, max: usageLimitKeys.length })
         );
-        addOns[addOnName] = generateAddOn(
-          [],
-          [],
-          randomUsageLimitKeysExtensions,
-          faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
-          Object.keys(addOns)
-        );
+
+        const usageLimitExtensions = Object.values(usageLimits)
+        .filter(usageLimit => randomUsageLimitKeysExtensions.includes(usageLimit.name))
+        .filter(usageLimit => usageLimit.valueType === 'NUMERIC')
+
+        if (usageLimitExtensions.length > 0) {
+          addOns[addOnName] = generateAddOn(
+            [],
+            [],
+            usageLimitExtensions,
+            faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
+            Object.keys(addOns)
+          );
+        }
         break;
       default:
         throw new Error(`Unsupported add-on type: ${randoAddOnType}`);
@@ -119,7 +143,7 @@ export function generatePricing(version?: string): Pricing {
   };
 }
 
-export function generateFeature(name?: string): Feature {
+export function generateFeature(name?: string): TestFeature {
   const featureName = name ?? faker.word.words(1);
   const featureValueType = faker.helpers.arrayElement(['BOOLEAN', 'TEXT']);
   const featureType = faker.helpers.arrayElement([
@@ -179,7 +203,7 @@ export function generateFeature(name?: string): Feature {
   };
 }
 
-export function generateUsageLimit(name?: string, linkedFeatures?: string[]): UsageLimit {
+export function generateUsageLimit(name?: string, linkedFeatures?: string[]): TestUsageLimit {
   const usageLimitValueType = faker.helpers.arrayElement(['BOOLEAN', 'NUMERIC']);
   const usageLimitType = faker.helpers.arrayElement(['RENEWABLE', 'NON_RENEWABLE']);
 
@@ -217,11 +241,10 @@ export function generateUsageLimit(name?: string, linkedFeatures?: string[]): Us
 }
 
 export function generatePlan(
-  features: { [key: string]: Feature },
-  usageLimitKeys: { [key: string]: UsageLimit }
-): Plan {
+  features: { [key: string]: TestFeature },
+  usageLimitKeys: { [key: string]: TestUsageLimit }
+): TestPlan {
   return {
-    name: faker.word.noun().toUpperCase(),
     description: faker.lorem.sentence(),
     price: faker.number.float({ min: 0, max: 100 }),
     private: faker.datatype.boolean({ probability: 0.1 }),
@@ -251,12 +274,12 @@ export function generatePlan(
 }
 
 export function generateAddOn(
-  features: string[],
-  usageLimits: string[],
-  usageLimitsExtensions: string[],
+  features: TestFeature[],
+  usageLimits: TestUsageLimit[],
+  usageLimitsExtensions: TestUsageLimit[],
   plans: string[],
   preCreatedAddons: string[]
-): AddOn {
+): TestAddOn {
   const minQuantity: number | undefined = faker.datatype.boolean()
     ? faker.number.int({ min: 1, max: 10 })
     : undefined;
@@ -265,7 +288,6 @@ export function generateAddOn(
     : undefined;
 
   return {
-    name: faker.word.noun(),
     description: faker.lorem.sentence(),
     private: faker.datatype.boolean({ probability: 0.1 }),
     price: faker.number.float({ min: 0, max: 100 }),
@@ -288,12 +310,11 @@ export function generateAddOn(
       features.length > 0
         ? Object.fromEntries(
             features.map(feature => {
-              const featureName = feature;
-              const featureValue = faker.helpers.arrayElement([
-                faker.word.noun(),
-                faker.datatype.boolean(),
-              ]);
-              return [featureName, featureValue];
+              const featureValueType = feature.valueType;
+              const featureValue =
+                featureValueType === 'BOOLEAN' ? faker.datatype.boolean() : faker.word.noun();
+
+              return [feature.name, { value: featureValue }];
             })
           )
         : {},
@@ -301,12 +322,13 @@ export function generateAddOn(
       usageLimits.length > 0
         ? Object.fromEntries(
             usageLimits.map(usageLimit => {
-              const usageLimitName = usageLimit;
-              const usageLimitValue = faker.helpers.arrayElement([
-                faker.number.int({ min: 0, max: 100 }),
-                faker.datatype.boolean(),
-              ]);
-              return [usageLimitName, usageLimitValue];
+              const usageLimitValueType = usageLimit.valueType;
+              const usageLimitValue =
+                usageLimitValueType === 'BOOLEAN'
+                  ? faker.datatype.boolean()
+                  : faker.number.int({ min: 0, max: 100 });
+
+              return [usageLimit.name, { value: usageLimitValue }];
             })
           )
         : {},
@@ -314,9 +336,7 @@ export function generateAddOn(
       usageLimitsExtensions.length > 0
         ? Object.fromEntries(
             usageLimitsExtensions.map(usageLimit => {
-              const usageLimitName = usageLimit;
-              const usageLimitValue = faker.number.int({ min: 0, max: 100 });
-              return [usageLimitName, usageLimitValue];
+              return [usageLimit.name, { value: faker.number.int({ min: 0, max: 100 }) }];
             })
           )
         : {},
