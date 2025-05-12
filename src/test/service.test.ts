@@ -3,10 +3,8 @@ import request from 'supertest';
 import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { generateFakeUser, userCredentials } from './utils/testData';
-import { getLoggedInAdmin, getLoggedInUser, getNewloggedInUser } from './utils/auth';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
-import { getPricingFile } from './utils/service';
+import { createService, getPricingFile } from './utils/services/service';
 
 dotenv.config();
 
@@ -39,6 +37,22 @@ describe('Get public user information', function () {
       expect((Object.values(response.body.activePricings)[0] as any).id).toBeDefined();
       expect((Object.values(response.body.activePricings)[0] as any).url).toBeUndefined();
       expect(response.body.archivedPricings).toBeUndefined();
+    });
+
+    it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
+      const createdService = await createService();
+      expect(Object.keys(createdService.activePricings).length).greaterThan(0);
+      expect((Object.values(createdService.activePricings)[0] as any).id).toBeDefined();
+      expect((Object.values(createdService.activePricings)[0] as any).url).toBeUndefined();
+      expect(createdService.archivedPricings).toBeUndefined();
+    });
+
+    it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
+      const createdService = await createService("github");
+      expect(Object.keys(createdService.activePricings).length).greaterThan(0);
+      expect((Object.values(createdService.activePricings)[0] as any).id).toBeDefined();
+      expect((Object.values(createdService.activePricings)[0] as any).url).toBeUndefined();
+      expect(createdService.archivedPricings).toBeUndefined();
     });
 
     it('Should return 201 and the created service: Given url in the request', async function () {
@@ -107,6 +121,23 @@ describe('Get public user information', function () {
       const response = await request(app).get('/api/services/unexistent-service');
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe("Service unexistent-service not found");
+    });
+  })
+
+  describe('DELETE /services/{serviceName}', function () {
+    it('Should return 204', async function () {
+      
+      const createdService = await createService();
+      
+      const responseBefore = await request(app).get(`/api/services/${createdService.name}`);
+      expect(responseBefore.status).toEqual(200);
+      expect(responseBefore.body.name.toLowerCase()).toBe(createdService.name.toLowerCase());
+
+      const responseDelete = await request(app).delete(`/api/services/${createdService.name}`);
+      expect(responseDelete.status).toEqual(204);
+
+      const responseAfter = await request(app).get(`/api/services/${createdService.name}`);
+      expect(responseAfter.status).toEqual(404);
     });
   })
 

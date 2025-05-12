@@ -1,12 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-
 import container from '../config/container.js';
 import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
 
 class ServiceController {
-  private serviceService: ServiceService;
+  private readonly serviceService: ServiceService;
 
   constructor() {
     this.serviceService = container.resolve('serviceService');
@@ -17,12 +14,13 @@ class ServiceController {
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
     this.prune = this.prune.bind(this);
+    this.destroy = this.destroy.bind(this);
   }
 
   async index(req: any, res: any) {
     try {
       const queryParams = this._transformIndexQueryParams(req.query);
-      
+
       const services = await this.serviceService.index(queryParams);
       res.json(services);
     } catch (err: any) {
@@ -30,15 +28,14 @@ class ServiceController {
     }
   }
 
-
   async indexPricings(req: any, res: any) {
     try {
-      let {pricingStatus} = req.query;
+      let { pricingStatus } = req.query;
       const serviceName = req.params.serviceName;
 
       if (!pricingStatus) {
         pricingStatus = 'active';
-      }else if (pricingStatus !== 'active' && pricingStatus !== 'archived') {
+      } else if (pricingStatus !== 'active' && pricingStatus !== 'archived') {
         res.status(400).send({ error: 'Invalid pricing status' });
         return;
       }
@@ -46,7 +43,6 @@ class ServiceController {
       const service = await this.serviceService.indexPricings(serviceName, pricingStatus);
 
       return res.json(service);
-
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
@@ -62,7 +58,6 @@ class ServiceController {
       const service = await this.serviceService.show(serviceName);
 
       return res.json(service);
-
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
@@ -76,11 +71,10 @@ class ServiceController {
     try {
       const serviceName = req.params.serviceName;
       const pricingVersion = req.params.pricingVersion;
-      
+
       const pricing = await this.serviceService.showPricing(serviceName, pricingVersion);
 
       return res.json(pricing);
-
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
@@ -101,7 +95,7 @@ class ServiceController {
           return;
         }
         service = await this.serviceService.create(req.body.pricing, 'url');
-      }else{
+      } else {
         service = await this.serviceService.create(req.file, 'file');
       }
       res.status(201).json(service);
@@ -120,7 +114,7 @@ class ServiceController {
       const serviceName = req.params.serviceName;
 
       const service = await this.serviceService.update(serviceName, newServiceData);
-      
+
       res.json(service);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
@@ -128,11 +122,30 @@ class ServiceController {
   }
 
   async prune(req: any, res: any) {
-    try{
+    try {
       const result = await this.serviceService.prune();
-      res.json({message: `Pruned ${result} services`});
-    }catch(err: any){
+      res.json({ message: `Pruned ${result} services` });
+    } catch (err: any) {
       res.status(500).send({ error: err.message });
+    }
+  }
+
+  async destroy(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const result = await this.serviceService.destroy(serviceName);
+
+      if (result) {
+        res.status(204).send();
+      } else {
+        res.status(404).send({ error: 'Service not found' });
+      }
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 
@@ -144,26 +157,18 @@ class ServiceController {
       page: parseInt(indexQueryParams['page'] as string) || 1,
       offset: parseInt(indexQueryParams['offset'] as string) || 0,
       limit: parseInt(indexQueryParams['limit'] as string) || 20,
-      order: indexQueryParams.order as 'asc' | 'desc' || 'asc',
+      order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
     };
 
-    const optionalFields = [
-      'name',
-      'page',
-      'offset',
-      'limit',
-      'order',
-    ] as const;
+    const optionalFields = ['name', 'page', 'offset', 'limit', 'order'] as const;
 
     optionalFields.forEach(field => {
       if (['name', 'order'].includes(field)) {
         if (!transformedData[field]) {
           delete transformedData[field];
         }
-      } else {
-        if (this._containsNaN(transformedData[field]!)) {
-          delete transformedData[field];
-        }
+      } else if (this._containsNaN(transformedData[field]!)) {
+        delete transformedData[field];
       }
     });
 

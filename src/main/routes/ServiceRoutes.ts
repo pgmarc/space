@@ -22,6 +22,7 @@ const loadFileRoutes = function (app: express.Application) {
     .route(baseUrl + '/services/:serviceName')
     .get(serviceController.show)
     .put(ServiceValidator.update, handleValidation, serviceController.update)
+    .delete(serviceController.destroy);
 
   app
     .route(baseUrl + '/services/:serviceName/pricings')

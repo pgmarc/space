@@ -189,9 +189,14 @@ class ServiceService {
     return updatedService;
   }
 
-  async destroy() {
-    // TODO: Implement method
-    return null;
+  async destroy(serviceName: string) {
+    const service = await this.serviceRepository.findByName(serviceName);
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`);
+    }
+    const result = await this.serviceRepository.destroy(service.id);
+
+    return result;
   }
 
   async prune(){

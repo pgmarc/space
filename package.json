@@ -1,7 +1,7 @@
 {
-  "name": "adaptia-api",
+  "name": "space-api",
   "version": "1.0.0",
-  "description": "Adaptia API is an open-source project designed to provide a robust and scalable API for various applications.",
+  "description": "SPACE API is an open-source project designed to provide a robust and scalable API for various applications.",
   "main": "src/main/index.ts",
   "scripts": {
     "dev": "tsx src/main/index.ts",
@@ -15,7 +15,7 @@
   "keywords": [
     "api",
     "open-source",
-    "adaptia",
+    "space",
     "nodejs",
     "typescript",
     "pricing",
@@ -25,12 +25,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Alex-GF/adaptia-api.git"
+    "url": "https://github.com/Alex-GF/space-api.git"
   },
   "bugs": {
-    "url": "https://github.com/Alex-GF/adaptia-api/issues"
+    "url": "https://github.com/Alex-GF/space-api/issues"
   },
-  "homepage": "https://github.com/Alex-GF/adaptia-api#readme",
+  "homepage": "https://github.com/Alex-GF/space-api#readme",
   "engines": {
     "node": ">=16.0.0"
   },
