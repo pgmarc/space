@@ -13,7 +13,7 @@ const pricingSchema = new Schema(
     features: { type: Map, of: Feature, required: true },
     usageLimits: { type: Map, of: UsageLimit },
     plans: { type: Map, of: Plan },
-    addOns: { type: Map, of: AddOn }
+    addOns: { type: Map, of: AddOn },
   },
   {
     toJSON: {

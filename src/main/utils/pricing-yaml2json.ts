@@ -1,4 +1,5 @@
 import { AddOn, Feature, Plan, Pricing, UsageLimit } from "pricing4ts";
+import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
 
 export interface ExpectedPricingType {
   version: string;
@@ -20,6 +21,11 @@ export interface ExpectedPricingType {
 
 export function parsePricingToSpacePricingObject(pricing: Pricing): ExpectedPricingType {
   const json: ExpectedPricingType = {} as ExpectedPricingType;
+  
+  validateLegalKeysInObject(pricing.features, "features");
+  validateLegalKeysInObject(pricing.usageLimits || {}, "usageLimits");
+  validateLegalKeysInObject(pricing.plans || {}, "plans");
+  validateLegalKeysInObject(pricing.addOns || {}, "addOns");
 
   json.version = pricing.version;
   json.currency = pricing.currency;

@@ -10,4 +10,12 @@ const update = [
     .trim()
 ];
 
-export { update };
+function validateLegalKeysInObject(object: any, objectName: string): void {
+  for (const key of Object.keys(object)) {
+    if (/[^\w-]/.test(key)) {
+      throw new Error(`Invalid key in ${objectName}: "${key}". Keys must not contain "." or other invalid characters.`);
+    }
+  }
+}
+
+export { update, validateLegalKeysInObject };

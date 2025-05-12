@@ -16,6 +16,7 @@ const featureSchema = new Schema(
     expression: { type: String },
     serverExpression: { type: String },
     render: { type: String, enum: ["AUTO", "ENABLED", "DISABLED"], required: true, default: "AUTO" },
+    tag: { type: String }
   },
   { _id: false } // importante: no quieres _id en cada feature si son embebidos
 );
