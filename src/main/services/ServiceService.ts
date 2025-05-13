@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
-import { Service } from '../../types/models/Service';
+import { LeanService } from '../types/models/Service';
 // import CacheService from "./CacheService";
 
 class ServiceService {
@@ -128,7 +128,7 @@ class ServiceService {
   }
 
   async _createFromFile(pricingFile: any, serviceName?: string) {
-    let service: Service | null = null;
+    let service: LeanService | null = null;
 
     // Step 1: Parse and validate pricing
 

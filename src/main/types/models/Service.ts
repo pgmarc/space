@@ -3,7 +3,7 @@ export interface PricingEntry {
   url: string;
 }
 
-export interface Service {
+export interface LeanService {
   name: string;
   activePricings: Record<string, PricingEntry>;
   archivedPricings: Record<string, PricingEntry>;

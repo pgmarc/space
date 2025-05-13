@@ -1,9 +1,7 @@
-import mongoose from 'mongoose';
-
 import RepositoryBase from '../RepositoryBase';
 import PricingMongoose from './models/PricingMongoose';
 import ServiceMongoose from './models/ServiceMongoose';
-import { Service } from '../../../types/models/Service';
+import { LeanService } from '../../types/models/Service';
 import { toPlainObject } from '../../utils/mongoose';
 
 export type ServiceQueryFilters = {
@@ -23,18 +21,18 @@ class ServiceRepository extends RepositoryBase {
     })
       .skip(offset == 0 ? (page - 1) * limit : offset)
       .limit(limit)
-      .sort({ name: order === 'asc' ? 1 : -1 })
+      .sort({ name: order === 'asc' ? 1 : -1 });
     
     return services.map((service) => service.toJSON());
   }
 
-  async findByName(name: string): Promise<Service | null> {
+  async findByName(name: string): Promise<LeanService | null> {
     const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' }  });
     if (!service) {
       return null;
     }
 
-    return toPlainObject<Service>(service.toJSON());
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
   async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[]) {
@@ -48,9 +46,9 @@ class ServiceRepository extends RepositoryBase {
 
   async create(data: any, ...args: any) {
     
-    const service = await ServiceMongoose.insertOne(data)
+    const service = await ServiceMongoose.insertOne(data);
     
-    return toPlainObject<Service>(service.toJSON());
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
   async update(name: string, data: any, ...args: any) {
@@ -62,7 +60,7 @@ class ServiceRepository extends RepositoryBase {
     service.set(data);
     await service.save();
 
-    return toPlainObject<Service>(service.toJSON());
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
   async destroy(name: string, ...args: any) {

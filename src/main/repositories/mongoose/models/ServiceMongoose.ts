@@ -8,7 +8,7 @@ const pricingDataSchema = new Schema(
     },
     url: { type: String },
   }
-)
+);
 
 const serviceSchema = new Schema(
   {

@@ -14,14 +14,14 @@ const addOnUsageLimitsSchema = new Schema(
     name: { type: String, required: true },
     value: { type: Schema.Types.Mixed, required: true }, // boolean or number
   }
-)
+);
 
 const addOnUsagelimitsExtensionsSchema = new Schema(
   {
     name: { type: String, required: true },
     value: { type: Number, required: true }, // number
   }
-)
+);
 
 const addOnSchema = new Schema(
   {

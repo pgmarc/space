@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { faker } from '@faker-js/faker';
 import {
   TestFeature,
@@ -6,11 +6,10 @@ import {
   TestPlan,
   TestAddOn,
   TestPricing,
-} from '../../../types/models/Pricing';
+} from '../../types/models/Pricing';
 import yaml from 'js-yaml';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import { mkdir } from 'fs/promises';
 import fs from 'fs';
 
 export async function generatePricingFile(serviceName?: string, version?: string): Promise<string> {
@@ -115,7 +114,7 @@ export function generatePricing(version?: string): TestPricing {
 
         const usageLimitExtensions = Object.values(usageLimits)
         .filter(usageLimit => randomUsageLimitKeysExtensions.includes(usageLimit.name))
-        .filter(usageLimit => usageLimit.valueType === 'NUMERIC')
+        .filter(usageLimit => usageLimit.valueType === 'NUMERIC');
 
         if (usageLimitExtensions.length > 0) {
           addOns[addOnName] = generateAddOn(

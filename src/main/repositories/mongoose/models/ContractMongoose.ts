@@ -2,18 +2,17 @@ import mongoose, { Schema } from 'mongoose';
 
 const consumptionLevelSchema = new Schema(
   {
-    usageLimitName: { type: String, required: true },
     resetTimeStamp: { type: Date, required: true },
     consumed: { type: Number, required: true },
   },
   { _id: false }
-)
+);
 
 const contractedServiceSchema = new Schema(
   {
     path: { type: String, required: true },
   }
-)
+);
 
 const contractSchema = new Schema(
   {
@@ -31,7 +30,7 @@ const contractSchema = new Schema(
       autoRenew: { type: Boolean, default: false },
       renewalDays: { type: Number, default: 30 },
     },
-    quotaConsumption: {type: Map, of: consumptionLevelSchema},
+    usageLevels: {type: Map, of: consumptionLevelSchema},
     contractedServices: {type: Map, of: contractedServiceSchema},
     subscriptionPlans: { type: Map, of: String },
     subscriptionAddOns: { type: Map, of: {type: Map, of: Number} },
@@ -56,7 +55,7 @@ const contractSchema = new Schema(
 );
 
 // Adding unique index for [name, owner, version]
-contractSchema.index({ userId: 1 }, { unique: true });
+contractSchema.index({ 'userContact.userId': 1 }, { unique: true });
 
 const contractModel = mongoose.model('Contract', contractSchema, 'contracts');
 
