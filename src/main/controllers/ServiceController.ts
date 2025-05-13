@@ -13,9 +13,11 @@ class ServiceController {
     this.showPricing = this.showPricing.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
+    this.updatePricingAvailability = this.updatePricingAvailability.bind(this);
     this.addPricingToService = this.addPricingToService.bind(this);
     this.prune = this.prune.bind(this);
     this.destroy = this.destroy.bind(this);
+    this.destroyPricing = this.destroyPricing.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -148,6 +150,39 @@ class ServiceController {
     }
   }
 
+  async updatePricingAvailability(req: any, res: any) {
+    try{
+      const serviceName = req.params.serviceName;
+      const pricingVersion = req.params.pricingVersion;
+      const newAvailability = req.query.availability ?? "archived";
+
+      if (!newAvailability) {
+        res.status(400).send({ error: 'No availability provided' });
+        return;
+      }else if (newAvailability !== 'active' && newAvailability !== 'archived') {
+        res.status(400).send({ error: 'Invalid availability status. Either provide "active" or "archived"' });
+        return;
+      }else{
+        const service = await this.serviceService.updatePricingAvailability(
+          serviceName,
+          pricingVersion,
+          newAvailability
+        );
+
+        res.json(service);
+      }
+
+    }catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('last active pricing')) {
+        res.status(400).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
   async prune(req: any, res: any) {
     try {
       const result = await this.serviceService.prune();
@@ -168,6 +203,27 @@ class ServiceController {
         res.status(404).send({ error: 'Service not found' });
       }
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async destroyPricing(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const pricingVersion = req.params.pricingVersion;
+
+      const result = await this.serviceService.destroyPricing(serviceName, pricingVersion);
+
+      if (result) {
+        res.status(204).send();
+      } else {
+        res.status(404).send({ error: 'Pricing not found' });
+      }
+    }catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else {

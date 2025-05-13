@@ -32,6 +32,8 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/services/:serviceName/pricings/:pricingVersion')
     .get(serviceController.showPricing)
+    .put(serviceController.updatePricingAvailability)
+    .delete(serviceController.destroyPricing);
 };
 
 export default loadFileRoutes;

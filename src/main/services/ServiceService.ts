@@ -261,6 +261,54 @@ class ServiceService {
     return updatedService;
   }
 
+  async updatePricingAvailability(serviceName: string, pricingVersion: string, newAvailability: "active" | "archived") {
+    const service = await this.serviceRepository.findByName(serviceName);
+
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`);
+    }
+
+    if (newAvailability === "active" && service.activePricings[pricingVersion] ||
+      newAvailability === "archived" && service.archivedPricings[pricingVersion]
+    ) {
+      return service;
+    }
+
+    if (newAvailability === "archived" && Object.keys(service.activePricings).length === 1 && service.activePricings[pricingVersion]){
+      throw new Error(`You cannot archive the last active pricing for service ${serviceName}`);
+    }
+
+    const pricingLocator =
+      service.activePricings[pricingVersion] ?? service.archivedPricings[pricingVersion];
+
+    if (!pricingLocator) {
+      throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
+    }
+
+    let updatedService;
+
+    // TODO: Novate all contracts to the latest version
+
+    if (newAvailability === 'active') {
+      updatedService = await this.serviceRepository.update(service.name, {
+        [`activePricings.${pricingVersion}`]: pricingLocator,
+        [`archivedPricings.${pricingVersion}`]: undefined,
+      });
+    } else {
+      updatedService = await this.serviceRepository.update(service.name, {
+        [`activePricings.${pricingVersion}`]: undefined,
+        [`archivedPricings.${pricingVersion}`]: pricingLocator,
+      });
+    }
+
+    return updatedService;
+  }
+
+  async prune() {
+    const result = await this.serviceRepository.prune();
+    return result;
+  }
+
   async destroy(serviceName: string) {
     const service = await this.serviceRepository.findByName(serviceName);
     if (!service) {
@@ -271,9 +319,30 @@ class ServiceService {
     return result;
   }
 
-  async prune() {
-    const result = await this.serviceRepository.prune();
+  async destroyPricing(serviceName: string, pricingVersion: string) {
+    const service = await this.serviceRepository.findByName(serviceName);
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`);
+    }
+
+    const pricingLocator =
+      service.activePricings[pricingVersion] || service.archivedPricings[pricingVersion];
+
+    if (!pricingLocator) {
+      throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
+    }
+
+    if (pricingLocator.id) {
+      await this.pricingRepository.destroy(pricingLocator.id);
+    }
+
+    const result = await this.serviceRepository.update(service.name, {
+      [`activePricings.${pricingVersion}`]: undefined,
+      [`archivedPricings.${pricingVersion}`]: undefined,
+    });
+
     return result;
+
   }
 
   async _getPricingFromUrl(url: string) {
