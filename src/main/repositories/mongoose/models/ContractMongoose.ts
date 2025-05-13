@@ -2,16 +2,10 @@ import mongoose, { Schema } from 'mongoose';
 
 const consumptionLevelSchema = new Schema(
   {
-    resetTimeStamp: { type: Date, required: true },
+    resetTimeStamp: { type: Date },
     consumed: { type: Number, required: true },
   },
   { _id: false }
-);
-
-const contractedServiceSchema = new Schema(
-  {
-    path: { type: String, required: true },
-  }
 );
 
 const contractSchema = new Schema(
@@ -31,13 +25,13 @@ const contractSchema = new Schema(
       renewalDays: { type: Number, default: 30 },
     },
     usageLevels: {type: Map, of: consumptionLevelSchema},
-    contractedServices: {type: Map, of: contractedServiceSchema},
+    contractedServices: {type: Map, of: String},
     subscriptionPlans: { type: Map, of: String },
     subscriptionAddOns: { type: Map, of: {type: Map, of: Number} },
     history: [{
       startDate: { type: Date, required: true },
       endDate: { type: Date, required: true },
-      contractedServices: {type: Map, of: contractedServiceSchema},
+      contractedServices: {type: Map, of: String},
       subscriptionPlans: { type: Map, of: String },
       subscriptionAddOns: { type: Map, of: {type: Map, of: Number} },
     }]

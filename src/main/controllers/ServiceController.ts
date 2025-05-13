@@ -1,6 +1,7 @@
 import container from '../config/container.js';
 import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
+import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 
 class ServiceController {
   private readonly serviceService: ServiceService;
@@ -245,23 +246,11 @@ class ServiceController {
       order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
     };
 
-    const optionalFields = ['name', 'page', 'offset', 'limit', 'order'] as const;
+    const optionalFields = Object.keys(transformedData);
 
-    optionalFields.forEach(field => {
-      if (['name', 'order'].includes(field)) {
-        if (!transformedData[field]) {
-          delete transformedData[field];
-        }
-      } else if (this._containsNaN(transformedData[field]!)) {
-        delete transformedData[field];
-      }
-    });
+    removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
 
     return transformedData;
-  }
-
-  _containsNaN(attr: any): boolean {
-    return Object.values(attr).every(value => Number.isNaN(value));
   }
 }
 

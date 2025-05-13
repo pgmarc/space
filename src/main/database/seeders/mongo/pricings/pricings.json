@@ -1322,6 +1322,20 @@
         "linkedFeatures": ["meetings"],
         "render": "AUTO"
       },
+      "totalAttendeesPerMonth": {
+        "name": "totalAttendeesPerMonth",
+        "description": "",
+        "valueType": "NUMERIC",
+        "defaultValue": 1000,
+        "unit": "participant",
+        "type": "RENEWABLE",
+        "linkedFeatures": ["meetings"],
+        "render": "AUTO",
+        "period": {
+          "unit": "month",
+          "value": 1
+        }
+      },
       "minLicenses": {
         "name": "minLicenses",
         "description": "",
@@ -1368,7 +1382,8 @@
         "unit": "GB",
         "type": "NON_RENEWABLE",
         "linkedFeatures": ["cloudRecording", "cloudStorage"],
-        "render": "AUTO"
+        "render": "AUTO",
+        "trackable": true
       },
       "zoomWhiteBoardsLimit": {
         "name": "zoomWhiteBoardsLimit",
@@ -8595,6 +8610,24 @@
         "private": false,
         "features": {},
         "usageLimitsExtensions": {}
+      },
+      "extraSeats": {
+        "name": "extraSeats",
+        "description": "",
+        "availableFor": ["BASIC", "PRO", "BUSINESS", "BUSINESS_PLUS", "ENTERPRISE"],
+        "price": 1,
+        "unit": "/seat/month",
+        "usageLimitsExtensions": {
+          "totalAttendeesPerMonth": {
+            "name": "totalAttendeesPerMonth",
+            "value": 1
+          }
+        },
+        "dependsOn": [],
+        "excludes": [],
+        "private": false,
+        "features": {},
+        "usageLimits": {}
       },
       "zoomScheduler": {
         "name": "zoomScheduler",

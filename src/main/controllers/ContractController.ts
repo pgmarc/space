@@ -1,5 +1,7 @@
 import container from '../config/container';
 import ContractService from '../services/ContractService';
+import { ContractQueryFilters } from '../types/models/Contract';
+import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils';
 
 class ContractController {
   private readonly contractService: ContractService;
@@ -13,8 +15,8 @@ class ContractController {
     try {
       const queryParams = this._transformIndexQueryParams(req.query);
 
-      const services = await this.contractService.index(queryParams);
-      res.json(services);
+      const contracts = await this.contractService.index(queryParams);
+      res.json(contracts);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
     }
@@ -22,32 +24,29 @@ class ContractController {
 
   _transformIndexQueryParams(
     indexQueryParams: Record<string, string | number>
-  ): any {
-    const transformedData: any = {
-      name: indexQueryParams.name as string,
+  ): ContractQueryFilters {
+    const transformedData: ContractQueryFilters = {
+      userId: indexQueryParams.userId as string,
+      username: indexQueryParams.username as string,
+      firstName: indexQueryParams.firstName as string,
+      lastName: indexQueryParams.lastName as string,
+      email: indexQueryParams.email as string,
       page: parseInt(indexQueryParams['page'] as string) || 1,
       offset: parseInt(indexQueryParams['offset'] as string) || 0,
       limit: parseInt(indexQueryParams['limit'] as string) || 20,
+      sort: indexQueryParams.sort as
+        | 'firstName'
+        | 'lastName'
+        | 'username'
+        | 'email',
       order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
     };
 
-    const optionalFields = ['name', 'page', 'offset', 'limit', 'order'] as const;
+    const optionalFields: string[] = Object.keys(transformedData);
 
-    optionalFields.forEach(field => {
-      if (['name', 'order'].includes(field)) {
-        if (!transformedData[field]) {
-          delete transformedData[field];
-        }
-      } else if (this._containsNaN(transformedData[field]!)) {
-        delete transformedData[field];
-      }
-    });
+    removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
 
     return transformedData;
-  }
-
-  _containsNaN(attr: any): boolean {
-    return Object.values(attr).every(value => Number.isNaN(value));
   }
 }
 

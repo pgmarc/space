@@ -36,3 +36,20 @@ export interface LeanContract {
   subscriptionAddOns: Record<string, Record<string, number>>;
   history: ContractHistoryEntry[];
 }
+
+export interface ContractQueryFilters {
+  userId?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  page?: number;
+  offset?: number;
+  limit?: number;
+  sort?: 
+    | 'firstName'
+    | 'lastName'
+    | 'username'
+    | 'email'
+  order?: 'asc' | 'desc';
+}
