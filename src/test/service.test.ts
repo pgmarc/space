@@ -234,7 +234,7 @@ describe('Services API Test Suite', function () {
       const previousActivePricingsAmount = Object.keys(responseBefore.body.activePricings).length;
       
       const response = await request(app).post(`/api/services/${testService}/pricings`).send({ pricing: "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2025.yml"});
-      console.log(response.body);
+      
       expect(response.status).toEqual(201);
       expect(responseBefore.body.activePricings).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).toBeGreaterThan(previousActivePricingsAmount);
