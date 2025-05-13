@@ -325,6 +325,10 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
+    if (Object.keys(service.activePricings).length === 1 && service.activePricings[pricingVersion]){
+      throw new Error(`You cannot delete the last active pricing for service ${serviceName}`);
+    }
+
     const pricingLocator =
       service.activePricings[pricingVersion] || service.archivedPricings[pricingVersion];
 

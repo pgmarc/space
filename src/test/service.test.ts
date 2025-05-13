@@ -379,6 +379,15 @@ describe('Services API Test Suite', function () {
       expect(responseDelete.status).toEqual(404);
       expect(responseDelete.body.error).toBe(`Pricing version invalid not found for service ${testService}`);
     });
+
+    it('Should return 400: Given last active pricing', async function () {
+
+      await request(app).delete(`/api/services/${testService}/pricings/2023`)
+
+      const responseDelete = await request(app).delete(`/api/services/${testService}/pricings/2024`);
+      expect(responseDelete.status).toEqual(400);
+      expect(responseDelete.body.error).toBe(`You cannot delete the last active pricing for service ${testService}`);
+    });
   })
 
   describe('DELETE /services', function () {
