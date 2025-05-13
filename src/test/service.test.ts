@@ -27,7 +27,7 @@ describe('Services API Test Suite', function () {
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
     });
-  })
+  });
 
   describe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
@@ -64,7 +64,7 @@ describe('Services API Test Suite', function () {
         .post('/api/services')
         .send({
           pricing: "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml",
-        })
+        });
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
@@ -72,7 +72,7 @@ describe('Services API Test Suite', function () {
       expect((Object.values(response.body.activePricings)[0] as any).url).toBeDefined();
       expect(response.body.archivedPricings).toBeUndefined();
     });
-  })
+  });
 
   describe('GET /services/{serviceName}', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
@@ -94,7 +94,7 @@ describe('Services API Test Suite', function () {
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe("Service unexistent-service not found");
     });
-  })
+  });
 
   describe('PUT /services/{serviceName}', function () {
     it('Should return 200 and the updated pricing', async function () {
@@ -129,7 +129,7 @@ describe('Services API Test Suite', function () {
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe("Service unexistent-service not found");
     });
-  })
+  });
 
   describe('DELETE /services/{serviceName}', function () {
     it('Should return 204', async function () {
@@ -146,7 +146,7 @@ describe('Services API Test Suite', function () {
       const responseAfter = await request(app).get(`/api/services/${createdService.name}`);
       expect(responseAfter.status).toEqual(404);
     });
-  })
+  });
 
   describe('GET /services/{serviceName}/pricings', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
@@ -200,7 +200,7 @@ describe('Services API Test Suite', function () {
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe("Service unexistent-service not found");
     });
-  })
+  });
 
   describe('POST /services/{serviceName}/pricings', function () {
     
@@ -241,9 +241,9 @@ describe('Services API Test Suite', function () {
     });
 
     afterEach(async function () {
-      await request(app).delete(`/api/services/${testService}/pricings/${versionToAdd}`)
-    })
-  })
+      await request(app).delete(`/api/services/${testService}/pricings/${versionToAdd}`);
+    });
+  });
 
   describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
@@ -283,7 +283,7 @@ describe('Services API Test Suite', function () {
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe(`Pricing version unexistent-version not found for service ${testService}`);
     });
-  })
+  });
 
   describe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
     
@@ -349,8 +349,8 @@ describe('Services API Test Suite', function () {
 
     afterEach(async function () {
       await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}?availability=active`);
-    })
-  })
+    });
+  });
 
   describe('DELETE /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 204', async function () {
@@ -382,19 +382,19 @@ describe('Services API Test Suite', function () {
 
     it('Should return 400: Given last active pricing', async function () {
 
-      await request(app).delete(`/api/services/${testService}/pricings/2023`)
+      await request(app).delete(`/api/services/${testService}/pricings/2023`);
 
       const responseDelete = await request(app).delete(`/api/services/${testService}/pricings/2024`);
       expect(responseDelete.status).toEqual(400);
       expect(responseDelete.body.error).toBe(`You cannot delete the last active pricing for service ${testService}`);
     });
-  })
+  });
 
   describe('DELETE /services', function () {
     it('Should return 200', async function () {
       // Checks if there are services to delete
       const responseIndexBeforeDelete = await request(app)
-        .get('/api/services')
+        .get('/api/services');
 
       expect(responseIndexBeforeDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexBeforeDelete.body)).toBe(true);
@@ -402,18 +402,18 @@ describe('Services API Test Suite', function () {
 
       // Deletes all services
       const responseDelete = await request(app)
-        .delete('/api/services')
+        .delete('/api/services');
       expect(responseDelete.status).toEqual(200);
 
       // Checks if there are no services after delete
       const responseIndexAfterDelete = await request(app)
-        .get('/api/services')
+        .get('/api/services');
 
       expect(responseIndexAfterDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexAfterDelete.body)).toBe(true);
       expect(responseIndexAfterDelete.body.length).toBe(0);
     });
-  })
+  });
 
   afterAll(async function () {
     await shutdownApp();

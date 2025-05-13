@@ -70,7 +70,7 @@ async function createService(testService?: string){
 
 async function createRandomService(){
   const app = await getApp();
-  const pricingFilePath = await generatePricingFile(faker.word.noun())
+  const pricingFilePath = await generatePricingFile(faker.word.noun());
   const response = await request(app)
           .post('/api/services')
           .attach('pricing', pricingFilePath);
