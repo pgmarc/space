@@ -3,7 +3,7 @@ import request from 'supertest';
 import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
-import { generateContract } from './utils/contracts/contracts';
+import { generateContract, getAllContracts } from './utils/contracts/contracts';
 
 dotenv.config();
 
@@ -74,6 +74,20 @@ describe('Contract API Test Suite', function () {
       expect(response.body.error).toContain('not found');
     });
   });
+
+  describe('DELETE /contracts', function () {
+    it('Should return 204 and delete all contracts', async function () {
+      const servicesBefore = await getAllContracts(app);
+      expect(servicesBefore.length).toBeGreaterThan(0);
+
+      await request(app)
+        .delete('/api/contracts')
+        .expect(204);
+
+      const servicesAfter = await getAllContracts(app);
+      expect(servicesAfter.length).toBe(0);
+    });
+  })
 
   afterAll(async function () {
     await shutdownApp();

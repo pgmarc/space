@@ -16,6 +16,7 @@ const loadFileRoutes = function (app: express.Application) {
     .route(baseUrl + '/contracts')
     .get(contractController.index)
     .post(ContractValidator.create, handleValidation, contractController.create)
+    .delete(contractController.prune);
 
   app
     .route(baseUrl + '/contracts/:userId')

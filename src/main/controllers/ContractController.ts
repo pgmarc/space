@@ -11,6 +11,7 @@ class ContractController {
     this.index = this.index.bind(this);
     this.show = this.show.bind(this);
     this.create = this.create.bind(this);
+    this.prune = this.prune.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -45,6 +46,19 @@ class ContractController {
       res.status(201).json(contract);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
+    }
+  }
+
+  async prune(req: any, res: any) {
+    try {
+      const result: number = await this.contractService.prune();
+      res.status(204).json({ message: `Deleted ${result} contracts successfully` });
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 

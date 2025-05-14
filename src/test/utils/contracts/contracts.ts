@@ -4,6 +4,33 @@ import { createRandomService, getPricingFromService } from '../services/service'
 import { TestService } from '../../types/models/Service';
 import { TestAddOn } from '../../types/models/Pricing';
 import { getApp } from '../testApp';
+import request from 'supertest';
+
+async function getAllContracts(app?: any): Promise<any[]> {
+  
+  let copyApp = app;
+  
+  if (!app) {
+    copyApp = await getApp();
+  }
+  
+  const response = await request(copyApp)
+    .get('/api/contracts')
+    .expect(200);
+
+  return response.body;
+}
+
+async function getRandomContract(app?: any): Promise<any[]> {
+  
+  const contracts = await getAllContracts(app);
+
+  const randomIndex = faker.number.int({ min: 0, max: contracts.length - 1 });
+
+  return contracts[randomIndex];
+}
+
+
 
 async function generateContract(userId?: string, app?: any): Promise<ContractToCreate> {
   let appCopy = app;
@@ -115,4 +142,4 @@ function _solveAddOnDependenciesAndExclusions(
   }
 }
 
-export { generateContract };
+export { generateContract, getAllContracts, getRandomContract };

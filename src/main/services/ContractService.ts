@@ -59,6 +59,12 @@ class ContractService {
     return contract;
   }
 
+  async prune(): Promise<number> {
+    const result: number = await this.contractRepository.prune();
+
+    return result;
+  }
+
   async _createUsageLevels(services: Record<string, string>): Promise<Record<string, UsageLevel>> {
     const usageLevels: Record<string, UsageLevel> = {};
     

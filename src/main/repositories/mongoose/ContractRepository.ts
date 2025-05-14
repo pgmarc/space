@@ -42,6 +42,14 @@ class ContractRepository extends RepositoryBase {
     await contract.save();
     return toPlainObject<LeanContract>(contract.toJSON());
   }
+
+  async prune(): Promise<number> {
+    const result = await ContractMongoose.deleteMany({});
+    if (result.deletedCount === 0) {
+      throw new Error('No contracts found to delete');
+    }
+    return result.deletedCount;
+  }
 }
 
 export default ContractRepository;
