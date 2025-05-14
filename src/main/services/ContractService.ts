@@ -54,7 +54,7 @@ class ContractService {
       history: [],
     };
     try{
-      isSubscriptionValid({
+      await isSubscriptionValid({
         contractedServices: contractData.contractedServices,
         subscriptionPlans: contractData.subscriptionPlans,
         subscriptionAddOns: contractData.subscriptionAddOns,

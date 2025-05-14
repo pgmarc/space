@@ -32,7 +32,8 @@ const initializeServer = async (): Promise<{
   app: Application;
 }> => {
   const app: Application = await initializeApp();
-  const port = process.env.SERVER_PORT || 3000;
+  const port = process.env.SERVER_PORT || 3000; 
+
   // Using a promise to ensure the server is started before returning it
   const server: Server = await new Promise((resolve, reject) => {
     const server = app.listen(port, (err?: Error) => {

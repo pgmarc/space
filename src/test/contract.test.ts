@@ -40,6 +40,7 @@ describe('Contract API Test Suite', function () {
       const contractToCreate = await generateContract(undefined, app);
       const response = await request(app).post(`/api/contracts`).send(contractToCreate);
 
+      expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
       expect(response.body.userContact.userId).toBe(contractToCreate.userContact.userId);
       expect(response.body).toHaveProperty('billingPeriod');

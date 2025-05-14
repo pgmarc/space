@@ -14,13 +14,9 @@ const getApp = async (): Promise<Server> => {
   return testServer;
 };
 
-const useApp = (app?: any) => {
-  let appCopy = app;
-  if (!app) {
-    appCopy = testApp;
-  }
+const useApp = async (app?: any) => {
 
-  return appCopy;
+  return app ?? (await getApp());
 }
 
 const shutdownApp = async () => {

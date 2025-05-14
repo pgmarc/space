@@ -116,7 +116,7 @@ async function _generateSubscriptionAddOns(
   subscriptionPlans: Record<string, string>,
   app?: any
 ): Promise<Record<string, Record<string, number>>> {
-  let appCopy = useApp(app);
+  let appCopy = await useApp(app);
 
   const subscriptionAddOns: Record<string, Record<string, number>> = {};
 
