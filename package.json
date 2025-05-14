@@ -5,7 +5,7 @@
   "main": "src/main/index.ts",
   "scripts": {
     "dev": "tsx src/main/index.ts",
-    "test": "vitest --run src/test/contract.test.ts && vitest --run src/test/service.test.ts",
+    "test": "chmod +x run-tests.sh && ./run-tests.sh",
     "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
