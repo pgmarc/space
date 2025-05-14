@@ -3,10 +3,6 @@ import request from 'supertest';
 import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
-import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
-import { createRandomService, createService, getPricingFile } from './utils/services/service';
-import { zoomPricingPath } from './utils/services/ServiceTestData';
-import { retrievePricingFromPath } from 'pricing4ts/server';
 
 dotenv.config();
 
@@ -20,9 +16,17 @@ describe('Contract API Test Suite', function () {
   });
 
   describe('GET /contracts', function () {
-    it('Should return 200 and the services', async function () {
-      // TODO: Add a test for the contract API
+    it('Should return 200 and the contracts', async function () {
+      const response = await request(app)
+        .get('/api/contracts')
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
     });
+
+    // TODO: Test Contract filters
   });
 
   afterAll(async function () {

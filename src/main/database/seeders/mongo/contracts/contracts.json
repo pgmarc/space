@@ -1,55 +1,164 @@
-{
-  "userContact": {
-    "userId": "9cd3c5c9-f5df-4307-a5b7-b51386228180",
-    "username": "jdoe",
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "jdoe@example.com",
-    "phone": "+1234567890"
-  },
-  "billingPeriod": {
-    "startDate": "2025-05-01T00:00:00.000Z",
-    "endDate": "2025-06-01T00:00:00.000Z",
-    "autoRenew": true,
-    "renewalDays": 30
-  },
-  "usageLevels": {
-    "totalAttendeesPerMonth": {
-      "resetTimeStamp": "2025-05-01T00:00:00.000Z",
-      "consumed": 650
+[
+  {
+    "userContact": {
+      "userId": "9cd3c5c9-f5df-4307-a5b7-b51386228180",
+      "username": "jdoe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "jdoe@example.com",
+      "phone": "+1234567890"
     },
-    "maxCloudRecordingSize": {
-      "consumed": 1
-    }
-  },
-  "contractedServices": {
-    "zoom": "2024"
-  },
-  "subscriptionPlans": {
-    "zoom": "PRO"
-  },
-  "subscriptionAddOns": {
-    "zoom": {
-      "largeMeetings": 1,
-      "extraSeats": 30,
-      "zoomClipsPlus": 1
-    }
-  },
-  "history": [
-    {
-      "startDate": "2025-04-01T00:00:00.000Z",
-      "endDate": "2025-05-01T00:00:00.000Z",
-      "contractedServices": {
-        "zoom": "2023"
+    "billingPeriod": {
+      "startDate": "2025-05-01T00:00:00.000Z",
+      "endDate": "2025-06-01T00:00:00.000Z",
+      "autoRenew": true,
+      "renewalDays": 30
+    },
+    "usageLevels": {
+      "totalAttendeesPerMonth": {
+        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
+        "consumed": 650
       },
-      "subscriptionPlans": {
-        "basic": "BUSINESS"
-      },
-      "subscriptionAddOns": {
-        "zoom": {
-          "largeMeetings": 1
+      "maxCloudRecordingSize": {
+        "consumed": 1
+      }
+    },
+    "contractedServices": {
+      "zoom": "2024"
+    },
+    "subscriptionPlans": {
+      "zoom": "PRO"
+    },
+    "subscriptionAddOns": {
+      "zoom": {
+        "largeMeetings": 1,
+        "extraSeats": 30,
+        "zoomClipsPlus": 1
+      }
+    },
+    "history": [
+      {
+        "startDate": "2025-04-01T00:00:00.000Z",
+        "endDate": "2025-05-01T00:00:00.000Z",
+        "contractedServices": {
+          "zoom": "2023"
+        },
+        "subscriptionPlans": {
+          "basic": "BUSINESS"
+        },
+        "subscriptionAddOns": {
+          "zoom": {
+            "largeMeetings": 1
+          }
         }
       }
-    }
-  ]
-}
+    ]
+  },
+  {
+    "userContact": {
+      "userId": "d7a4e77e-8fc4-4b6c-b60d-1de4a75d1234",
+      "username": "asmith",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "email": "asmith@university.edu",
+      "phone": "+1987654321"
+    },
+    "billingPeriod": {
+      "startDate": "2025-05-01T00:00:00.000Z",
+      "endDate": "2025-06-01T00:00:00.000Z",
+      "autoRenew": true,
+      "renewalDays": 30
+    },
+    "usageLevels": {
+      "totalAttendeesPerMonth": {
+        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
+        "consumed": 120
+      },
+      "maxCloudRecordingSize": {
+        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
+        "consumed": 5
+      }
+    },
+    "contractedServices": {
+      "zoom": "2024"
+    },
+    "subscriptionPlans": {
+      "zoom": "BUSINESS"
+    },
+    "subscriptionAddOns": {
+      "zoom": {
+        "zoomWhiteboard": 1,
+        "extraCloudRecordingStorage": 20
+      }
+    },
+    "history": [
+      {
+        "startDate": "2025-04-01T00:00:00.000Z",
+        "endDate": "2025-05-01T00:00:00.000Z",
+        "contractedServices": {
+          "zoom": "2024"
+        },
+        "subscriptionPlans": {
+          "zoom": "BASIC"
+        },
+        "subscriptionAddOns": {}
+      }
+    ]
+  },
+  {
+    "userContact": {
+      "userId": "4c119fa3-1552-4695-8919-ccd62f62ee20",
+      "username": "corpadmin",
+      "firstName": "Carlos",
+      "lastName": "Ramos",
+      "email": "admin@bigcorp.com",
+      "phone": "+34911222333"
+    },
+    "billingPeriod": {
+      "startDate": "2025-05-01T00:00:00.000Z",
+      "endDate": "2026-05-01T00:00:00.000Z",
+      "autoRenew": true,
+      "renewalDays": 360
+    },
+    "usageLevels": {
+      "totalAttendeesPerMonth": {
+        "resetTimeStamp": "2025-07-31T00:00:00.000Z",
+        "consumed": 3200
+      },
+      "maxCloudRecordingSize": {
+        "resetTimeStamp": "2025-07-31T00:00:00.000Z",
+        "consumed": 120
+      }
+    },
+    "contractedServices": {
+      "zoom": "2024"
+    },
+    "subscriptionPlans": {
+      "zoom": "ENTERPRISE"
+    },
+    "subscriptionAddOns": {
+      "zoom": {
+        "largeMeetings": 1,
+        "extraSeats": 10000,
+        "extraCloudRecordingStorage": 1000
+      }
+    },
+    "history": [
+      {
+        "startDate": "2025-03-01T00:00:00.000Z",
+        "endDate": "2025-05-01T00:00:00.000Z",
+        "contractedServices": {
+          "zoom": "2024"
+        },
+        "subscriptionPlans": {
+          "zoom": "ENTERPRISE"
+        },
+        "subscriptionAddOns": {
+          "zoom": {
+            "largeMeetings": 1
+          }
+        }
+      }
+    ]
+  }
+]

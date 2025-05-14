@@ -19,6 +19,7 @@ const withCommonDescribe = (name: string, fn: () => void) => {
   describe(name, () => {
     fn();
     afterAll(async () => {
+      // Disabled for now, but configured to be used in the future if needed
       // await resetDatabase();
     });
   });
