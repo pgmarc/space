@@ -4,7 +4,7 @@ import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
-import { createRandomService, createService, getPricingFile } from './utils/services/service';
+import { createRandomService, createService, getRandomPricingFile } from './utils/services/service';
 import { zoomPricingPath } from './utils/services/ServiceTestData';
 import { retrievePricingFromPath } from 'pricing4ts/server';
 
@@ -31,7 +31,7 @@ describe('Services API Test Suite', function () {
 
   describe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const pricingFilePath = getPricingFile();
+      const pricingFilePath = await getRandomPricingFile("zoom");
       const response = await request(app)
         .post('/api/services')
         .attach('pricing', pricingFilePath);
@@ -44,7 +44,7 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const createdService = await createService();
+      const createdService = await createRandomService();
       expect(Object.keys(createdService.activePricings).length).greaterThan(0);
       expect((Object.values(createdService.activePricings)[0] as any).id).toBeDefined();
       expect((Object.values(createdService.activePricings)[0] as any).url).toBeUndefined();
@@ -52,7 +52,7 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const createdService = await createService("github");
+      const createdService = await createRandomService();
       expect(Object.keys(createdService.activePricings).length).greaterThan(0);
       expect((Object.values(createdService.activePricings)[0] as any).id).toBeDefined();
       expect((Object.values(createdService.activePricings)[0] as any).url).toBeUndefined();

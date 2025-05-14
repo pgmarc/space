@@ -151,7 +151,10 @@ class ServiceService {
       }
     }
 
-    const pricingData: ExpectedPricingType = parsePricingToSpacePricingObject(uploadedPricing);
+    const pricingData: ExpectedPricingType & { _serviceName: string } = {
+      _serviceName: uploadedPricing.saasName,
+      ...parsePricingToSpacePricingObject(uploadedPricing),
+    };
 
     const validationErrors: string[] = validatePricingData(pricingData);
 
@@ -189,10 +192,10 @@ class ServiceService {
     }
 
     // Step 4: Link the pricing to the service
-    await this.pricingRepository.addServiceNameToPricing(
-      savedPricing.id!.toString(),
-      service!.name.toString()
-    );
+    // await this.pricingRepository.addServiceNameToPricing(
+    //   savedPricing.id!.toString(),
+    //   service!.name.toString()
+    // );
 
     // Step 5: If everythign was ok, remove the uploaded file
 
@@ -261,20 +264,29 @@ class ServiceService {
     return updatedService;
   }
 
-  async updatePricingAvailability(serviceName: string, pricingVersion: string, newAvailability: "active" | "archived") {
+  async updatePricingAvailability(
+    serviceName: string,
+    pricingVersion: string,
+    newAvailability: 'active' | 'archived'
+  ) {
     const service = await this.serviceRepository.findByName(serviceName);
 
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
 
-    if (newAvailability === "active" && service.activePricings[pricingVersion] ||
-      newAvailability === "archived" && service.archivedPricings[pricingVersion]
+    if (
+      (newAvailability === 'active' && service.activePricings[pricingVersion]) ||
+      (newAvailability === 'archived' && service.archivedPricings[pricingVersion])
     ) {
       return service;
     }
 
-    if (newAvailability === "archived" && Object.keys(service.activePricings).length === 1 && service.activePricings[pricingVersion]){
+    if (
+      newAvailability === 'archived' &&
+      Object.keys(service.activePricings).length === 1 &&
+      service.activePricings[pricingVersion]
+    ) {
       throw new Error(`You cannot archive the last active pricing for service ${serviceName}`);
     }
 
@@ -325,7 +337,10 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
-    if (Object.keys(service.activePricings).length === 1 && service.activePricings[pricingVersion]){
+    if (
+      Object.keys(service.activePricings).length === 1 &&
+      service.activePricings[pricingVersion]
+    ) {
       throw new Error(`You cannot delete the last active pricing for service ${serviceName}`);
     }
 
@@ -346,7 +361,6 @@ class ServiceService {
     });
 
     return result;
-
   }
 
   async _getPricingFromUrl(url: string) {

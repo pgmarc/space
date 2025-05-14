@@ -6,13 +6,8 @@ import { generatePricingFile } from './pricing';
 import { faker } from '@faker-js/faker';
 
 
-function getPricingFile(){
-  const filePath = zoomPricingPath;
-  if (fs.existsSync(filePath)) {
-    return filePath;
-  } else {
-    throw new Error(`File not found at ${filePath}`);
-  }
+function getRandomPricingFile(name?: string){
+  return generatePricingFile(name, undefined);
 }
 
 /**
@@ -83,4 +78,4 @@ async function createRandomService(){
   return service;
 }
 
-export {getPricingFile, createService, createRandomService};
+export {getRandomPricingFile, createService, createRandomService};
