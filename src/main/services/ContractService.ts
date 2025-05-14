@@ -21,6 +21,14 @@ class ContractService {
     const contracts: LeanContract[] = await this.contractRepository.findAll(queryParams);
     return contracts;
   }
+
+  async show(userId: string): Promise<LeanContract> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+    return contract;
+  }
 }
 
 export default ContractService;

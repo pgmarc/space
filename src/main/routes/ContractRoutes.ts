@@ -14,6 +14,10 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/contracts')
     .get(contractController.index);
+
+  app
+    .route(baseUrl + '/contracts/:userId')
+    .get(contractController.show)
 };
 
 export default loadFileRoutes;

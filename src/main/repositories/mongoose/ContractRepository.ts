@@ -31,6 +31,11 @@ class ContractRepository extends RepositoryBase {
 
     return contracts.map(contract => toPlainObject<LeanContract>(contract.toJSON()));
   }
+
+  async findByUserId(userId: string): Promise<LeanContract | null> {
+    const contract = await ContractMongoose.findOne({ 'userContact.userId': userId });
+    return contract ? toPlainObject<LeanContract>(contract.toJSON()) : null;
+  }
 }
 
 export default ContractRepository;

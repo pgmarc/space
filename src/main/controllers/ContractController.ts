@@ -9,6 +9,7 @@ class ContractController {
   constructor() {
     this.contractService = container.resolve('contractService');
     this.index = this.index.bind(this);
+    this.show = this.show.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -19,6 +20,20 @@ class ContractController {
       res.json(contracts);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
+    }
+  }
+
+  async show(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const contract = await this.contractService.show(userId);
+      res.json(contract);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      }else{
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 
