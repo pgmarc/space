@@ -4,10 +4,61 @@ import { getApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
 import { generatePricingFile } from './pricing';
 import { faker } from '@faker-js/faker';
+import { TestService } from '../../types/models/Service';
 
-
-function getRandomPricingFile(name?: string){
+function getRandomPricingFile(name?: string) {
   return generatePricingFile(name, undefined);
+}
+
+async function getRandomService(app?: any): Promise<TestService> {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = await getApp();
+  }
+
+  const response = await request(appCopy).get('/api/services');
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to get services data: ${response.text}`);
+  }
+
+  const services = response.body;
+
+  if (!services || services.length === 0) {
+    throw new Error('No services found');
+  }
+
+  const randomIndex = Math.floor(Math.random() * services.length);
+  const randomService = services[randomIndex];
+
+  if (!randomService) {
+    throw new Error('Random service not found');
+  }
+
+  return randomService;
+}
+
+async function getService(serviceName: string, app?: any): Promise<TestService> {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = await getApp();
+  }
+
+  const response = await request(appCopy).get(`/api/services/${serviceName}`);
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to get service data: ${response.text}`);
+  }
+
+  const service = response.body;
+
+  if (!service) {
+    throw new Error(`Service not found: ${serviceName}`);
+  }
+
+  return service;
 }
 
 /**
@@ -22,15 +73,15 @@ function getRandomPricingFile(name?: string){
  *   - If the service name does not match any of the above, the default is `clockifyPricingPath`.
  *
  * @returns A promise that resolves to the created service object if the request is successful.
- * 
+ *
  * @throws An error if:
  *   - The pricing file does not exist at the determined path.
  *   - The service creation request fails (response status is not 201).
  */
-async function createService(testService?: string){
+async function createService(testService?: string) {
   let pricingFilePath;
 
-  switch((testService ?? "").toLowerCase()){
+  switch ((testService ?? '').toLowerCase()) {
     case 'github':
       pricingFilePath = githubPricingPath;
       break;
@@ -45,31 +96,26 @@ async function createService(testService?: string){
   }
 
   if (fs.existsSync(pricingFilePath)) {
-
     const app = await getApp();
-    
-    const response = await request(app)
-            .post('/api/services')
-            .attach('pricing', pricingFilePath);
-    
+
+    const response = await request(app).post('/api/services').attach('pricing', pricingFilePath);
+
     if (response.status !== 201) {
       throw new Error(`Failed to create service: ${response.text}`);
     }
     const service = response.body;
 
     return service;
-  }else {
+  } else {
     throw new Error(`File not found at ${pricingFilePath}`);
   }
 }
 
-async function createRandomService(){
+async function createRandomService() {
   const app = await getApp();
   const pricingFilePath = await generatePricingFile(faker.word.noun());
-  const response = await request(app)
-          .post('/api/services')
-          .attach('pricing', pricingFilePath);
-  
+  const response = await request(app).post('/api/services').attach('pricing', pricingFilePath);
+
   if (response.status !== 201) {
     throw new Error(`Failed to create service: ${response.text}`);
   }
@@ -78,4 +124,18 @@ async function createRandomService(){
   return service;
 }
 
-export {getRandomPricingFile, createService, createRandomService};
+async function deletePricingFromService(serviceName: string, pricingVersion: string, app?: any): Promise<void> {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = await getApp();
+  }
+
+  const response = await request(appCopy).delete(`/api/services/${serviceName}/pricings/${pricingVersion}`);
+
+  if (response.status !== 204 && response.status !== 404) {
+    throw new Error(`Failed to delete pricing: ${response.text}`);
+  }
+}
+
+export { getRandomPricingFile, getService, getRandomService, createService, createRandomService, deletePricingFromService };

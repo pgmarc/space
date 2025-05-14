@@ -4,22 +4,36 @@ import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
 import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
-import { createRandomService, createService, getRandomPricingFile } from './utils/services/service';
+import {
+  createRandomService,
+  deletePricingFromService,
+  getRandomPricingFile,
+  getService,
+} from './utils/services/service';
 import { zoomPricingPath } from './utils/services/ServiceTestData';
 import { retrievePricingFromPath } from 'pricing4ts/server';
 
 dotenv.config();
 
+const withCommonDescribe = (name: string, fn: () => void) => {
+  describe(name, () => {
+    fn();
+    afterAll(async () => {
+      // await resetDatabase();
+    });
+  });
+};
+
 describe('Services API Test Suite', function () {
   let app: Server;
 
-  const testService = "Zoom";
+  const testService = 'Zoom';
 
   beforeAll(async function () {
     app = await getApp();
   });
 
-  describe('GET /services', function () {
+  withCommonDescribe('GET /services', function () {
     it('Should return 200 and the services', async function () {
       const response = await request(app).get('/api/services');
       expect(response.status).toEqual(200);
@@ -29,12 +43,10 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  describe('POST /services', function () {
+  withCommonDescribe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const pricingFilePath = await getRandomPricingFile("zoom");
-      const response = await request(app)
-        .post('/api/services')
-        .attach('pricing', pricingFilePath);
+      const pricingFilePath = await getRandomPricingFile('zoom');
+      const response = await request(app).post('/api/services').attach('pricing', pricingFilePath);
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
@@ -60,11 +72,10 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 201 and the created service: Given url in the request', async function () {
-      const response = await request(app)
-        .post('/api/services')
-        .send({
-          pricing: "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml",
-        });
+      const response = await request(app).post('/api/services').send({
+        pricing:
+          'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml',
+      });
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
@@ -74,12 +85,12 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  describe('GET /services/{serviceName}', function () {
+  withCommonDescribe('GET /services/{serviceName}', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
       const response = await request(app).get(`/api/services/${testService.toLowerCase()}`);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(false);
-      expect(response.body.name.toLowerCase()).toBe("zoom");
+      expect(response.body.name.toLowerCase()).toBe('zoom');
     });
 
     it('Should return 200: Given existent service name in upper case', async function () {
@@ -92,50 +103,39 @@ describe('Services API Test Suite', function () {
     it('Should return 404 due to service not found', async function () {
       const response = await request(app).get('/api/services/unexistent-service');
       expect(response.status).toEqual(404);
-      expect(response.body.error).toBe("Service unexistent-service not found");
+      expect(response.body.error).toBe('Service unexistent-service not found');
     });
   });
 
-  describe('PUT /services/{serviceName}', function () {
-    it('Should return 200 and the updated pricing', async function () {
-      
-      const newName = "New Zoom";
-      
-      const responseBefore = await request(app).get(`/api/services/${testService}`);
-      expect(responseBefore.status).toEqual(200);
-      expect(responseBefore.body.name.toLowerCase()).toBe(testService.toLowerCase());
+  withCommonDescribe('PUT /services/{serviceName}', function () {
+    afterEach(async function () {
+      await request(app)
+        .put(`/api/services/${testService.toLowerCase()}`)
+        .send({ name: testService });
+    });
 
-      const responseUpdate = await request(app).put(`/api/services/${testService}`).send({name: newName});
+    it('Should return 200 and the updated pricing', async function () {
+      const newName = 'New Zoom';
+
+      const serviceBeforeUpdate = await getService(testService, app);
+      expect(serviceBeforeUpdate.name.toLowerCase()).toBe(testService.toLowerCase());
+
+      const responseUpdate = await request(app)
+        .put(`/api/services/${testService}`)
+        .send({ name: newName });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body).toBeDefined();
       expect(responseUpdate.body.name).toEqual(newName);
 
-      const responseAfter = await request(app).get(`/api/services/${newName}`);
-      expect(responseAfter.status).toEqual(200);
-      expect(responseAfter.body.name.toLowerCase()).toBe(newName.toLowerCase());
-
-      await request(app).put(`/api/services/${testService.toLowerCase()}`).send({name: testService});
-    });
-
-    it('Should return 200: Given existent service name in upper case', async function () {
-      const response = await request(app).get(`/api/services/${testService.toUpperCase()}`);
-      expect(response.status).toEqual(200);
-      expect(Array.isArray(response.body)).toBe(false);
-      expect(response.body.name.toLowerCase()).toBe(testService.toLowerCase());
-    });
-
-    it('Should return 404 due to service not found', async function () {
-      const response = await request(app).get('/api/services/unexistent-service');
-      expect(response.status).toEqual(404);
-      expect(response.body.error).toBe("Service unexistent-service not found");
+      const serviceAfterUpdate = await getService(testService, app);
+      expect(serviceAfterUpdate.name.toLowerCase()).toBe(newName.toLowerCase());
     });
   });
 
-  describe('DELETE /services/{serviceName}', function () {
+  withCommonDescribe('DELETE /services/{serviceName}', function () {
     it('Should return 204', async function () {
-      
       const createdService = await createRandomService();
-      
+
       const responseBefore = await request(app).get(`/api/services/${createdService.name}`);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.name.toLowerCase()).toBe(createdService.name.toLowerCase());
@@ -148,7 +148,7 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  describe('GET /services/{serviceName}/pricings', function () {
+  withCommonDescribe('GET /services/{serviceName}/pricings', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
       const response = await request(app).get(`/api/services/${testService}/pricings`);
       expect(response.status).toEqual(200);
@@ -160,14 +160,17 @@ describe('Services API Test Suite', function () {
       expect(response.body[0].plans).toBeDefined();
       expect(response.body[0].addOns).toBeDefined();
 
-      const serviceResponse = await request(app).get(`/api/services/${testService}`);
-      expect(serviceResponse.status).toEqual(200);
-      expect(serviceResponse.body.name.toLowerCase()).toBe(testService.toLowerCase());
-      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(Object.keys(serviceResponse.body.activePricings).sort());
+      const service = await getService(testService, app);
+      expect(service.name.toLowerCase()).toBe(testService.toLowerCase());
+      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(
+        Object.keys(service.activePricings).sort()
+      );
     });
 
     it('Should return 200: Given existent service name in lower case and "archived" in query', async function () {
-      const response = await request(app).get(`/api/services/${testService}/pricings?pricingStatus=archived`);
+      const response = await request(app).get(
+        `/api/services/${testService}/pricings?pricingStatus=archived`
+      );
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -177,10 +180,11 @@ describe('Services API Test Suite', function () {
       expect(response.body[0].plans).toBeDefined();
       expect(response.body[0].addOns).toBeDefined();
 
-      const serviceResponse = await request(app).get(`/api/services/${testService}`);
-      expect(serviceResponse.status).toEqual(200);
-      expect(serviceResponse.body.name.toLowerCase()).toBe(testService.toLowerCase());
-      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(Object.keys(serviceResponse.body.archivedPricings).sort());
+      const service = await getService(testService, app);
+      expect(service.name.toLowerCase()).toBe(testService.toLowerCase());
+      expect(response.body.map((p: ExpectedPricingType) => p.version).sort()).toEqual(
+        Object.keys(service.archivedPricings).sort()
+      );
     });
 
     it('Should return 200: Given existent service name in upper case', async function () {
@@ -198,54 +202,60 @@ describe('Services API Test Suite', function () {
     it('Should return 404 due to service not found', async function () {
       const response = await request(app).get('/api/services/unexistent-service/pricings');
       expect(response.status).toEqual(404);
-      expect(response.body.error).toBe("Service unexistent-service not found");
+      expect(response.body.error).toBe('Service unexistent-service not found');
     });
   });
 
-  describe('POST /services/{serviceName}/pricings', function () {
-    
-    const versionToAdd = "2025";
-    
-    it('Should return 200', async function () {
-      const responseBefore = await request(app).get(`/api/services/${testService}`);
-      expect(responseBefore.status).toEqual(200);
-      expect(responseBefore.body.activePricings).toBeDefined();
+  withCommonDescribe('POST /services/{serviceName}/pricings', function () {
+    const versionToAdd = '2025';
 
-      const previousActivePricingsAmount = Object.keys(responseBefore.body.activePricings).length;
-      
+    afterEach(async function () {
+      await deletePricingFromService(testService, versionToAdd, app);
+    });
+
+    it('Should return 200', async function () {
+      const serviceBefore = await getService(testService, app);
+      expect(serviceBefore.activePricings).toBeDefined();
+
+      const previousActivePricingsAmount = Object.keys(serviceBefore.activePricings).length;
+
       const newPricingVersion = zoomPricingPath;
-      
-      const response = await request(app).post(`/api/services/${testService}/pricings`).attach('pricing', newPricingVersion);
+
+      const response = await request(app)
+        .post(`/api/services/${testService}/pricings`)
+        .attach('pricing', newPricingVersion);
       expect(response.status).toEqual(201);
-      expect(responseBefore.body.activePricings).toBeDefined();
+      expect(serviceBefore.activePricings).toBeDefined();
       const newActivePricingsAmount = Object.keys(response.body.activePricings).length;
       expect(newActivePricingsAmount).toBeGreaterThan(previousActivePricingsAmount);
 
       // Check if the new pricing is the latest in activePricings
       const parsedPricing = retrievePricingFromPath(newPricingVersion);
-      expect(Object.keys(response.body.activePricings)[newActivePricingsAmount - 1]).toBe(parsedPricing.version);
+      expect(Object.keys(response.body.activePricings)[newActivePricingsAmount - 1]).toBe(
+        parsedPricing.version
+      );
     });
 
     it('Should return 200 given a pricing with a link', async function () {
-      const responseBefore = await request(app).get(`/api/services/${testService}`);
-      expect(responseBefore.status).toEqual(200);
-      expect(responseBefore.body.activePricings).toBeDefined();
+      const serviceBefore = await getService(testService, app);
+      expect(serviceBefore.activePricings).toBeDefined();
 
-      const previousActivePricingsAmount = Object.keys(responseBefore.body.activePricings).length;
-      
-      const response = await request(app).post(`/api/services/${testService}/pricings`).send({ pricing: "https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2025.yml"});
-      
+      const previousActivePricingsAmount = Object.keys(serviceBefore.activePricings).length;
+
+      const response = await request(app).post(`/api/services/${testService}/pricings`).send({
+        pricing:
+          'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2025.yml',
+      });
+
       expect(response.status).toEqual(201);
-      expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(response.body.activePricings).length).toBeGreaterThan(previousActivePricingsAmount);
-    });
-
-    afterEach(async function () {
-      await request(app).delete(`/api/services/${testService}/pricings/${versionToAdd}`);
+      expect(serviceBefore.activePricings).toBeDefined();
+      expect(Object.keys(response.body.activePricings).length).toBeGreaterThan(
+        previousActivePricingsAmount
+      );
     });
   });
 
-  describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
+  withCommonDescribe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
       const response = await request(app).get(`/api/services/${testService}/pricings/2024`);
       expect(response.status).toEqual(200);
@@ -275,94 +285,144 @@ describe('Services API Test Suite', function () {
     it('Should return 404 due to service not found', async function () {
       const response = await request(app).get('/api/services/unexistent-service/pricings/2024');
       expect(response.status).toEqual(404);
-      expect(response.body.error).toBe("Service unexistent-service not found");
+      expect(response.body.error).toBe('Service unexistent-service not found');
     });
 
     it('Should return 404 due to pricing not found', async function () {
-      const response = await request(app).get(`/api/services/${testService}/pricings/unexistent-version`);
+      const response = await request(app).get(
+        `/api/services/${testService}/pricings/unexistent-version`
+      );
       expect(response.status).toEqual(404);
-      expect(response.body.error).toBe(`Pricing version unexistent-version not found for service ${testService}`);
+      expect(response.body.error).toBe(
+        `Pricing version unexistent-version not found for service ${testService}`
+      );
     });
   });
 
-  describe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
-    
-    const versionToArchive = "2024";
-    
+  withCommonDescribe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
+    const versionToArchive = '2024';
+
+    afterEach(async function () {
+      await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}?availability=active`
+      );
+    });
+
     it('Should return 200: Changing visibility using default value', async function () {
       const responseBefore = await request(app).get(`/api/services/${testService}`);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(responseBefore.body.activePricings).includes(versionToArchive)).toBeTruthy();
-      expect(Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)).toBeFalsy();
-      
-      const responseUpdate = await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}`);
+      expect(
+        Object.keys(responseBefore.body.activePricings).includes(versionToArchive)
+      ).toBeTruthy();
+      expect(
+        Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
+      ).toBeFalsy();
+
+      const responseUpdate = await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}`
+      );
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
-      expect(Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)).toBeFalsy();
-      expect(Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)).toBeTruthy();
+      expect(
+        Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)
+      ).toBeFalsy();
+      expect(
+        Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)
+      ).toBeTruthy();
     });
 
     it('Should return 200: Changing visibility using "archived"', async function () {
       const responseBefore = await request(app).get(`/api/services/${testService}`);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(responseBefore.body.activePricings).includes(versionToArchive)).toBeTruthy();
-      expect(Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)).toBeFalsy();
-      
-      const responseUpdate = await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}?availability=archived`);
+      expect(
+        Object.keys(responseBefore.body.activePricings).includes(versionToArchive)
+      ).toBeTruthy();
+      expect(
+        Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
+      ).toBeFalsy();
+
+      const responseUpdate = await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}?availability=archived`
+      );
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
-      expect(Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)).toBeFalsy();
-      expect(Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)).toBeTruthy();
+      expect(
+        Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)
+      ).toBeFalsy();
+      expect(
+        Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)
+      ).toBeTruthy();
     });
 
     it('Should return 200: Changing visibility using "active"', async function () {
-      const responseBefore = await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}`);
+      const responseBefore = await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}`
+      );
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(responseBefore.body.activePricings).includes(versionToArchive)).toBeFalsy();
-      expect(Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)).toBeTruthy();
+      expect(
+        Object.keys(responseBefore.body.activePricings).includes(versionToArchive)
+      ).toBeFalsy();
+      expect(
+        Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
+      ).toBeTruthy();
 
-      const responseUpdate = await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}?availability=active`);
+      const responseUpdate = await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}?availability=active`
+      );
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
-      expect(Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)).toBeTruthy();
-      expect(Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)).toBeFalsy();
+      expect(
+        Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)
+      ).toBeTruthy();
+      expect(
+        Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)
+      ).toBeFalsy();
     });
 
-    it('Should return 400: Changing visibility using "invalidValue"', async function () {  
-      const responseUpdate = await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}?availability=invalidValue`);
+    it('Should return 400: Changing visibility using "invalidValue"', async function () {
+      const responseUpdate = await request(app).put(
+        `/api/services/${testService}/pricings/${versionToArchive}?availability=invalidValue`
+      );
       expect(responseUpdate.status).toEqual(400);
-      expect(responseUpdate.body.error).toBe("Invalid availability status. Either provide \"active\" or \"archived\"");
+      expect(responseUpdate.body.error).toBe(
+        'Invalid availability status. Either provide "active" or "archived"'
+      );
     });
 
     it('Should return 400: Changing visibility to archived when is the last activePricing', async function () {
       await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}`);
-      
-      const lastVersionToArchive = "2023";
-      
-      const responseUpdate = await request(app).put(`/api/services/${testService}/pricings/${lastVersionToArchive}`);
-      expect(responseUpdate.status).toEqual(400);
-      expect(responseUpdate.body.error).toBe(`You cannot archive the last active pricing for service ${testService}`);
-    });
 
-    afterEach(async function () {
-      await request(app).put(`/api/services/${testService}/pricings/${versionToArchive}?availability=active`);
+      const lastVersionToArchive = '2023';
+
+      const responseUpdate = await request(app).put(
+        `/api/services/${testService}/pricings/${lastVersionToArchive}`
+      );
+      expect(responseUpdate.status).toEqual(400);
+      expect(responseUpdate.body.error).toBe(
+        `You cannot archive the last active pricing for service ${testService}`
+      );
     });
   });
 
-  describe('DELETE /services/{serviceName}/pricings/{pricingVersion}', function () {
+  withCommonDescribe('DELETE /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 204', async function () {
+      const versionToDelete = '2025';
 
-      const versionToDelete = "2025";
-
-      const responseBefore = await request(app).post(`/api/services/${testService}/pricings`).attach('pricing', zoomPricingPath);
+      const responseBefore = await request(app)
+        .post(`/api/services/${testService}/pricings`)
+        .attach('pricing', zoomPricingPath);
       expect(responseBefore.status).toEqual(201);
       expect(responseBefore.body.activePricings).toBeDefined();
-      expect(Object.keys(responseBefore.body.activePricings).includes(versionToDelete)).toBeTruthy();
+      expect(
+        Object.keys(responseBefore.body.activePricings).includes(versionToDelete)
+      ).toBeTruthy();
 
-      const responseDelete = await request(app).delete(`/api/services/${testService}/pricings/${versionToDelete}`);
+      const responseDelete = await request(app).delete(
+        `/api/services/${testService}/pricings/${versionToDelete}`
+      );
       expect(responseDelete.status).toEqual(204);
 
       const responseAfter = await request(app).get(`/api/services/${testService}`);
@@ -372,42 +432,45 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 404: Given an invalid pricing version', async function () {
+      const versionToDelete = 'invalid';
 
-      const versionToDelete = "invalid";
-
-      const responseDelete = await request(app).delete(`/api/services/${testService}/pricings/${versionToDelete}`);
+      const responseDelete = await request(app).delete(
+        `/api/services/${testService}/pricings/${versionToDelete}`
+      );
       expect(responseDelete.status).toEqual(404);
-      expect(responseDelete.body.error).toBe(`Pricing version invalid not found for service ${testService}`);
+      expect(responseDelete.body.error).toBe(
+        `Pricing version invalid not found for service ${testService}`
+      );
     });
 
     it('Should return 400: Given last active pricing', async function () {
-
       await request(app).delete(`/api/services/${testService}/pricings/2023`);
 
-      const responseDelete = await request(app).delete(`/api/services/${testService}/pricings/2024`);
+      const responseDelete = await request(app).delete(
+        `/api/services/${testService}/pricings/2024`
+      );
       expect(responseDelete.status).toEqual(400);
-      expect(responseDelete.body.error).toBe(`You cannot delete the last active pricing for service ${testService}`);
+      expect(responseDelete.body.error).toBe(
+        `You cannot delete the last active pricing for service ${testService}`
+      );
     });
   });
 
-  describe('DELETE /services', function () {
+  withCommonDescribe('DELETE /services', function () {
     it('Should return 200', async function () {
       // Checks if there are services to delete
-      const responseIndexBeforeDelete = await request(app)
-        .get('/api/services');
+      const responseIndexBeforeDelete = await request(app).get('/api/services');
 
       expect(responseIndexBeforeDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexBeforeDelete.body)).toBe(true);
       expect(responseIndexBeforeDelete.body.length).greaterThan(0);
 
       // Deletes all services
-      const responseDelete = await request(app)
-        .delete('/api/services');
+      const responseDelete = await request(app).delete('/api/services');
       expect(responseDelete.status).toEqual(200);
 
       // Checks if there are no services after delete
-      const responseIndexAfterDelete = await request(app)
-        .get('/api/services');
+      const responseIndexAfterDelete = await request(app).get('/api/services');
 
       expect(responseIndexAfterDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexAfterDelete.body)).toBe(true);
