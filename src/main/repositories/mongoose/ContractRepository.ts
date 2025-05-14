@@ -43,6 +43,15 @@ class ContractRepository extends RepositoryBase {
     return toPlainObject<LeanContract>(contract.toJSON());
   }
 
+  async update(userId: string, contractData: Partial<ContractToCreate>): Promise<LeanContract | null> {
+    const contract = await ContractMongoose.findOneAndUpdate(
+      { 'userContact.userId': userId },
+      { $set: contractData },
+      { new: true }
+    );
+    return contract ? toPlainObject<LeanContract>(contract.toJSON()) : null;
+  }
+
   async prune(): Promise<number> {
     const result = await ContractMongoose.deleteMany({});
     if (result.deletedCount === 0) {

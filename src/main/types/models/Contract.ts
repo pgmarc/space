@@ -4,8 +4,8 @@ export interface UsageLevel {
 }
 
 export interface ContractHistoryEntry {
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   contractedServices: Record<string, string>;
   subscriptionPlans: Record<string, string>;
   subscriptionAddOns: Record<string, Record<string, number>>;
@@ -67,3 +67,5 @@ export interface ContractToCreate {
   subscriptionPlans: Record<string, string>; // service name → plan name
   subscriptionAddOns: Record<string, Record<string, number>>; // service name → { addOn: count }
 }
+
+export interface Subscription extends Pick<ContractToCreate, 'contractedServices' | 'subscriptionPlans' | 'subscriptionAddOns'> {}

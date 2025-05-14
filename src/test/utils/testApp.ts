@@ -14,6 +14,15 @@ const getApp = async (): Promise<Server> => {
   return testServer;
 };
 
+const useApp = (app?: any) => {
+  let appCopy = app;
+  if (!app) {
+    appCopy = testApp;
+  }
+
+  return appCopy;
+}
+
 const shutdownApp = async () => {
   if (testServer) {
     await testServer.close();
@@ -32,4 +41,4 @@ const getIdType = () => {
   }
 };
 
-export { getApp, shutdownApp, getIdType };
+export { getApp, useApp, shutdownApp, getIdType };

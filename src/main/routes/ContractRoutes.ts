@@ -21,6 +21,7 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/contracts/:userId')
     .get(contractController.show)
+    .put(ContractValidator.novate, handleValidation, contractController.novate)
 };
 
 export default loadFileRoutes;

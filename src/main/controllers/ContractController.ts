@@ -1,6 +1,6 @@
 import container from '../config/container';
 import ContractService from '../services/ContractService';
-import { ContractQueryFilters, ContractToCreate } from '../types/models/Contract';
+import { ContractQueryFilters, ContractToCreate, Subscription } from '../types/models/Contract';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils';
 
 class ContractController {
@@ -11,6 +11,7 @@ class ContractController {
     this.index = this.index.bind(this);
     this.show = this.show.bind(this);
     this.create = this.create.bind(this);
+    this.novate = this.novate.bind(this);
     this.prune = this.prune.bind(this);
   }
 
@@ -46,6 +47,23 @@ class ContractController {
       res.status(201).json(contract);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
+    }
+  }
+
+  async novate(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const newSubscription: Subscription = req.body;
+      const contract = await this.contractService.novate(userId, newSubscription);
+      res.status(200).json(contract);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('invalid subscription:')) {
+        res.status(400).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 

@@ -11,6 +11,18 @@ function getRandomPricingFile(name?: string) {
   return generatePricingFile(name, undefined);
 }
 
+async function getAllServices(app?: any): Promise<TestService[]> {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = getApp();
+  }
+
+  const services = await request(appCopy).get('/api/services');
+
+  return services.body;
+}
+
 async function getPricingFromService(serviceName: string, pricingVersion: string, app?: any): Promise<TestPricing> {
   let appCopy = app;
 
@@ -156,4 +168,4 @@ async function deletePricingFromService(serviceName: string, pricingVersion: str
   }
 }
 
-export { getRandomPricingFile, getService, getPricingFromService, getRandomService, createService, createRandomService, deletePricingFromService };
+export { getAllServices, getRandomPricingFile, getService, getPricingFromService, getRandomService, createService, createRandomService, deletePricingFromService };

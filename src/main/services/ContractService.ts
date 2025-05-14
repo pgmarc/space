@@ -5,6 +5,7 @@ import { validateContractQueryFilters } from './validation/ContractServiceValida
 import ServiceService from './ServiceService';
 import { LeanPeriod, LeanPricing } from '../types/models/Pricing';
 import { addDays, addHours, addMinutes, addMonths, addSeconds, addYears } from 'date-fns';
+import { isSubscriptionValid } from '../controllers/validation/ContractValidation';
 
 class ContractService {
   private readonly contractRepository: ContractRepository;
@@ -38,10 +39,8 @@ class ContractService {
 
   async create(contractData: ContractToCreate): Promise<LeanContract> {
     const startDate = new Date();
-    const endDate = new Date(startDate);
     const renewalDays = contractData.billingPeriod?.renewalDays ?? 30; // Default to 30 days if not provided
-
-    addDays(endDate, renewalDays);
+    const endDate = addDays(new Date(startDate), renewalDays);
 
     const contractDataToCreate: LeanContract = {
       ...contractData,
@@ -51,12 +50,62 @@ class ContractService {
         autoRenew: contractData.billingPeriod?.autoRenew ?? false,
         renewalDays: renewalDays,
       },
-      usageLevels: await this._createUsageLevels(contractData.contractedServices) || {},
+      usageLevels: (await this._createUsageLevels(contractData.contractedServices)) || {},
       history: [],
     };
+    try{
+      isSubscriptionValid({
+        contractedServices: contractData.contractedServices,
+        subscriptionPlans: contractData.subscriptionPlans,
+        subscriptionAddOns: contractData.subscriptionAddOns,
+      });
+    }catch (error) {
+      throw new Error(`Invalid subscription: ${error}`);
+    }
 
     const contract = await this.contractRepository.create(contractDataToCreate);
     return contract;
+  }
+
+  async novate(userId: string, newSubscription: any): Promise<LeanContract> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    contract.history.push({
+      startDate: contract.billingPeriod.startDate,
+      endDate: new Date(),
+      contractedServices: contract.contractedServices,
+      subscriptionPlans: contract.subscriptionPlans,
+      subscriptionAddOns: contract.subscriptionAddOns,
+    });
+
+    const newContract: LeanContract = {
+      ...contract,
+      contractedServices: newSubscription.contractedServices,
+      subscriptionPlans: newSubscription.subscriptionPlans,
+      subscriptionAddOns: newSubscription.subscriptionAddOns,
+    };
+
+    const startDate = new Date();
+    const renewalDays = newContract.billingPeriod?.renewalDays ?? 30; // Default to 30 days if not provided
+    const endDate = addDays(new Date(startDate), renewalDays);
+    
+    newContract.billingPeriod = {
+      startDate: startDate,
+      endDate: endDate,
+      autoRenew: newSubscription.billingPeriod?.autoRenew ?? false,
+      renewalDays: renewalDays,
+    };
+
+    const result = await this.contractRepository.update(userId, newContract);
+
+    if (!result) {
+      throw new Error(`Failed to update contract for userId ${userId}`);
+    }
+
+    return result;
   }
 
   async prune(): Promise<number> {
@@ -67,7 +116,7 @@ class ContractService {
 
   async _createUsageLevels(services: Record<string, string>): Promise<Record<string, UsageLevel>> {
     const usageLevels: Record<string, UsageLevel> = {};
-    
+
     for (const serviceName in services) {
       const pricing: LeanPricing = await this.serviceService.showPricing(
         serviceName,
@@ -82,8 +131,10 @@ class ContractService {
 
         if (mustBeTracked) {
           if (usageLimit.type === 'RENEWABLE') {
-            if (!usageLimit.period){
-              throw new Error(`Usage limit ${usageLimit.name} must have a period defined, since it is RENEWABLE`);
+            if (!usageLimit.period) {
+              throw new Error(
+                `Usage limit ${usageLimit.name} must have a period defined, since it is RENEWABLE`
+              );
             }
 
             const resetTimeStamp = new Date();
@@ -100,7 +151,6 @@ class ContractService {
           }
         }
       }
-      
     }
     return usageLevels;
   }
