@@ -1,6 +1,6 @@
 import RepositoryBase from '../RepositoryBase';
 import ContractMongoose from './models/ContractMongoose';
-import { ContractQueryFilters, LeanContract } from '../../types/models/Contract';
+import { ContractQueryFilters, ContractToCreate, LeanContract } from '../../types/models/Contract';
 import { toPlainObject } from '../../utils/mongoose';
 
 class ContractRepository extends RepositoryBase {
@@ -35,6 +35,12 @@ class ContractRepository extends RepositoryBase {
   async findByUserId(userId: string): Promise<LeanContract | null> {
     const contract = await ContractMongoose.findOne({ 'userContact.userId': userId });
     return contract ? toPlainObject<LeanContract>(contract.toJSON()) : null;
+  }
+
+  async create(contractData: ContractToCreate): Promise<LeanContract> {
+    const contract = new ContractMongoose(contractData);
+    await contract.save();
+    return toPlainObject<LeanContract>(contract.toJSON());
   }
 }
 

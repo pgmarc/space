@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-const consumptionLevelSchema = new Schema(
+const usageLevelSchema = new Schema(
   {
     resetTimeStamp: { type: Date },
     consumed: { type: Number, required: true },
@@ -24,7 +24,7 @@ const contractSchema = new Schema(
       autoRenew: { type: Boolean, default: false },
       renewalDays: { type: Number, default: 30 },
     },
-    usageLevels: {type: Map, of: consumptionLevelSchema},
+    usageLevels: {type: Map, of: usageLevelSchema},
     contractedServices: {type: Map, of: String},
     subscriptionPlans: { type: Map, of: String },
     subscriptionAddOns: { type: Map, of: {type: Map, of: Number} },

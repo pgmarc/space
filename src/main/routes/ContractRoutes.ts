@@ -1,6 +1,7 @@
 import express from 'express';
 
 import ContractController from '../controllers/ContractController';
+import * as ContractValidator from '../controllers/validation/ContractValidation';
 import { isLoggedIn } from '../middlewares/AuthMiddleware';
 // import { handlePricingUpload } from '../middlewares/FileHandlerMiddleware';
 import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
@@ -13,7 +14,8 @@ const loadFileRoutes = function (app: express.Application) {
 
   app
     .route(baseUrl + '/contracts')
-    .get(contractController.index);
+    .get(contractController.index)
+    .post(ContractValidator.create, handleValidation, contractController.create)
 
   app
     .route(baseUrl + '/contracts/:userId')

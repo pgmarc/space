@@ -1,6 +1,6 @@
 import container from '../config/container';
 import ContractService from '../services/ContractService';
-import { ContractQueryFilters } from '../types/models/Contract';
+import { ContractQueryFilters, ContractToCreate } from '../types/models/Contract';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils';
 
 class ContractController {
@@ -10,6 +10,7 @@ class ContractController {
     this.contractService = container.resolve('contractService');
     this.index = this.index.bind(this);
     this.show = this.show.bind(this);
+    this.create = this.create.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -31,9 +32,19 @@ class ContractController {
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
-      }else{
+      } else {
         res.status(500).send({ error: err.message });
       }
+    }
+  }
+
+  async create(req: any, res: any) {
+    try {
+      const contractData: ContractToCreate = req.body;
+      const contract = await this.contractService.create(contractData);
+      res.status(201).json(contract);
+    } catch (err: any) {
+      res.status(500).send({ error: err.message });
     }
   }
 
@@ -49,11 +60,7 @@ class ContractController {
       page: parseInt(indexQueryParams['page'] as string) || 1,
       offset: parseInt(indexQueryParams['offset'] as string) || 0,
       limit: parseInt(indexQueryParams['limit'] as string) || 20,
-      sort: indexQueryParams.sort as
-        | 'firstName'
-        | 'lastName'
-        | 'username'
-        | 'email',
+      sort: indexQueryParams.sort as 'firstName' | 'lastName' | 'username' | 'email',
       order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
     };
 

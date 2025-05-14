@@ -3,6 +3,7 @@ import request from 'supertest';
 import { getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
+import { generateContract } from './utils/contracts/contracts';
 
 dotenv.config();
 
@@ -27,6 +28,25 @@ describe('Contract API Test Suite', function () {
     });
 
     // TODO: Test Contract filters
+  });
+
+  describe('POST /contracts', function () {
+    it('Should return 201 and the created contract', async function () {
+      const contractToCreate = await generateContract(undefined, app);
+      
+      const response = await request(app)
+        .post(`/api/contracts`)
+        .send(contractToCreate);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.userContact.userId).toBe(contractToCreate.userContact.userId);
+      expect(response.body).toHaveProperty('billingPeriod');
+      expect(response.body).toHaveProperty('usageLevels');
+      expect(response.body).toHaveProperty('contractedServices');
+      expect(response.body).toHaveProperty('subscriptionPlans');
+      expect(response.body).toHaveProperty('subscriptionAddOns');
+      expect(response.body).toHaveProperty('history');
+    });
   });
 
   describe('GET /contracts/:userId', function () {

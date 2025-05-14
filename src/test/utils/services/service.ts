@@ -5,9 +5,22 @@ import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './Servi
 import { generatePricingFile } from './pricing';
 import { faker } from '@faker-js/faker';
 import { TestService } from '../../types/models/Service';
+import { TestPricing } from '../../types/models/Pricing';
 
 function getRandomPricingFile(name?: string) {
   return generatePricingFile(name, undefined);
+}
+
+async function getPricingFromService(serviceName: string, pricingVersion: string, app?: any): Promise<TestPricing> {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = getApp();
+  }
+
+  const pricing = await request(appCopy).get(`/api/services/${serviceName}/pricings/${pricingVersion}`)
+
+  return pricing.body;
 }
 
 async function getRandomService(app?: any): Promise<TestService> {
@@ -111,10 +124,15 @@ async function createService(testService?: string) {
   }
 }
 
-async function createRandomService() {
-  const app = await getApp();
+async function createRandomService(app?: any) {
+  let appCopy = app;
+
+  if (!app) {
+    appCopy = await getApp();
+  }
+
   const pricingFilePath = await generatePricingFile(faker.word.noun());
-  const response = await request(app).post('/api/services').attach('pricing', pricingFilePath);
+  const response = await request(appCopy).post('/api/services').attach('pricing', pricingFilePath);
 
   if (response.status !== 201) {
     throw new Error(`Failed to create service: ${response.text}`);
@@ -138,4 +156,4 @@ async function deletePricingFromService(serviceName: string, pricingVersion: str
   }
 }
 
-export { getRandomPricingFile, getService, getRandomService, createService, createRandomService, deletePricingFromService };
+export { getRandomPricingFile, getService, getPricingFromService, getRandomService, createService, createRandomService, deletePricingFromService };

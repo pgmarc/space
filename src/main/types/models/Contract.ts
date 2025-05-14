@@ -1,16 +1,12 @@
-export interface ConsumptionLevel {
-  resetTimeStamp: string; // o Date si no es serializado
+export interface UsageLevel {
+  resetTimeStamp?: Date; // o Date si no es serializado
   consumed: number;
-}
-
-export interface ContractedService {
-  path: string;
 }
 
 export interface ContractHistoryEntry {
   startDate: string;
   endDate: string;
-  contractedServices: Record<string, ContractedService>;
+  contractedServices: Record<string, string>;
   subscriptionPlans: Record<string, string>;
   subscriptionAddOns: Record<string, Record<string, number>>;
 }
@@ -25,13 +21,13 @@ export interface LeanContract {
     phone?: string;
   };
   billingPeriod: {
-    startDate: string;
-    endDate: string;
+    startDate: Date;
+    endDate: Date;
     autoRenew: boolean;
     renewalDays: number;
   };
-  usageLevels: Record<string, ConsumptionLevel>;
-  contractedServices: Record<string, ContractedService>;
+  usageLevels: Record<string, UsageLevel>;
+  contractedServices: Record<string, string>;
   subscriptionPlans: Record<string, string>;
   subscriptionAddOns: Record<string, Record<string, number>>;
   history: ContractHistoryEntry[];
@@ -52,4 +48,22 @@ export interface ContractQueryFilters {
     | 'username'
     | 'email'
   order?: 'asc' | 'desc';
+}
+
+export interface ContractToCreate {
+  userContact: {
+    userId: string;
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  };
+  billingPeriod?: {
+    autoRenew?: boolean;
+    renewalDays?: number;
+  };
+  contractedServices: Record<string, string>; // service name → pricing path
+  subscriptionPlans: Record<string, string>; // service name → plan name
+  subscriptionAddOns: Record<string, Record<string, number>>; // service name → { addOn: count }
 }
