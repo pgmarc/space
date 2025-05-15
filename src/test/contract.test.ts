@@ -357,6 +357,29 @@ describe('Contract API Test Suite', function () {
     });
   });
 
+  describe('PUT /contracts/:userId/billingPeriod', function () {
+    it('Should return 200 and the updated contract', async function () {
+      const newContract: TestContract = await createRandomContract(app);
+
+      const newBillingPeriodFields = {
+        endDate: addDays(newContract.billingPeriod.endDate, 3),
+        autoRenew: true,
+        renewalDays: 30,
+      };
+
+      const response = await request(app)
+        .put(`${baseUrl}/contracts/${newContract.userContact.userId}/billingPeriod`)
+        .send(newBillingPeriodFields)
+        .expect(200);
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(new Date(updatedContract.billingPeriod.endDate)).toEqual(addDays(newContract.billingPeriod.endDate, 3));
+      expect(updatedContract.billingPeriod.autoRenew).toBe(true);
+      expect(updatedContract.billingPeriod.renewalDays).toBe(30);
+    });
+  });
+
   describe('DELETE /contracts', function () {
     it('Should return 204 and delete all contracts', async function () {
       const servicesBefore = await getAllContracts(app);

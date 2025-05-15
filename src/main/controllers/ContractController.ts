@@ -18,6 +18,7 @@ class ContractController {
     this.create = this.create.bind(this);
     this.novate = this.novate.bind(this);
     this.novateUserContact = this.novateUserContact.bind(this);
+    this.novateBillingPeriod = this.novateBillingPeriod.bind(this);
     this.resetUsageLevels = this.resetUsageLevels.bind(this);
     this.prune = this.prune.bind(this);
     this.destroy = this.destroy.bind(this);
@@ -80,6 +81,21 @@ class ContractController {
       const userId = req.params.userId;
       const userContact = req.body;
       const contract = await this.contractService.novateUserContact(userId, userContact);
+      res.status(200).json(contract);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async novateBillingPeriod(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const billingPeriod = req.body;
+      const contract = await this.contractService.novateBillingPeriod(userId, billingPeriod);
       res.status(200).json(contract);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {

@@ -114,7 +114,10 @@ class ContractService {
     return result;
   }
 
-  async novateUserContact(userId: string, userContact: Omit<UserContact, "userId">): Promise<LeanContract> {
+  async novateUserContact(
+    userId: string,
+    userContact: Omit<UserContact, 'userId'>
+  ): Promise<LeanContract> {
     const contract = await this.contractRepository.findByUserId(userId);
     if (!contract) {
       throw new Error(`Contract with userId ${userId} not found`);
@@ -123,7 +126,34 @@ class ContractService {
     contract.userContact = {
       ...contract.userContact,
       ...userContact,
+    };
+
+    const result = await this.contractRepository.update(userId, contract);
+
+    if (!result) {
+      throw new Error(`Failed to update contract for userId ${userId}`);
     }
+
+    return result;
+  }
+
+  async novateBillingPeriod(
+    userId: string,
+    newBillingPeriod: { endDate: Date; autoRenew: boolean; renewalDays: number }
+  ): Promise<LeanContract> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    if (new Date(newBillingPeriod.endDate) < new Date(contract.billingPeriod.startDate)) {
+      throw new Error('End date cannot be before the start date');
+    }
+
+    contract.billingPeriod = {
+      ...contract.billingPeriod,
+      ...newBillingPeriod,
+    };
 
     const result = await this.contractRepository.update(userId, contract);
 
@@ -148,7 +178,7 @@ class ContractService {
       await this._resetUsageLimitUsageLevels(contract, queryParams.usageLimit);
     } else if (queryParams.reset) {
       await this._resetUsageLevels(contract, queryParams.renewableOnly);
-    }else if (usageLevelsIncrements){
+    } else if (usageLevelsIncrements) {
       for (const serviceName in usageLevelsIncrements) {
         for (const usageLimit in usageLevelsIncrements[serviceName]) {
           if (contract.usageLevels[serviceName][usageLimit]) {
@@ -157,7 +187,7 @@ class ContractService {
           }
         }
       }
-    }else{
+    } else {
       throw new Error(`Invalid query params: ${JSON.stringify(queryParams)}`);
     }
 
@@ -268,7 +298,9 @@ class ContractService {
     const serviceNames: string[] = this._discoverUsageLimitServices(contract, usageLimit);
 
     if (serviceNames.length === 0) {
-      throw new Error(`Usage limit: ${usageLimit} not found in the contract. Maybe it's not being tracked as usage level`);
+      throw new Error(
+        `Usage limit: ${usageLimit} not found in the contract. Maybe it's not being tracked as usage level`
+      );
     }
 
     for (const serviceName of serviceNames) {

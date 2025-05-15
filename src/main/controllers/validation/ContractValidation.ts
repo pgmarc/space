@@ -216,6 +216,25 @@ const novateUserContact = [
     .withMessage('The phone field must be a string'),
 ]
 
+const novateBillingPeriod = [
+  body()
+    .notEmpty()
+    .withMessage('The body cannot be empty'),
+  
+  check('endData')
+    .optional()
+    .isDate()
+    .withMessage('The endDate field must be a valid date'),
+  check('autoRenew')
+    .optional()
+    .isBoolean()
+    .withMessage('The autoRenew field must be a boolean'),
+  check('renewalDays')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('renewalDays must be a positive integer'),
+]
+
 async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   const selectedPricings: Record<string, LeanPricing> = {};
   const serviceService: ServiceService = container.resolve('serviceService');
@@ -347,4 +366,4 @@ function _validateAddOnQuantity(
   }
 }
 
-export { create, novate, incrementUsageLevels, novateUserContact, isSubscriptionValid };
+export { create, novate, incrementUsageLevels, novateUserContact, novateBillingPeriod, isSubscriptionValid };
