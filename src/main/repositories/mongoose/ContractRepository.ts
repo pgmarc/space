@@ -6,7 +6,6 @@ import { toPlainObject } from '../../utils/mongoose';
 class ContractRepository extends RepositoryBase {
   async findAll(queryFilters?: ContractQueryFilters) {
     const {
-      userId,
       username,
       firstName,
       lastName,
@@ -18,12 +17,12 @@ class ContractRepository extends RepositoryBase {
       order = 'asc',
     } = queryFilters || {};
 
+    // TODO: arreglar esta query, porque no está considerando correctamente los filtros de username, firstName, etc
     const contracts = await ContractMongoose.find({
-      ...(userId ? { userId: userId } : {}),
-      ...(username ? { username: username } : {}),
-      ...(firstName ? { firstName: firstName } : {}),
-      ...(lastName ? { lastName: lastName } : {}),
-      ...(email ? { email: email } : {}),
+      ...(username ? { username: { $regex: new RegExp(username, 'i') } } : {}),
+      ...(firstName ? { firstName: { $regex: new RegExp(firstName, 'i') } } : {}),
+      ...(lastName ? { lastName: { $regex: new RegExp(lastName, 'i') } } : {}),
+      ...(email ? { email: { $regex: new RegExp(email, 'i') } } : {}),
     })
       .skip(offset == 0 ? (page - 1) * limit : offset)
       .limit(limit)

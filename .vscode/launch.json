@@ -5,6 +5,17 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Debug TSX Execution",
+      "runtimeExecutable": "pnpx",
+      "args": ["tsx", "--watch", "src/main/index.ts"],
+      "smartStep": true,
+      "console": "integratedTerminal",
+      "envFile": "${workspaceRoot}/.env",
+      "cwd": "${workspaceRoot}"
+  },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Run Tests with pnpm",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["test"],

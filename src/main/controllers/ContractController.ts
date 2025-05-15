@@ -159,7 +159,6 @@ class ContractController {
     indexQueryParams: Record<string, string | number>
   ): ContractQueryFilters {
     const transformedData: ContractQueryFilters = {
-      userId: indexQueryParams.userId as string,
       username: indexQueryParams.username as string,
       firstName: indexQueryParams.firstName as string,
       lastName: indexQueryParams.lastName as string,

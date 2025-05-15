@@ -2,29 +2,46 @@ import { faker } from '@faker-js/faker';
 import { createRandomService, getAllServices, getPricingFromService } from '../services/service';
 import { TestService } from '../../types/models/Service';
 import { TestAddOn, TestPricing } from '../../types/models/Pricing';
-import { getApp, useApp } from '../testApp';
+import { useApp } from '../testApp';
 import { ContractToCreate } from '../../../main/types/models/Contract';
-import { TestContract } from '../../types/models/Contract';
 import { biasedRandomInt } from '../random';
 
-async function generateContract(userId?: string, app?: any): Promise<ContractToCreate> {
+async function generateContractAndService(userId?: string, app?: any): Promise<{contract: ContractToCreate, services: Record<string, string>}> {
   let appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> = await _generateNewContractedServices(appCopy);
 
+  const contract = await generateContract(contractedServices, userId, appCopy);
+
+  return {contract, services: contractedServices};
+}
+
+async function generateContract(contractedServices: Record<string, string>, userId?: string, app?: any): Promise<ContractToCreate> {
+  let appCopy = await useApp(app);
+
+  const servicesToConsiderKeys = faker.helpers.arrayElements(
+    Object.keys(contractedServices),
+    faker.number.int({ min: 1, max: Object.keys(contractedServices).length })
+  );
+  
+  const servicesToConsider: Record<string, string> = Object.fromEntries(
+    servicesToConsiderKeys.map(key => [key, contractedServices[key]])
+  );
+
   const subscriptionPlans: Record<string, string> = await _generateSubscriptionPlans(
-    contractedServices,
-    app
+    servicesToConsider,
+    appCopy
   );
 
   const subscriptionAddOns = await _generateSubscriptionAddOns(
-    contractedServices,
-    subscriptionPlans
+    servicesToConsider,
+    subscriptionPlans,
+    appCopy
   );
 
   return {
     userContact: {
-      userId: userId || faker.string.uuid(),
+      userId: userId ?? faker.string.uuid(),
       username: faker.internet.username(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -198,4 +215,4 @@ function _solveAddOnDependenciesAndExclusions(
   }
 }
 
-export { generateContract, generateNovation };
+export { generateContractAndService, generateContract, generateNovation };

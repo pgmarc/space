@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { ContractToCreate, UsageLevel } from '../../../main/types/models/Contract';
 import { baseUrl, getApp, useApp } from '../testApp';
 import request from 'supertest';
-import { generateContract } from './generators';
+import { generateContract, generateContractAndService } from './generators';
 import { TestContract } from '../../types/models/Contract';
 
 async function getAllContracts(app?: any): Promise<any[]> {
@@ -39,7 +39,7 @@ async function getRandomContract(app?: any): Promise<any[]> {
 async function createRandomContract(app?: any): Promise<TestContract> {
   let copyApp = await useApp(app);
   
-  const contract = await generateContract(undefined, copyApp);
+  const {contract} = await generateContractAndService(undefined, copyApp);
   
   const response = await request(copyApp)
     .post(`${baseUrl}/contracts`)
@@ -47,6 +47,34 @@ async function createRandomContract(app?: any): Promise<TestContract> {
     .expect(201);
 
   return response.body;
+}
+
+async function createRandomContracts(amount: number, app?: any): Promise<TestContract[]> {
+  let copyApp = await useApp(app);
+
+  const createdContracts: TestContract[] = [];
+  
+  const {contract, services} = await generateContractAndService(undefined, copyApp);
+  
+  let response = await request(copyApp)
+  .post(`${baseUrl}/contracts`)
+  .send(contract)
+  .expect(201);
+  
+  createdContracts.push(response.body);
+
+  for (let i = 0; i < amount - 1; i++) {
+    const generatedContract = await generateContract(services, undefined, copyApp);
+    
+    response = await request(copyApp)
+      .post(`${baseUrl}/contracts`)
+      .send(generatedContract)
+      .expect(201);
+
+    createdContracts.push(response.body);
+  }
+
+  return createdContracts;
 }
 
 async function incrementUsageLevel(userId: string, serviceName: string, usageLimitName: string, app?: any): Promise<TestContract> {
@@ -83,4 +111,4 @@ async function incrementAllUsageLevel(userId: string, usageLevels: Record<string
   return response.body;
 }
 
-export { generateContract, getContractByUserId, getAllContracts, getRandomContract, createRandomContract, incrementAllUsageLevel, incrementUsageLevel };
+export { createRandomContracts, getContractByUserId, getAllContracts, getRandomContract, createRandomContract, incrementAllUsageLevel, incrementUsageLevel };

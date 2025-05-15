@@ -35,7 +35,6 @@ export interface LeanContract {
 }
 
 export interface ContractQueryFilters {
-  userId?: string;
   username?: string;
   firstName?: string;
   lastName?: string;
