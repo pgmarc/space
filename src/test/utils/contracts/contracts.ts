@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { ContractToCreate, UsageLevel } from '../../../main/types/models/Contract';
-import { getApp, useApp } from '../testApp';
+import { baseUrl, getApp, useApp } from '../testApp';
 import request from 'supertest';
 import { generateContract } from './generators';
 import { TestContract } from '../../types/models/Contract';
@@ -10,7 +10,7 @@ async function getAllContracts(app?: any): Promise<any[]> {
   let copyApp = await useApp(app);
   
   const response = await request(copyApp)
-    .get('/api/contracts')
+    .get(`${baseUrl}/contracts`)
     .expect(200);
 
   return response.body;
@@ -21,7 +21,7 @@ async function getContractByUserId(userId: string, app?: any): Promise<TestContr
   let copyApp = await useApp(app);
   
   const response = await request(copyApp)
-    .get(`/api/contracts/${userId}`)
+    .get(`${baseUrl}/contracts/${userId}`)
     .expect(200);
 
   return response.body;
@@ -42,7 +42,7 @@ async function createRandomContract(app?: any): Promise<TestContract> {
   const contract = await generateContract(undefined, copyApp);
   
   const response = await request(copyApp)
-    .post('/api/contracts')
+    .post(`${baseUrl}/contracts`)
     .send(contract)
     .expect(201);
 
@@ -53,7 +53,7 @@ async function incrementUsageLevel(userId: string, serviceName: string, usageLim
   let copyApp = await useApp(app);
   
   const response = await request(copyApp)
-    .put(`/api/contracts/${userId}/usageLevels`)
+    .put(`${baseUrl}/contracts/${userId}/usageLevels`)
     .send({
       [serviceName]: {
         [usageLimitName]: 5
@@ -76,7 +76,7 @@ async function incrementAllUsageLevel(userId: string, usageLevels: Record<string
   }, {} as Record<string, Record<string, number>>);
 
   const response = await request(copyApp)
-    .put(`/api/contracts/${userId}/usageLevels`)
+    .put(`${baseUrl}/contracts/${userId}/usageLevels`)
     .send(updatedUsageLevels)
     .expect(200);
 

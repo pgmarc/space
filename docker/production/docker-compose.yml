@@ -8,10 +8,10 @@ services:
       env_file:
         - ../../.env.production
       volumes:
-        - 'adaptia-mongodb:/data/db'
+        - 'space-mongodb:/data/db'
         - '../../api/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
       networks:
-        - adaptia-network
+        - space-network
   redis:
     image: redis:7.4.2
     ports:
@@ -21,10 +21,10 @@ services:
     volumes:
       - 'redis_data:/data'
     networks:
-      - adaptia-network
+      - space-network
   server:
     restart: always
-    container_name: adaptia-server
+    container_name: space-server
     build:
         context: ../../src/main
         dockerfile: ./docker/production/Dockerfile
@@ -33,7 +33,7 @@ services:
     env_file:
       - ../../.env.production
     volumes:
-      - 'adaptia-statics:/usr/src/server/public'
+      - 'space-statics:/usr/src/server/public'
     depends_on:
       - mongodb
       - redis
@@ -41,14 +41,14 @@ services:
       - mongodb
       - redis
     networks:
-      - adaptia-network
+      - space-network
 volumes:
-  adaptia-mongodb:
+  space-mongodb:
     driver: local
-  adaptia-statics:
+  space-statics:
     driver: local
   redis_data:
     driver: local
 networks:
-  adaptia-network:
+  space-network:
     driver: bridge

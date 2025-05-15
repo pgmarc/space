@@ -1,6 +1,6 @@
 import fs from 'fs';
 import request from 'supertest';
-import { getApp } from '../testApp';
+import { baseUrl, getApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
 import { generatePricingFile } from './pricing';
 import { faker } from '@faker-js/faker';
@@ -8,7 +8,7 @@ import { TestService } from '../../types/models/Service';
 import { TestPricing } from '../../types/models/Pricing';
 
 function getRandomPricingFile(name?: string) {
-  return generatePricingFile(name, undefined);
+  return generatePricingFile(name);
 }
 
 async function getAllServices(app?: any): Promise<TestService[]> {
@@ -18,19 +18,25 @@ async function getAllServices(app?: any): Promise<TestService[]> {
     appCopy = getApp();
   }
 
-  const services = await request(appCopy).get('/api/services');
+  const services = await request(appCopy).get(`${baseUrl}/services`);
 
   return services.body;
 }
 
-async function getPricingFromService(serviceName: string, pricingVersion: string, app?: any): Promise<TestPricing> {
+async function getPricingFromService(
+  serviceName: string,
+  pricingVersion: string,
+  app?: any
+): Promise<TestPricing> {
   let appCopy = app;
 
   if (!app) {
     appCopy = getApp();
   }
 
-  const pricing = await request(appCopy).get(`/api/services/${serviceName}/pricings/${pricingVersion}`)
+  const pricing = await request(appCopy).get(
+    `${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`
+  );
 
   return pricing.body;
 }
@@ -42,7 +48,7 @@ async function getRandomService(app?: any): Promise<TestService> {
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).get('/api/services');
+  const response = await request(appCopy).get(`${baseUrl}/services`);
 
   if (response.status !== 200) {
     throw new Error(`Failed to get services data: ${response.text}`);
@@ -71,7 +77,7 @@ async function getService(serviceName: string, app?: any): Promise<TestService> 
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).get(`/api/services/${serviceName}`);
+  const response = await request(appCopy).get(`${baseUrl}/services/${serviceName}`);
 
   if (response.status !== 200) {
     throw new Error(`Failed to get service data: ${response.text}`);
@@ -87,7 +93,7 @@ async function getService(serviceName: string, app?: any): Promise<TestService> 
 }
 
 /**
- * Asynchronously creates a service by sending a POST request to the `/api/services` endpoint
+ * Asynchronously creates a service by sending a POST request to the `${baseUrl}/services` endpoint
  * with a pricing file attached. The pricing file path is determined based on the provided
  * service name.
  *
@@ -123,7 +129,9 @@ async function createService(testService?: string) {
   if (fs.existsSync(pricingFilePath)) {
     const app = await getApp();
 
-    const response = await request(app).post('/api/services').attach('pricing', pricingFilePath);
+    const response = await request(app)
+      .post(`${baseUrl}/services`)
+      .attach('pricing', pricingFilePath);
 
     if (response.status !== 201) {
       throw new Error(`Failed to create service: ${response.text}`);
@@ -143,8 +151,12 @@ async function createRandomService(app?: any) {
     appCopy = await getApp();
   }
 
-  const pricingFilePath = await generatePricingFile(faker.word.noun({length: {min: 3, max: 10}}));
-  const response = await request(appCopy).post('/api/services').attach('pricing', pricingFilePath);
+  const pricingFilePath = await generatePricingFile(
+    faker.word.noun({ length: { min: 3, max: 10 } })
+  );
+  const response = await request(appCopy)
+    .post(`${baseUrl}/services`)
+    .attach('pricing', pricingFilePath);
 
   if (response.status !== 201) {
     throw new Error(`Failed to create service: ${response.text}`);
@@ -154,18 +166,33 @@ async function createRandomService(app?: any) {
   return service;
 }
 
-async function deletePricingFromService(serviceName: string, pricingVersion: string, app?: any): Promise<void> {
+async function deletePricingFromService(
+  serviceName: string,
+  pricingVersion: string,
+  app?: any
+): Promise<void> {
   let appCopy = app;
 
   if (!app) {
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).delete(`/api/services/${serviceName}/pricings/${pricingVersion}`);
+  const response = await request(appCopy).delete(
+    `${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`
+  );
 
   if (response.status !== 204 && response.status !== 404) {
     throw new Error(`Failed to delete pricing: ${response.text}`);
   }
 }
 
-export { getAllServices, getRandomPricingFile, getService, getPricingFromService, getRandomService, createService, createRandomService, deletePricingFromService };
+export {
+  getAllServices,
+  getRandomPricingFile,
+  getService,
+  getPricingFromService,
+  getRandomService,
+  createService,
+  createRandomService,
+  deletePricingFromService,
+};

@@ -1,22 +1,18 @@
-import dotenv from 'dotenv';
 import request from 'supertest';
-import { getApp, shutdownApp } from './utils/testApp';
+import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
-import { describe, it, expect, beforeAll, afterAll, afterEach, test } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   createRandomContract,
   generateContract,
   getAllContracts,
   getContractByUserId,
   incrementAllUsageLevel,
-  incrementUsageLevel,
 } from './utils/contracts/contracts';
 import { generateNovation } from './utils/contracts/generators';
 import { addDays } from 'date-fns';
 import { UsageLevel } from '../main/types/models/Contract';
 import { TestContract } from './types/models/Contract';
-
-dotenv.config();
 
 describe('Contract API Test Suite', function () {
   let app: Server;
@@ -29,7 +25,7 @@ describe('Contract API Test Suite', function () {
 
   describe('GET /contracts', function () {
     it('Should return 200 and the contracts', async function () {
-      const response = await request(app).get('/api/contracts').expect(200);
+      const response = await request(app).get(`${baseUrl}/contracts`).expect(200);
 
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBeTruthy();
@@ -42,7 +38,7 @@ describe('Contract API Test Suite', function () {
   describe('POST /contracts', function () {
     it('Should return 201 and the created contract', async function () {
       const contractToCreate = await generateContract(undefined, app);
-      const response = await request(app).post(`/api/contracts`).send(contractToCreate);
+      const response = await request(app).post(`${baseUrl}/contracts`).send(contractToCreate);
 
       expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
@@ -61,7 +57,7 @@ describe('Contract API Test Suite', function () {
 
   describe('GET /contracts/:userId', function () {
     it('Should return 200 and the contract for the given userId', async function () {
-      const response = await request(app).get(`/api/contracts/${testUserId}`).expect(200);
+      const response = await request(app).get(`${baseUrl}/contracts/${testUserId}`).expect(200);
 
       const contract: TestContract = response.body;
 
@@ -77,7 +73,7 @@ describe('Contract API Test Suite', function () {
     });
 
     it('Should return 404 if the contract is not found', async function () {
-      const response = await request(app).get('/api/contracts/invalid-user-id').expect(404);
+      const response = await request(app).get(`${baseUrl}/contracts/invalid-user-id`).expect(404);
 
       expect(response.body).toBeDefined();
       expect(response.body.error).toContain('not found');
@@ -92,7 +88,7 @@ describe('Contract API Test Suite', function () {
       const novation = await generateNovation();
 
       const response = await request(app)
-        .put(`/api/contracts/${newContract.userContact.userId}`)
+        .put(`${baseUrl}/contracts/${newContract.userContact.userId}`)
         .send(novation)
         .expect(200);
 
@@ -118,10 +114,10 @@ describe('Contract API Test Suite', function () {
     it('Should return 204', async function () {
       const newContract = await createRandomContract(app);
 
-      await request(app).delete(`/api/contracts/${newContract.userContact.userId}`).expect(204);
+      await request(app).delete(`${baseUrl}/contracts/${newContract.userContact.userId}`).expect(204);
     });
     it('Should return 404 with invalid userId', async function () {
-      const response = await request(app).delete(`/api/contracts/invalid-user-id`).expect(404);
+      const response = await request(app).delete(`${baseUrl}/contracts/invalid-user-id`).expect(404);
 
       expect(response.body).toBeDefined();
       expect(response.body.error.toLowerCase()).toContain('not found');
@@ -139,7 +135,7 @@ describe('Contract API Test Suite', function () {
       expect(usageLevel.consumed).toBe(0);
 
       const response = await request(app)
-        .put(`/api/contracts/${newContract.userContact.userId}/usageLevels`)
+        .put(`${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels`)
         .send({
           [serviceKey]: {
             [usageLevelKey]: 5,
@@ -179,7 +175,7 @@ describe('Contract API Test Suite', function () {
         });
 
       const response = await request(app)
-        .put(`/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true`)
+        .put(`${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true`)
         .expect(200);
 
       const updatedContract: TestContract = response.body;
@@ -233,7 +229,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(
-          `/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true&renewableOnly=false`
+          `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true&renewableOnly=false`
         )
         .expect(200);
 
@@ -279,7 +275,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(
-          `/api/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=${sampleUsageLimitKey}`
+          `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=${sampleUsageLimitKey}`
         );
 
       expect(response.status).toBe(200);
@@ -307,7 +303,7 @@ describe('Contract API Test Suite', function () {
 
       await request(app)
         .put(
-          `/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true&usageLimit=test`
+          `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true&usageLimit=test`
         ).expect(400);
     });
 
@@ -317,7 +313,7 @@ describe('Contract API Test Suite', function () {
 
       await request(app)
         .put(
-          `/api/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=invalid-usage-limit`
+          `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=invalid-usage-limit`
         ).expect(404);
     });
 
@@ -327,7 +323,7 @@ describe('Contract API Test Suite', function () {
 
       await request(app)
         .put(
-          `/api/contracts/${newContract.userContact.userId}/usageLevels`
+          `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels`
         )
         .send({
           test: "invalid object"
@@ -341,7 +337,7 @@ describe('Contract API Test Suite', function () {
       const servicesBefore = await getAllContracts(app);
       expect(servicesBefore.length).toBeGreaterThan(0);
 
-      await request(app).delete('/api/contracts').expect(204);
+      await request(app).delete(`${baseUrl}/contracts`).expect(204);
 
       const servicesAfter = await getAllContracts(app);
       expect(servicesAfter.length).toBe(0);
