@@ -107,6 +107,24 @@ describe('Contract API Test Suite', function () {
     });
   });
 
+  describe('DELETE /contracts/:userId', function () {
+    it('Should return 204', async function () {
+      const newContract = await createRandomContract(app);
+
+      await request(app)
+        .delete(`/api/contracts/${newContract.userContact.userId}`)
+        .expect(204);
+    });
+    it('Should return 404 with invalid userId', async function () {
+      const response = await request(app)
+        .delete(`/api/contracts/invalid-user-id`)
+        .expect(404);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.error.toLowerCase()).toContain('not found');
+    });
+  });
+
   describe('DELETE /contracts', function () {
     it('Should return 204 and delete all contracts', async function () {
       const servicesBefore = await getAllContracts(app);

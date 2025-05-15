@@ -13,6 +13,7 @@ class ContractController {
     this.create = this.create.bind(this);
     this.novate = this.novate.bind(this);
     this.prune = this.prune.bind(this);
+    this.destroy = this.destroy.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -72,6 +73,20 @@ class ContractController {
       const result: number = await this.contractService.prune();
       res.status(204).json({ message: `Deleted ${result} contracts successfully` });
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async destroy(req: any, res: any) {
+    try{
+      const userId = req.params.userId;
+      await this.contractService.destroy(userId);
+      res.status(204).json({ message: `Deleted contract with userId ${userId} successfully` });
+    }catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else {

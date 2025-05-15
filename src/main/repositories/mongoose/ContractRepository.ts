@@ -59,6 +59,13 @@ class ContractRepository extends RepositoryBase {
     }
     return result.deletedCount;
   }
+
+  async destroy(userId: string): Promise<void> {
+    const result = await ContractMongoose.deleteOne({ 'userContact.userId': userId });
+    if (result.deletedCount === 0) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+  }
 }
 
 export default ContractRepository;

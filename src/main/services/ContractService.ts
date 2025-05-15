@@ -114,6 +114,15 @@ class ContractService {
     return result;
   }
 
+  async destroy(userId: string): Promise<void> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    await this.contractRepository.destroy(userId);
+  }
+
   async _createUsageLevels(services: Record<string, string>): Promise<Record<string, UsageLevel>> {
     const usageLevels: Record<string, UsageLevel> = {};
 
