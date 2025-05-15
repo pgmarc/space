@@ -1,12 +1,12 @@
 import { Plan as ParsedPlan, Pricing as ParsedPricing, Feature as ParsedFeature, UsageLimit as ParsedUsageLimit, AddOn as ParsedAddOn} from "pricing4ts";
 import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
-import { LeanAddOn, LeanFeature, LeanPlan, LeanUsageLimit } from "../types/models/Pricing";
+import { LeanAddOn, LeanPricingFeature, LeanPlan, LeanUsageLimit } from "../types/models/Pricing";
 
 export interface ExpectedPricingType {
   version: string;
   currency: string;
   createdAt: Date;
-  features: Record<string, LeanFeature>;
+  features: Record<string, LeanPricingFeature>;
   usageLimits?: Record<string, LeanUsageLimit>;
   plans?: Record<string, LeanPlan>;
   addOns?: Record<string, LeanAddOn>;
@@ -31,8 +31,8 @@ export function parsePricingToSpacePricingObject(pricing: ParsedPricing): Expect
   return json;
 }
 
-function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<string, LeanFeature> {
-  const formattedFeatures: Record<string, LeanFeature> = {};
+function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<string, LeanPricingFeature> {
+  const formattedFeatures: Record<string, LeanPricingFeature> = {};
   for (const featureName in features) {
     const feature = features[featureName];
     formattedFeatures[featureName] = {

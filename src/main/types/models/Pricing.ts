@@ -3,7 +3,7 @@ export interface LeanPricing {
   version: string;
   currency: string;
   createdAt: string; // o Date si no haces `JSON.stringify`
-  features: Record<string, LeanFeature>;
+  features: Record<string, LeanPricingFeature>;
   usageLimits?: Record<string, LeanUsageLimit>;
   plans?: Record<string, LeanPlan>;
   addOns?: Record<string, LeanAddOn>;
@@ -14,7 +14,7 @@ export interface LeanPricing {
 // -------------- Main Types --------------
 // ----------------------------------------
 
-export interface LeanFeature {
+export interface LeanPricingFeature {
   name: string;
   description?: string;
   valueType: "BOOLEAN" | "TEXT" | "NUMERIC";
