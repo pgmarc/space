@@ -1,16 +1,6 @@
 import { Plan as ParsedPlan, Pricing as ParsedPricing, Feature as ParsedFeature, UsageLimit as ParsedUsageLimit, AddOn as ParsedAddOn} from "pricing4ts";
 import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
-import { LeanAddOn, LeanPricingFeature, LeanPlan, LeanUsageLimit } from "../types/models/Pricing";
-
-export interface ExpectedPricingType {
-  version: string;
-  currency: string;
-  createdAt: Date;
-  features: Record<string, LeanPricingFeature>;
-  usageLimits?: Record<string, LeanUsageLimit>;
-  plans?: Record<string, LeanPlan>;
-  addOns?: Record<string, LeanAddOn>;
-}
+import { LeanAddOn, LeanPricingFeature, LeanPlan, LeanUsageLimit, ExpectedPricingType } from "../types/models/Pricing";
 
 export function parsePricingToSpacePricingObject(pricing: ParsedPricing): ExpectedPricingType {
   const json: ExpectedPricingType = {} as ExpectedPricingType;

@@ -26,6 +26,9 @@ class FeatureEvaluationController {
     indexQueryParams: Record<string, string | number>
   ): FeatureIndexQueryParams {
     const transformedData: FeatureIndexQueryParams = {
+      featureName: indexQueryParams['featureName'] as string,
+      serviceName: indexQueryParams['serviceName'] as string,
+      pricingVersion: indexQueryParams['pricingVersion'] as string,
       page: parseInt(indexQueryParams['page'] as string) || 1,
       offset: parseInt(indexQueryParams['offset'] as string) || 0,
       limit: parseInt(indexQueryParams['limit'] as string) || 20,

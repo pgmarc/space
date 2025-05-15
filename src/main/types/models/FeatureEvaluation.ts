@@ -7,6 +7,9 @@ export interface LeanFeature {
 }
 
 export interface FeatureIndexQueryParams {
+  featureName?: string;
+  serviceName?: string;
+  pricingVersion?: string;
   page?: number;
   offset?: number;
   limit?: number;

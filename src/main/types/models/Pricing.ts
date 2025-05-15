@@ -1,8 +1,20 @@
+import { AddOn, Feature, Plan, UsageLimit } from "pricing4ts";
+
 export interface LeanPricing {
   id?: string;
   version: string;
   currency: string;
-  createdAt: string; // o Date si no haces `JSON.stringify`
+  createdAt: Date; // o Date si no haces `JSON.stringify`
+  features: Record<string, LeanPricingFeature>;
+  usageLimits?: Record<string, LeanUsageLimit>;
+  plans?: Record<string, LeanPlan>;
+  addOns?: Record<string, LeanAddOn>;
+}
+
+export interface ExpectedPricingType {
+  version: string;
+  currency: string;
+  createdAt: Date;
   features: Record<string, LeanPricingFeature>;
   usageLimits?: Record<string, LeanUsageLimit>;
   plans?: Record<string, LeanPlan>;

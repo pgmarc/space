@@ -2,7 +2,6 @@ import request from 'supertest';
 import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import { ExpectedPricingType } from '../main/utils/pricing-yaml2json';
 import {
   createRandomService,
   deletePricingFromService,
@@ -11,6 +10,7 @@ import {
 } from './utils/services/service';
 import { zoomPricingPath } from './utils/services/ServiceTestData';
 import { retrievePricingFromPath } from 'pricing4ts/server';
+import { ExpectedPricingType } from '../main/types/models/Pricing';
 
 const withCommonDescribe = (name: string, fn: () => void) => {
   describe(name, () => {

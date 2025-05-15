@@ -3,6 +3,7 @@ import PricingMongoose from './models/PricingMongoose';
 import ServiceMongoose from './models/ServiceMongoose';
 import { LeanService } from '../../types/models/Service';
 import { toPlainObject } from '../../utils/mongoose';
+import { LeanPricing } from '../../types/models/Pricing';
 
 export type ServiceQueryFilters = {
   name?: string;
@@ -26,6 +27,16 @@ class ServiceRepository extends RepositoryBase {
     return services.map((service) => service.toJSON());
   }
 
+  async findAllNoQueries(): Promise<LeanService[] | null> {
+    const services = await ServiceMongoose.find({});
+
+    if (!services || Array.isArray(services) && services.length === 0) {
+      return null;
+    }
+    
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
+  }
+
   async findByName(name: string): Promise<LeanService | null> {
     const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' }  });
     if (!service) {
@@ -35,13 +46,13 @@ class ServiceRepository extends RepositoryBase {
     return toPlainObject<LeanService>(service.toJSON());
   }
 
-  async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[]) {
+  async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[]): Promise<LeanPricing[] | null> {
     const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve } });
     if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
       return null;
     }
 
-    return pricings.map((p) => p.toJSON());
+    return pricings.map((p) => toPlainObject<LeanPricing>(p.toJSON()));
   }
 
   async create(data: any, ...args: any) {

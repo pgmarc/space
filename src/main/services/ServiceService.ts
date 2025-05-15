@@ -1,7 +1,7 @@
 import { retrievePricingFromPath } from 'pricing4ts/server';
 import container from '../config/container';
 import ServiceRepository, { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository';
-import { ExpectedPricingType, parsePricingToSpacePricingObject } from '../utils/pricing-yaml2json';
+import { parsePricingToSpacePricingObject } from '../utils/pricing-yaml2json';
 import { Pricing, retrievePricingFromYaml } from 'pricing4ts';
 import fetch from 'node-fetch';
 import https from 'https';
@@ -10,6 +10,7 @@ import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
 import { LeanService } from '../types/models/Service';
+import { ExpectedPricingType } from '../types/models/Pricing';
 // import CacheService from "./CacheService";
 
 class ServiceService {
