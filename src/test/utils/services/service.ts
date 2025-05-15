@@ -143,7 +143,7 @@ async function createRandomService(app?: any) {
     appCopy = await getApp();
   }
 
-  const pricingFilePath = await generatePricingFile(faker.word.noun());
+  const pricingFilePath = await generatePricingFile(faker.word.noun({length: {min: 3, max: 10}}));
   const response = await request(appCopy).post('/api/services').attach('pricing', pricingFilePath);
 
   if (response.status !== 201) {

@@ -1,6 +1,11 @@
 import container from '../config/container';
 import ContractService from '../services/ContractService';
-import { ContractQueryFilters, ContractToCreate, Subscription } from '../types/models/Contract';
+import {
+  ContractQueryFilters,
+  ContractToCreate,
+  Subscription,
+  UsageLevelsResetQuery,
+} from '../types/models/Contract';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils';
 
 class ContractController {
@@ -12,6 +17,7 @@ class ContractController {
     this.show = this.show.bind(this);
     this.create = this.create.bind(this);
     this.novate = this.novate.bind(this);
+    this.resetUsageLevels = this.resetUsageLevels.bind(this);
     this.prune = this.prune.bind(this);
     this.destroy = this.destroy.bind(this);
   }
@@ -62,7 +68,29 @@ class ContractController {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('invalid subscription:')) {
         res.status(400).send({ error: err.message });
-      }else {
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async resetUsageLevels(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const queryParams = this._transformUsageLevelsResetQueryParams(req.query);
+      const usageLevelsIncrements = req.body;
+      const novatedContract = await this.contractService.resetUsageLevels(
+        userId,
+        queryParams,
+        usageLevelsIncrements
+      );
+      res.status(200).json(novatedContract);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('invalid query:')) {
+        res.status(400).send({ error: err.message });
+      } else {
         res.status(500).send({ error: err.message });
       }
     }
@@ -82,11 +110,11 @@ class ContractController {
   }
 
   async destroy(req: any, res: any) {
-    try{
+    try {
       const userId = req.params.userId;
       await this.contractService.destroy(userId);
       res.status(204).json({ message: `Deleted contract with userId ${userId} successfully` });
-    }catch (err: any) {
+    } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else {
@@ -114,6 +142,24 @@ class ContractController {
     const optionalFields: string[] = Object.keys(transformedData);
 
     removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
+
+    return transformedData;
+  }
+
+  _transformUsageLevelsResetQueryParams(
+    indexQueryParams: Record<string, string>
+  ): UsageLevelsResetQuery {
+    const transformedData: UsageLevelsResetQuery = {
+      reset: indexQueryParams.reset === 'true' || undefined,
+      renewableOnly: indexQueryParams.renewableOnly !== 'false',
+      usageLimit: indexQueryParams.usageLimit,
+    };
+
+    if (indexQueryParams.reset && indexQueryParams.usageLimit) {
+      throw new Error(
+        'Invalid query: Both reset and usageLimit cannot be provided at the same time'
+      );
+    }
 
     return transformedData;
   }

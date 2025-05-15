@@ -24,7 +24,7 @@ const contractSchema = new Schema(
       autoRenew: { type: Boolean, default: false },
       renewalDays: { type: Number, default: 30 },
     },
-    usageLevels: {type: Map, of: usageLevelSchema},
+    usageLevels: {type: Map, of: {type: Map, of: usageLevelSchema}},
     contractedServices: {type: Map, of: String},
     subscriptionPlans: { type: Map, of: String },
     subscriptionAddOns: { type: Map, of: {type: Map, of: Number} },

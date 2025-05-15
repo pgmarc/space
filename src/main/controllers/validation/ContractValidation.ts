@@ -152,6 +152,44 @@ const novate = [
     .withMessage('Each add-on quantity must be an integer greater than or equal to 0'),
 ];
 
+const incrementUsageLevels = [
+  body()
+    .custom((value) => {
+      if (
+        typeof value !== 'object' ||
+        value === null ||
+        Array.isArray(value)
+      ) {
+        throw new Error('The value must be an object');
+      }
+
+      for (const key in value) {
+        if (
+          typeof value[key] !== 'object' ||
+          value[key] === null ||
+          Array.isArray(value[key])
+        ) {
+          throw new Error(
+            `The value for key "${key}" must be an object`
+          );
+        }
+
+        for (const innerKey in value[key]) {
+          if (typeof value[key][innerKey] !== 'number') {
+            throw new Error(
+              `The value for key "${key}.${innerKey}" must be a number`
+            );
+          }
+        }
+      }
+
+      return true;
+    })
+    .withMessage(
+      'The input must be an object with the structure: Record<string, Record<string, number>>'
+    ),
+]
+
 async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   const selectedPricings: Record<string, LeanPricing> = {};
   const serviceService: ServiceService = container.resolve('serviceService');
@@ -283,4 +321,4 @@ function _validateAddOnQuantity(
   }
 }
 
-export { create, novate, isSubscriptionValid };
+export { create, novate, incrementUsageLevels, isSubscriptionValid };

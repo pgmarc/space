@@ -15,12 +15,14 @@
       "renewalDays": 30
     },
     "usageLevels": {
-      "totalAttendeesPerMonth": {
-        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
-        "consumed": 650
-      },
-      "maxCloudRecordingSize": {
-        "consumed": 1
+      "zoom": {
+        "totalAttendeesPerMonth": {
+          "resetTimeStamp": "2025-05-01T00:00:00.000Z",
+          "consumed": 650
+        },
+        "maxCloudRecordingSize": {
+          "consumed": 1
+        }
       }
     },
     "contractedServices": {

@@ -15,7 +15,7 @@ export interface TestContract {
     autoRenew: boolean;
     renewalDays: number;
   };
-  usageLevels: Record<string, UsageLevel>;
+  usageLevels: Record<string, Record<string, UsageLevel>>;
   contractedServices: Record<string, string>;
   subscriptionPlans: Record<string, string>;
   subscriptionAddOns: Record<string, Record<string, number>>;

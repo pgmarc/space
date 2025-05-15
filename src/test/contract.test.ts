@@ -8,9 +8,13 @@ import {
   generateContract,
   getAllContracts,
   getContractByUserId,
+  incrementAllUsageLevel,
+  incrementUsageLevel,
 } from './utils/contracts/contracts';
 import { generateNovation } from './utils/contracts/generators';
 import { addDays } from 'date-fns';
+import { UsageLevel } from '../main/types/models/Contract';
+import { TestContract } from './types/models/Contract';
 
 dotenv.config();
 
@@ -59,14 +63,17 @@ describe('Contract API Test Suite', function () {
     it('Should return 200 and the contract for the given userId', async function () {
       const response = await request(app).get(`/api/contracts/${testUserId}`).expect(200);
 
-      expect(response.body).toBeDefined();
-      expect(response.body.userContact.userId).toBe(testUserId);
-      expect(response.body).toHaveProperty('billingPeriod');
-      expect(response.body).toHaveProperty('usageLevels');
-      expect(response.body).toHaveProperty('contractedServices');
-      expect(response.body).toHaveProperty('subscriptionPlans');
-      expect(response.body).toHaveProperty('subscriptionAddOns');
-      expect(response.body).toHaveProperty('history');
+      const contract: TestContract = response.body;
+
+      expect(contract).toBeDefined();
+      expect(contract.userContact.userId).toBe(testUserId);
+      expect(contract).toHaveProperty('billingPeriod');
+      expect(contract).toHaveProperty('usageLevels');
+      expect(contract).toHaveProperty('contractedServices');
+      expect(contract).toHaveProperty('subscriptionPlans');
+      expect(contract).toHaveProperty('subscriptionAddOns');
+      expect(contract).toHaveProperty('history');
+      expect(Object.values(Object.values(contract.usageLevels)[0])[0].consumed).toBeTruthy();
     });
 
     it('Should return 404 if the contract is not found', async function () {
@@ -111,17 +118,221 @@ describe('Contract API Test Suite', function () {
     it('Should return 204', async function () {
       const newContract = await createRandomContract(app);
 
-      await request(app)
-        .delete(`/api/contracts/${newContract.userContact.userId}`)
-        .expect(204);
+      await request(app).delete(`/api/contracts/${newContract.userContact.userId}`).expect(204);
     });
     it('Should return 404 with invalid userId', async function () {
-      const response = await request(app)
-        .delete(`/api/contracts/invalid-user-id`)
-        .expect(404);
+      const response = await request(app).delete(`/api/contracts/invalid-user-id`).expect(404);
 
       expect(response.body).toBeDefined();
       expect(response.body.error.toLowerCase()).toContain('not found');
+    });
+  });
+
+  describe('PUT /contracts/:userId/usageLevels', function () {
+    it('Should return 200 and the novated contract: Given usage level increment', async function () {
+      const newContract: TestContract = await createRandomContract(app);
+
+      const serviceKey = Object.keys(newContract.usageLevels)[0];
+      const usageLevelKey = Object.keys(newContract.usageLevels[serviceKey])[0];
+      const usageLevel = newContract.usageLevels[serviceKey][usageLevelKey];
+
+      expect(usageLevel.consumed).toBe(0);
+
+      const response = await request(app)
+        .put(`/api/contracts/${newContract.userContact.userId}/usageLevels`)
+        .send({
+          [serviceKey]: {
+            [usageLevelKey]: 5,
+          },
+        });
+
+      expect(response.status).toBe(200);
+
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(updatedContract.userContact.userId).toBe(newContract.userContact.userId);
+      expect(updatedContract.usageLevels[serviceKey][usageLevelKey].consumed).toBe(5);
+    });
+
+    it('Should return 200 and the novated contract: Given reset only', async function () {
+      let newContract: TestContract = await createRandomContract(app);
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBe(0);
+        });
+
+      newContract = await incrementAllUsageLevel(
+        newContract.userContact.userId,
+        newContract.usageLevels,
+        app
+      );
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBeGreaterThan(0);
+        });
+
+      const response = await request(app)
+        .put(`/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true`)
+        .expect(200);
+
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(updatedContract.userContact.userId).toBe(newContract.userContact.userId);
+
+      // All RENEWABLE limits are reset to 0
+      Object.values(updatedContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          if (ul.resetTimeStamp) {
+            expect(ul.consumed).toBe(0);
+          }
+        });
+
+      // All NON_RENEWABLE limits are not reset
+      Object.values(updatedContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          if (!ul.resetTimeStamp) {
+            expect(ul.consumed).toBeGreaterThan(0);
+          }
+        });
+    });
+
+    it('Should return 200 and the novated contract: Given reset and disabled renewableOnly', async function () {
+      let newContract: TestContract = await createRandomContract(app);
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBe(0);
+        });
+
+      newContract = await incrementAllUsageLevel(
+        newContract.userContact.userId,
+        newContract.usageLevels,
+        app
+      );
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBeGreaterThan(0);
+        });
+
+      const response = await request(app)
+        .put(
+          `/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true&renewableOnly=false`
+        )
+        .expect(200);
+
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(updatedContract.userContact.userId).toBe(newContract.userContact.userId);
+
+      // All usage levels are reset to 0
+      Object.values(updatedContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBe(0);
+        });
+    });
+
+    it('Should return 200 and the novated contract: Given usageLimit', async function () {
+      let newContract: TestContract = await createRandomContract(app);
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBe(0);
+        });
+
+      newContract = await incrementAllUsageLevel(
+        newContract.userContact.userId,
+        newContract.usageLevels,
+        app
+      );
+
+      Object.values(newContract.usageLevels)
+        .map((s: Record<string, UsageLevel>) => Object.values(s))
+        .flat()
+        .forEach((ul: UsageLevel) => {
+          expect(ul.consumed).toBeGreaterThan(0);
+        });
+
+      const serviceKey = Object.keys(newContract.usageLevels)[0];
+      const sampleUsageLimitKey = Object.keys(newContract.usageLevels[serviceKey])[0];
+
+      const response = await request(app)
+        .put(
+          `/api/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=${sampleUsageLimitKey}`
+        );
+
+      expect(response.status).toBe(200);
+        
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(updatedContract.userContact.userId).toBe(newContract.userContact.userId);
+
+      // Check if all usage levels are greater than 0, except the one specified in the query
+      Object.entries(updatedContract.usageLevels).forEach(([serviceKey, usageLimits]) => {
+        Object.entries(usageLimits).forEach(([usageLimitKey, usageLevel]) => {
+          if (usageLimitKey === sampleUsageLimitKey) {
+            expect(usageLevel.consumed).toBe(0);
+          } else {
+            expect(usageLevel.consumed).toBeGreaterThan(0);
+          }
+        });
+      });
+    });
+
+    it('Should return 404: Given reset and usageLimit', async function () {
+
+      const newContract: TestContract = await createRandomContract(app);
+
+      await request(app)
+        .put(
+          `/api/contracts/${newContract.userContact.userId}/usageLevels?reset=true&usageLimit=test`
+        ).expect(400);
+    });
+
+    it('Should return 404: Given invalid usageLimit', async function () {
+
+      const newContract: TestContract = await createRandomContract(app);
+
+      await request(app)
+        .put(
+          `/api/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=invalid-usage-limit`
+        ).expect(404);
+    });
+
+    it('Should return 422: Given invalid body', async function () {
+
+      const newContract: TestContract = await createRandomContract(app);
+
+      await request(app)
+        .put(
+          `/api/contracts/${newContract.userContact.userId}/usageLevels`
+        )
+        .send({
+          test: "invalid object"
+        })
+        .expect(422);
     });
   });
 
