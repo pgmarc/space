@@ -190,6 +190,32 @@ const incrementUsageLevels = [
     ),
 ]
 
+const novateUserContact = [
+  body()
+    .notEmpty()
+    .withMessage('The body cannot be empty'),
+  check('username')
+    .optional()
+    .isString()
+    .withMessage('The username field must be a string'),
+  check('firstName')
+    .optional()
+    .isString()
+    .withMessage('The firstName field must be a string'),
+  check('lastName')
+    .optional()
+    .isString()
+    .withMessage('The lastName field must be a string'),
+  check('email')
+    .optional()
+    .isEmail()
+    .withMessage('The email field must be a valid email address'),
+  check('phone')
+    .optional()
+    .isString()
+    .withMessage('The phone field must be a string'),
+]
+
 async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   const selectedPricings: Record<string, LeanPricing> = {};
   const serviceService: ServiceService = container.resolve('serviceService');
@@ -321,4 +347,4 @@ function _validateAddOnQuantity(
   }
 }
 
-export { create, novate, incrementUsageLevels, isSubscriptionValid };
+export { create, novate, incrementUsageLevels, novateUserContact, isSubscriptionValid };

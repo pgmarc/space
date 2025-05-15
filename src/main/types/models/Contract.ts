@@ -11,15 +11,16 @@ export interface ContractHistoryEntry {
   subscriptionAddOns: Record<string, Record<string, number>>;
 }
 
+export interface UserContact {
+  userId: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+}
 export interface LeanContract {
-  userContact: {
-    userId: string;
-    username: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-  };
+  userContact: UserContact;
   billingPeriod: {
     startDate: Date;
     endDate: Date;

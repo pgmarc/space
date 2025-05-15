@@ -4,6 +4,7 @@ import {
   LeanContract,
   UsageLevel,
   UsageLevelsResetQuery,
+  UserContact,
 } from '../types/models/Contract';
 import ContractRepository from '../repositories/mongoose/ContractRepository';
 import { validateContractQueryFilters } from './validation/ContractServiceValidation';
@@ -105,6 +106,26 @@ class ContractService {
     };
 
     const result = await this.contractRepository.update(userId, newContract);
+
+    if (!result) {
+      throw new Error(`Failed to update contract for userId ${userId}`);
+    }
+
+    return result;
+  }
+
+  async novateUserContact(userId: string, userContact: Omit<UserContact, "userId">): Promise<LeanContract> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    contract.userContact = {
+      ...contract.userContact,
+      ...userContact,
+    }
+
+    const result = await this.contractRepository.update(userId, contract);
 
     if (!result) {
       throw new Error(`Failed to update contract for userId ${userId}`);

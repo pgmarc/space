@@ -332,6 +332,31 @@ describe('Contract API Test Suite', function () {
     });
   });
 
+  describe('PUT /contracts/:userId/userContact', function () {
+    it('Should return 200 and the updated contract', async function () {
+      const newContract: TestContract = await createRandomContract(app);
+
+      const newUserContactFields = {
+        username: 'newUsername',
+        firstName: 'newFirstName',
+        lastName: 'newLastName',
+      };
+
+      const response = await request(app)
+        .put(`${baseUrl}/contracts/${newContract.userContact.userId}/userContact`)
+        .send(newUserContactFields)
+        .expect(200);
+      const updatedContract: TestContract = response.body;
+
+      expect(updatedContract).toBeDefined();
+      expect(updatedContract.userContact.username).toBe(newUserContactFields.username);
+      expect(updatedContract.userContact.firstName).toBe(newUserContactFields.firstName);
+      expect(updatedContract.userContact.lastName).toBe(newUserContactFields.lastName);
+      expect(updatedContract.userContact.email).toBe(newContract.userContact.email);
+      expect(updatedContract.userContact.phone).toBe(newContract.userContact.phone);
+    });
+  });
+
   describe('DELETE /contracts', function () {
     it('Should return 204 and delete all contracts', async function () {
       const servicesBefore = await getAllContracts(app);

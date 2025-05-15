@@ -27,6 +27,10 @@ const loadFileRoutes = function (app: express.Application) {
     app
     .route(baseUrl + '/contracts/:userId/usageLevels')
     .put(ContractValidator.incrementUsageLevels, handleValidation, contractController.resetUsageLevels)
+
+    app
+    .route(baseUrl + '/contracts/:userId/userContact')
+    .put(ContractValidator.novateUserContact, handleValidation, contractController.novateUserContact)
 };
 
 export default loadFileRoutes;

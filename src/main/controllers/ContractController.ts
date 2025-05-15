@@ -17,6 +17,7 @@ class ContractController {
     this.show = this.show.bind(this);
     this.create = this.create.bind(this);
     this.novate = this.novate.bind(this);
+    this.novateUserContact = this.novateUserContact.bind(this);
     this.resetUsageLevels = this.resetUsageLevels.bind(this);
     this.prune = this.prune.bind(this);
     this.destroy = this.destroy.bind(this);
@@ -68,6 +69,21 @@ class ContractController {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('invalid subscription:')) {
         res.status(400).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async novateUserContact(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const userContact = req.body;
+      const contract = await this.contractService.novateUserContact(userId, userContact);
+      res.status(200).json(contract);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
       } else {
         res.status(500).send({ error: err.message });
       }
