@@ -6,24 +6,31 @@ import { useApp } from '../testApp';
 import { ContractToCreate } from '../../../main/types/models/Contract';
 import { biasedRandomInt } from '../random';
 
-async function generateContractAndService(userId?: string, app?: any): Promise<{contract: ContractToCreate, services: Record<string, string>}> {
+async function generateContractAndService(
+  userId?: string,
+  app?: any
+): Promise<{ contract: ContractToCreate; services: Record<string, string> }> {
   let appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> = await _generateNewContractedServices(appCopy);
 
   const contract = await generateContract(contractedServices, userId, appCopy);
 
-  return {contract, services: contractedServices};
+  return { contract, services: contractedServices };
 }
 
-async function generateContract(contractedServices: Record<string, string>, userId?: string, app?: any): Promise<ContractToCreate> {
+async function generateContract(
+  contractedServices: Record<string, string>,
+  userId?: string,
+  app?: any
+): Promise<ContractToCreate> {
   let appCopy = await useApp(app);
 
   const servicesToConsiderKeys = faker.helpers.arrayElements(
     Object.keys(contractedServices),
     faker.number.int({ min: 1, max: Object.keys(contractedServices).length })
   );
-  
+
   const servicesToConsider: Record<string, string> = Object.fromEntries(
     servicesToConsiderKeys.map(key => [key, contractedServices[key]])
   );
@@ -61,15 +68,22 @@ async function generateContract(contractedServices: Record<string, string>, user
 async function generateNovation(app?: any) {
   let appCopy = await useApp(app);
 
-  const contractedServices: Record<string, string> = await _generateExistentContractedServices(appCopy);
-  const subscriptionPlans: Record<string, string> = await _generateSubscriptionPlans(contractedServices, appCopy);
-  const subscriptionAddOns: Record<string, Record<string, number>> = await _generateSubscriptionAddOns(contractedServices, subscriptionPlans, appCopy);
-  
+  const contractedServices: Record<string, string> =
+    await _generateExistentContractedServices(appCopy);
+  const subscriptionPlans: Record<string, string> = await _generateSubscriptionPlans(
+    contractedServices,
+    appCopy
+  );
+  const subscriptionAddOns: Record<
+    string,
+    Record<string, number>
+  > = await _generateSubscriptionAddOns(contractedServices, subscriptionPlans, appCopy);
+
   return {
     contractedServices: contractedServices,
     subscriptionPlans: subscriptionPlans,
     subscriptionAddOns: subscriptionAddOns,
-  }
+  };
 }
 
 async function _generateNewContractedServices(app?: any): Promise<Record<string, string>> {
@@ -155,18 +169,18 @@ async function _generateSubscriptionAddOns(
       continue;
     }
 
-    const subscriptionAddOns: Record<string, Record<string, number>> = {};
+    if (!subscriptionAddOns[serviceName]) {
+      subscriptionAddOns[serviceName] = {};
+    }
 
     const planName = subscriptionPlans[serviceName];
 
     for (const addOnName in pricing.addOns) {
       const addOn = pricing.addOns[addOnName];
 
-      if (faker.datatype.boolean()) {
-        if (!addOn.availableFor || _addOnAvailableForPlan(addOn.availableFor, planName)) {
-          const count = faker.number.int({ min: 1, max: 10 });
-          subscriptionAddOns[serviceName] = { [addOnName]: _isScalableAddon(addOn) ? count : 1 };
-        }
+      if (!addOn.availableFor || _addOnAvailableForPlan(addOn.availableFor, planName)) {
+        const count = faker.number.int({ min: 1, max: 10 });
+        subscriptionAddOns[serviceName][addOnName] = _isScalableAddon(addOn) ? count : 1;
       }
     }
 

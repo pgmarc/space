@@ -10,6 +10,10 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/features')
     .get(featureEvaluationController.index)
+
+  app
+    .route(baseUrl + '/features/:userId')
+    .get(featureEvaluationController.eval)
 };
 
 export default loadFileRoutes;

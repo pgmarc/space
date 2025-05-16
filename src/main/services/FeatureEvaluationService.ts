@@ -1,16 +1,22 @@
 import container from '../config/container';
 import ServiceRepository from '../repositories/mongoose/ServiceRepository';
-import { FeatureIndexQueryParams, LeanFeature } from '../types/models/FeatureEvaluation';
+import { LeanContract } from '../types/models/Contract';
+import { DetailedFeatureEvaluation, FeatureIndexQueryParams, LeanFeature, PricingContext, SimpleFeatureEvaluation } from '../types/models/FeatureEvaluation';
 import { LeanPricing } from '../types/models/Pricing';
+import { flattenConfigurationsIntoPricingContext, flattenFeatureEvaluationsIntoEvaluationContext, flattenUsageLevelsIntoSubscriptionContext, getFeatureEvaluationExpressionsByService, getUserSubscriptionsFromContract, mapSubscriptionsToConfigurationsByService } from '../utils/feature-evaluation/evaluationContextsManagement';
+import { evaluateAllFeatures } from '../utils/feature-evaluation/featureEvaluation';
+import ContractService from './ContractService';
 import ServiceService from './ServiceService';
 
 class FeatureEvaluationService {
   private readonly serviceService: ServiceService;
   private readonly serviceRepository: ServiceRepository;
+  private readonly contractService: ContractService;
 
   constructor() {
     this.serviceRepository = container.resolve('serviceRepository');
     this.serviceService = container.resolve('serviceService');
+    this.contractService = container.resolve('contractService');
   }
 
   async index(queryParams: FeatureIndexQueryParams): Promise<LeanFeature[]> {
@@ -44,6 +50,61 @@ class FeatureEvaluationService {
     const paginatedFeatures = features.slice(startIndex, startIndex + limit);
 
     return paginatedFeatures;
+  }
+
+  async eval(userId: string): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
+    
+    try{
+      // Step 1.1: Retrieve the user contract
+      const contract = await this.contractService.show(userId);
+      
+      // Step 1.2: Build the subscription context
+      const subscriptionContext = flattenUsageLevelsIntoSubscriptionContext(contract.usageLevels);
+  
+      // Step 2.1: Retrieve all pricings to which the user is subscribed
+      const userPricings = await this._getPricingsByContract(contract);
+  
+      // Step 2.2: Get User Subscriptions
+      const userSubscriptionByService: Record<string, {plan?: string, addOns?: Record<string, number>}> = getUserSubscriptionsFromContract(contract)
+  
+      // Step 2.3: Build user configurations by service using the information of subscriptions and pricings
+      const userConfigurationsByService: Record<string, PricingContext> = mapSubscriptionsToConfigurationsByService(userSubscriptionByService, userPricings);
+    
+      // Step 2.4: Build de pricing context
+      const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(userConfigurationsByService);
+
+      // Step 3.1: Create a map containing the evaluation expression to consider for each feature
+      const evaluationExpressionsByService: Record<string, Record<string, string>> = getFeatureEvaluationExpressionsByService(userPricings, true); // Change second param with server when including query params
+
+      // Step 3.2: Build the evaluation context
+      const evaluationContext: Record<string, string> = flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
+
+      // Step 4: Perform the evaluation
+      const evaluationResults: SimpleFeatureEvaluation = evaluateAllFeatures(pricingContext, subscriptionContext, evaluationContext, true) as SimpleFeatureEvaluation;
+
+      return evaluationResults;
+    
+    }catch (error) {
+      throw new Error(`Error retrieving user contract: ${error}`);
+    }
+  }
+
+  async _getPricingsByContract(contract: LeanContract): Promise<Record<string, LeanPricing>> {
+    const pricingsToReturn: Record<string, LeanPricing> = {};
+
+    for (const serviceName in contract.contractedServices) {
+      
+      const pricingVersion = contract.contractedServices[serviceName];
+
+      const pricing = await this.serviceService.showPricing(
+        serviceName,
+        pricingVersion
+      );
+
+      pricingsToReturn[serviceName] = pricing;
+    }
+
+    return pricingsToReturn;
   }
 
   _parsePricingsToFeatures(

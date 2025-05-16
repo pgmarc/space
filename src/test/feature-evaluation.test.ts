@@ -4,6 +4,8 @@ import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
+import { testUserId } from './utils/contracts/ContractTestData';
+import { createRandomContract } from './utils/contracts/contracts';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -191,6 +193,20 @@ describe('Features API Test Suite', function () {
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBeTruthy();
+    });
+  });
+
+  describe('GET /features/:userId', function () {
+    it('Should return 200 and the feature evaluation for a user', async function () {
+      const newContract = await createRandomContract(app);
+      
+      const response = await request(app).get(`${baseUrl}/features/${newContract.userContact.userId}`);
+
+      if (response.status === 500) {
+        console.error('Server returned 500 error. Response body:', response.body);
+      }
+      
+      expect(response.status).toEqual(200);
     });
   });
 

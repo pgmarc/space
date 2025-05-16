@@ -9,6 +9,7 @@ class FeatureEvaluationController {
   constructor() {
     this.featureEvaluationService = container.resolve('featureEvaluationService');
     this.index = this.index.bind(this);
+    this.eval = this.eval.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -19,6 +20,20 @@ class FeatureEvaluationController {
       res.json(features);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
+    }
+  }
+
+  async eval(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const featureEvaluation = await this.featureEvaluationService.eval(userId);
+      res.json(featureEvaluation);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 

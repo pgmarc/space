@@ -11,6 +11,7 @@ import yaml from 'js-yaml';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import { biasedRandomInt } from '../random';
 
 export async function generatePricingFile(serviceName?: string, version?: string): Promise<string> {
   let pricing: TestPricing & { saasName?: string; syntaxVersion?: string } =
@@ -81,20 +82,20 @@ export function generatePricing(version?: string): TestPricing {
       case 0:
         const randomFeatureKeys = faker.helpers.arrayElements(
           featureKeys,
-          faker.number.int({ min: 1, max: featureKeys.length })
+          biasedRandomInt(1, featureKeys.length)
         );
         addOns[addOnName] = generateAddOn(
           Object.values(features).filter(feature => randomFeatureKeys.includes(feature.name)),
           [],
           [],
-          faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
+          planKeys,
           Object.keys(addOns)
         );
         break;
       case 1:
         const randomUsageLimitKeys = faker.helpers.arrayElements(
           usageLimitKeys,
-          faker.number.int({ min: 1, max: usageLimitKeys.length })
+          biasedRandomInt(1, usageLimitKeys.length)
         );
         addOns[addOnName] = generateAddOn(
           [],
@@ -102,14 +103,14 @@ export function generatePricing(version?: string): TestPricing {
             randomUsageLimitKeys.includes(usageLimit.name)
           ),
           [],
-          faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
+          planKeys,
           Object.keys(addOns)
         );
         break;
       case 2:
         const randomUsageLimitKeysExtensions = faker.helpers.arrayElements(
           usageLimitKeys,
-          faker.number.int({ min: 1, max: usageLimitKeys.length })
+          biasedRandomInt(1, usageLimitKeys.length)
         );
 
         const usageLimitExtensions = Object.values(usageLimits)
@@ -121,7 +122,7 @@ export function generatePricing(version?: string): TestPricing {
             [],
             [],
             usageLimitExtensions,
-            faker.helpers.arrayElements(planKeys, faker.number.int({ min: 1, max: planKeys.length })),
+            planKeys,
             Object.keys(addOns)
           );
         }
@@ -290,16 +291,16 @@ export function generateAddOn(
     description: faker.lorem.sentence(),
     private: faker.datatype.boolean({ probability: 0.1 }),
     price: faker.number.float({ min: 0, max: 100 }),
-    availableFor: faker.datatype.boolean()
+    availableFor: faker.datatype.boolean({probability: 0.3})
       ? faker.helpers.arrayElements(plans, faker.number.int({ min: 1, max: plans.length }))
-      : [],
-    dependsOn: faker.datatype.boolean()
+      : plans,
+    dependsOn: faker.datatype.boolean({probability: 0.2})
       ? faker.helpers.arrayElements(
           preCreatedAddons,
           faker.number.int({ min: 0, max: preCreatedAddons.length })
         )
       : [],
-    excludes: faker.datatype.boolean()
+    excludes: faker.datatype.boolean({probability: 0.2})
       ? faker.helpers.arrayElements(
           preCreatedAddons,
           faker.number.int({ min: 0, max: preCreatedAddons.length })
