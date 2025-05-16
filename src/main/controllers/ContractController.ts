@@ -31,7 +31,11 @@ class ContractController {
       const contracts = await this.contractService.index(queryParams);
       res.json(contracts);
     } catch (err: any) {
-      res.status(500).send({ error: err.message });
+      if (err.message.toLowerCase().includes('validation of query params')) {
+        res.status(400).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 

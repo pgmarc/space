@@ -4,26 +4,32 @@ import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   createRandomContract,
-  generateContract,
+  createRandomContracts,
   getAllContracts,
   getContractByUserId,
   incrementAllUsageLevel,
 } from './utils/contracts/contracts';
-import { generateNovation } from './utils/contracts/generators';
+import { generateContractAndService, generateNovation } from './utils/contracts/generators';
 import { addDays } from 'date-fns';
 import { UsageLevel } from '../main/types/models/Contract';
 import { TestContract } from './types/models/Contract';
+import { testUserId } from './utils/contracts/ContractTestData';
 
 describe('Contract API Test Suite', function () {
   let app: Server;
-
-  const testUserId = '9cd3c5c9-f5df-4307-a5b7-b51386228180';
 
   beforeAll(async function () {
     app = await getApp();
   });
 
   describe('GET /contracts', function () {
+
+    let contracts: TestContract[];
+
+    beforeAll(async function () {
+      contracts = await createRandomContracts(10, app);
+    })
+
     it('Should return 200 and the contracts', async function () {
       const response = await request(app).get(`${baseUrl}/contracts`).expect(200);
 
@@ -32,12 +38,165 @@ describe('Contract API Test Suite', function () {
       expect(response.body.length).toBeGreaterThan(0);
     });
 
-    // TODO: Test Contract filters
+    it('Should return 200: Should return filtered contracts by username query parameter', async function () {
+      const allContracts = await getAllContracts(app);
+      const testContract = allContracts[0];
+      const username = testContract.userContact.username;
+
+      // TODO: This request is not sending query params
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?username=${username}`)
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.every((contract: TestContract) => contract.userContact.username === username)).toBeTruthy();
+    });
+
+    it('Should return 200: Should return filtered contracts by firstName query parameter', async function () {
+      const allContracts = await getAllContracts(app);
+      const testContract = allContracts[0];
+      const firstName = testContract.userContact.firstName;
+
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?firstName=${firstName}`)
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.every((contract: TestContract) => contract.userContact.firstName === firstName)).toBeTruthy();
+    });
+
+    it('Should return 200: Should return filtered contracts by lastName query parameter', async function () {
+      const allContracts = await getAllContracts(app);
+      const testContract = allContracts[0];
+      const lastName = testContract.userContact.lastName;
+
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?lastName=${lastName}`)
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.every((contract: TestContract) => contract.userContact.lastName === lastName)).toBeTruthy();
+    });
+
+    it('Should return 200: Should return filtered contracts by email query parameter', async function () {
+      const allContracts = await getAllContracts(app);
+      const testContract = allContracts[0];
+      const email = testContract.userContact.email;
+
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?email=${email}`)
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.every((contract: TestContract) => contract.userContact.email === email)).toBeTruthy();
+    });
+
+    it('Should return 200: Should paginate contracts using page and limit parameters', async function () {
+      // Create additional contracts to ensure pagination
+      await Promise.all([
+        createRandomContract(app),
+        createRandomContract(app),
+        createRandomContract(app)
+      ]);
+      
+      const limit = 2;
+      const page1Response = await request(app)
+        .get(`${baseUrl}/contracts?page=1&limit=${limit}`)
+        .expect(200);
+      
+      const page2Response = await request(app)
+        .get(`${baseUrl}/contracts?page=2&limit=${limit}`)
+        .expect(200);
+      
+      expect(page1Response.body).toBeDefined();
+      expect(Array.isArray(page1Response.body)).toBeTruthy();
+      expect(page1Response.body.length).toBe(limit);
+      
+      expect(page2Response.body).toBeDefined();
+      expect(Array.isArray(page2Response.body)).toBeTruthy();
+      
+      // Check that the results from page 1 and 2 are different
+      const page1Ids = page1Response.body.map((contract: TestContract) => contract.userContact.userId);
+      const page2Ids = page2Response.body.map((contract: TestContract) => contract.userContact.userId);
+      expect(page1Ids).not.toEqual(page2Ids);
+    });
+
+    it('Should return 200: Should paginate contracts using offset and limit parameters', async function () {
+      const limit = 3;
+      const offsetResponse = await request(app)
+        .get(`${baseUrl}/contracts?offset=3&limit=${limit}`)
+        .expect(200);
+      
+      expect(offsetResponse.body).toBeDefined();
+      expect(Array.isArray(offsetResponse.body)).toBeTruthy();
+      
+      // Verify that this is working by comparing with a direct fetch
+      const allContracts = await getAllContracts(app);
+      const expectedContracts = allContracts.slice(3, 3 + limit);
+      expect(offsetResponse.body.length).toBe(expectedContracts.length);
+    });
+
+    it('Should return 200: Should sort contracts by firstName in ascending order', async function () {
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?sort=firstName&order=asc`)
+        .expect(200);
+      
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      
+      const firstNames = response.body.map((contract: TestContract) => contract.userContact.firstName);
+      const sortedFirstNames = [...firstNames].sort();
+      expect(firstNames).toEqual(sortedFirstNames);
+    });
+
+    it('Should return 200: Should sort contracts by lastName in descending order', async function () {
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?sort=lastName&order=desc`)
+        .expect(200);
+      
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      
+      const lastNames = response.body.map((contract: TestContract) => contract.userContact.lastName);
+      const sortedLastNames = [...lastNames].sort().reverse();
+      expect(lastNames).toEqual(sortedLastNames);
+    });
+
+    it('Should return 200: Should sort contracts by username by default', async function () {
+      const response = await request(app)
+        .get(`${baseUrl}/contracts`)
+        .expect(200);
+      
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      
+      const usernames = response.body.map((contract: TestContract) => contract.userContact.username);
+      const sortedUsernames = [...usernames].sort();
+      expect(usernames).toEqual(sortedUsernames);
+    });
+
+    it('Should return 200: Should enforce maximum limit value', async function () {
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?limit=200`)
+        .expect(200);
+      
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeLessThanOrEqual(100);
+    });
   });
 
   describe('POST /contracts', function () {
     it('Should return 201 and the created contract', async function () {
-      const contractToCreate = await generateContract(undefined, app);
+      const {contract: contractToCreate} = await generateContractAndService(undefined, app);
       const response = await request(app).post(`${baseUrl}/contracts`).send(contractToCreate);
 
       expect(response.status).toBe(201);

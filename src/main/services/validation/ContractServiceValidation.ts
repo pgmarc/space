@@ -11,8 +11,8 @@ export function validateContractQueryFilters(contractQueryFilters: ContractQuery
     errors.push("Offset must be greater than or equal to 0");
   }
 
-  if (contractQueryFilters.limit && (contractQueryFilters.limit < 1 || contractQueryFilters.limit > 100)) {
-    errors.push("Limit must be a value between 1 and 100, inclusive");
+  if (contractQueryFilters.limit && contractQueryFilters.limit < 1) {
+    errors.push("Limit must be greater that or equal to 1");
   }
 
   if (contractQueryFilters.sort && !["firstName", "lastName", "username", "email"].includes(contractQueryFilters.sort)) {

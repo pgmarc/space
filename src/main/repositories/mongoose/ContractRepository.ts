@@ -17,16 +17,15 @@ class ContractRepository extends RepositoryBase {
       order = 'asc',
     } = queryFilters || {};
 
-    // TODO: arreglar esta query, porque no está considerando correctamente los filtros de username, firstName, etc
     const contracts = await ContractMongoose.find({
-      ...(username ? { username: { $regex: new RegExp(username, 'i') } } : {}),
-      ...(firstName ? { firstName: { $regex: new RegExp(firstName, 'i') } } : {}),
-      ...(lastName ? { lastName: { $regex: new RegExp(lastName, 'i') } } : {}),
-      ...(email ? { email: { $regex: new RegExp(email, 'i') } } : {}),
+      ...(username ? { 'userContact.username': { $regex: new RegExp(username, 'i') } } : {}),
+      ...(firstName ? { 'userContact.firstName': { $regex: new RegExp(firstName, 'i') } } : {}),
+      ...(lastName ? { 'userContact.lastName': { $regex: new RegExp(lastName, 'i') } } : {}),
+      ...(email ? { 'userContact.email': { $regex: new RegExp(email, 'i') } } : {}),
     })
       .skip(offset == 0 ? (page - 1) * limit : offset)
-      .limit(limit)
-      .sort({ [sort ?? 'username']: order === 'asc' ? 1 : -1 });
+      .limit(limit > 100 ? 100 : limit)
+      .sort({ [sort ? `userContact.${sort}` : 'userContact.username']: order === 'asc' ? 1 : -1 });
 
     return contracts.map(contract => toPlainObject<LeanContract>(contract.toJSON()));
   }
@@ -42,7 +41,10 @@ class ContractRepository extends RepositoryBase {
     return toPlainObject<LeanContract>(contract.toJSON());
   }
 
-  async update(userId: string, contractData: Partial<ContractToCreate>): Promise<LeanContract | null> {
+  async update(
+    userId: string,
+    contractData: Partial<ContractToCreate>
+  ): Promise<LeanContract | null> {
     const contract = await ContractMongoose.findOneAndUpdate(
       { 'userContact.userId': userId },
       { $set: contractData },
