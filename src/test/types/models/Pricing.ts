@@ -62,7 +62,7 @@ export interface TestAddOn {
   features?: Record<string, { value: string | boolean}>;
   usageLimits?: Record<string, { value: number | boolean}>;
   usageLimitsExtensions?: Record<string, { value: number}>;
-  subscriptionConstraint?: TestSubscriptionConstraint;
+  subscriptionConstraints?: TestSubscriptionConstraint;
 }
 
 

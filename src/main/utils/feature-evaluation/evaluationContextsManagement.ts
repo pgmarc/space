@@ -137,7 +137,7 @@ function getFeatureEvaluationExpressionsByService(
           `subscriptionContext['${serviceName.toLowerCase()}-${key}']`)
         // Replace pricingContext['features']['keyName'] with pricingContext['features']['serviceName-keyName']
         .replace(/pricingContext\['features'\]\['([^']+)'\]/g, (match, key) => 
-          `pricingContext['usageLimits']['${serviceName.toLowerCase()}-${key}']`)
+          `pricingContext['features']['${serviceName.toLowerCase()}-${key}']`)
         // Replace pricingContext['usageLimits']['keyName'] with pricingContext['usageLimits']['serviceName-keyName']
         .replace(/pricingContext\['usageLimits'\]\['([^']+)'\]/g, (match, key) => 
           `pricingContext['usageLimits']['${serviceName.toLowerCase()}-${key}']`);

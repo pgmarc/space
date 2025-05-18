@@ -46,7 +46,7 @@ const addOnSchema = new Schema(
       type: Map,
       of: Schema.Types.Number,
     },
-    subscriptionConstraint: {
+    subscriptionConstraints: {
       type: subscriptionConstraintSchema,
     },
   },

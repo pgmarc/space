@@ -6,6 +6,7 @@ import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
 import { testUserId } from './utils/contracts/ContractTestData';
 import { createRandomContract } from './utils/contracts/contracts';
+import { v4 as uuidv4 } from 'uuid';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -198,15 +199,59 @@ describe('Features API Test Suite', function () {
 
   describe('GET /features/:userId', function () {
     it('Should return 200 and the feature evaluation for a user', async function () {
-      const newContract = await createRandomContract(app);
-      
-      const response = await request(app).get(`${baseUrl}/features/${newContract.userContact.userId}`);
+      const createServiceResponse = await request(app)
+        .post(`${baseUrl}/services`)
+        .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
 
-      if (response.status === 500) {
-        console.error('Server returned 500 error. Response body:', response.body);
-      }
-      
+      const petclinicService = createServiceResponse.body;
+
+      const createContractResponse = await request(app)
+        .post(`${baseUrl}/contracts`)
+        .send({
+          userContact: {
+            userId: uuidv4(),
+            username: 'tUser',
+          },
+          billingPeriod: {
+            autoRenew: true,
+            renewalDays: 365,
+          },
+          contractedServices: {
+            [petclinicService.name]: Object.keys(petclinicService.activePricings)[0],
+          },
+          subscriptionPlans: {
+            [petclinicService.name]: "GOLD"
+          },
+          subscriptionAddOns: {
+            [petclinicService.name]: {
+              petAdoptionCentre: 1,
+              extraPets: 2,
+              extraVisits: 6
+            }
+          }
+        });
+
+      const newContract = createContractResponse.body;
+
+      const response = await request(app).get(
+        `${baseUrl}/features/${newContract.userContact.userId}`
+      );
+
       expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        "petclinic-pets": true,
+        "petclinic-visits": true,
+        "petclinic-calendar": true,
+        "petclinic-vetSelection": true,
+        "petclinic-consultations": false,
+        "petclinic-petsDashboard": false,
+        "petclinic-lowSupportPriority": true,
+        "petclinic-mediumSupportPriority": true,
+        "petclinic-highSupportPriority": false,
+        "petclinic-slaCoverage": true,
+        "petclinic-petAdoptionCentre": true,
+        "petclinic-smartClinicReports": false,
+      })
     });
   });
 

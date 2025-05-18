@@ -76,7 +76,7 @@ export interface LeanAddOn {
   features?: Record<string, string | boolean>;
   usageLimits?: Record<string, number | boolean>;
   usageLimitsExtensions?: Record<string, number>;
-  subscriptionConstraint?: LeanSubscriptionConstraint;
+  subscriptionConstraints?: LeanSubscriptionConstraint;
 }
 
 

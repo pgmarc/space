@@ -350,9 +350,9 @@ function _validateAddOnQuantity(
   pricing: LeanPricing
 ): void {
   const quantity = selectedAddOns[addOnName];
-  const minQuantity = pricing.addOns![addOnName].subscriptionConstraint?.minQuantity ?? 1;
-  const maxQuantity = pricing.addOns![addOnName].subscriptionConstraint?.maxQuantity ?? 1;
-  const quantityStep = pricing.addOns![addOnName].subscriptionConstraint?.quantityStep ?? 1;
+  const minQuantity = pricing.addOns![addOnName].subscriptionConstraints?.minQuantity ?? 1;
+  const maxQuantity = pricing.addOns![addOnName].subscriptionConstraints?.maxQuantity ?? 1;
+  const quantityStep = pricing.addOns![addOnName].subscriptionConstraints?.quantityStep ?? 1;
 
   const isValidQuantity =
     quantity >= minQuantity &&

@@ -180,10 +180,11 @@ async function _generateSubscriptionAddOns(
 
       if (!addOn.availableFor || _addOnAvailableForPlan(addOn.availableFor, planName)) {
 
-        const minQuantity = pricing.addOns[addOnName].subscriptionConstraint?.minQuantity;
-        const maxQuantity = pricing.addOns[addOnName].subscriptionConstraint?.maxQuantity;
-
-        const count = faker.number.int({ min: minQuantity ?? 1, max: maxQuantity ?? 10 });
+        const minQuantity = pricing.addOns[addOnName].subscriptionConstraints?.minQuantity;
+        const maxQuantity = pricing.addOns[addOnName].subscriptionConstraints?.maxQuantity;
+        const quantityStep = pricing.addOns[addOnName].subscriptionConstraints?.quantityStep;
+      
+        const count = faker.number.int({ min: minQuantity ?? 1, max: maxQuantity ?? 10, multipleOf: quantityStep ?? 1 });
         subscriptionAddOns[serviceName][addOnName] = _isScalableAddon(addOn) ? count : 1;
       }
     }
