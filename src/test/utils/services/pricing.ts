@@ -10,7 +10,7 @@ import {
 import yaml from 'js-yaml';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
-import fs from 'fs';
+import fs, { link } from 'fs';
 import { biasedRandomInt } from '../random';
 
 export async function generatePricingFile(serviceName?: string, version?: string): Promise<string> {
@@ -44,7 +44,7 @@ export async function generatePricingFile(serviceName?: string, version?: string
 }
 
 export function generatePricing(version?: string): TestPricing {
-  const featureCount = faker.number.int({ min: 1, max: 15 });
+  const featureCount = faker.number.int({ min: 5, max: 20 });
   const usageLimitCount = faker.number.int({ min: 1, max: 5 });
   const planCount = faker.number.int({ min: 1, max: 5 });
   const addOnCount = faker.number.int({ min: 0, max: 5 });
@@ -54,8 +54,12 @@ export function generatePricing(version?: string): TestPricing {
   const plans: Record<string, TestPlan> = {};
   const addOns: Record<string, TestAddOn> = {};
 
-  const featureKeys = Array.from({ length: featureCount }, () => faker.word.noun({length: {min: 4, max: 20}}));
-  const usageLimitKeys = Array.from({ length: usageLimitCount }, () => faker.word.noun({length: {min: 4, max: 20}}));
+  const featureKeys = Array.from({ length: featureCount }, () =>
+    faker.word.noun({ length: { min: 4, max: 20 } })
+  );
+  const usageLimitKeys = Array.from({ length: usageLimitCount }, () =>
+    faker.word.noun({ length: { min: 4, max: 20 } })
+  );
 
   featureKeys.forEach(key => (features[key] = generateFeature(key)));
   usageLimitKeys.forEach(
@@ -68,15 +72,17 @@ export function generatePricing(version?: string): TestPricing {
       ))
   );
 
+  _generateExpressionsForFeatures(features, usageLimits);
+
   for (let i = 0; i < planCount; i++) {
-    const planName = faker.word.noun({length: {min: 4, max: 20}}).toUpperCase();
+    const planName = faker.word.noun({ length: { min: 4, max: 20 } }).toUpperCase();
     plans[planName] = generatePlan(features, usageLimits);
   }
 
   const planKeys = Object.keys(plans);
 
   for (let i = 0; i < addOnCount; i++) {
-    const addOnName = faker.word.noun({length: {min: 4, max: 20}}).toLowerCase();
+    const addOnName = faker.word.noun({ length: { min: 4, max: 20 } }).toLowerCase();
     const randoAddOnType = faker.number.int({ min: 0, max: 2 });
     switch (randoAddOnType) {
       case 0:
@@ -114,8 +120,8 @@ export function generatePricing(version?: string): TestPricing {
         );
 
         const usageLimitExtensions = Object.values(usageLimits)
-        .filter(usageLimit => randomUsageLimitKeysExtensions.includes(usageLimit.name))
-        .filter(usageLimit => usageLimit.valueType === 'NUMERIC');
+          .filter(usageLimit => randomUsageLimitKeysExtensions.includes(usageLimit.name))
+          .filter(usageLimit => usageLimit.valueType === 'NUMERIC');
 
         if (usageLimitExtensions.length > 0) {
           addOns[addOnName] = generateAddOn(
@@ -145,7 +151,7 @@ export function generatePricing(version?: string): TestPricing {
 
 export function generateFeature(name?: string): TestFeature {
   const featureName = name ?? faker.word.words(1);
-  const featureValueType = faker.helpers.arrayElement(['BOOLEAN', 'TEXT']);
+  const featureValueType = faker.datatype.boolean({probability: 0.8}) ? 'BOOLEAN' : 'TEXT';
   const featureType = faker.helpers.arrayElement([
     'INFORMATION',
     'INTEGRATION',
@@ -280,27 +286,30 @@ export function generateAddOn(
   plans: string[],
   preCreatedAddons: string[]
 ): TestAddOn {
-  const minQuantity: number | undefined = faker.datatype.boolean()
+
+  const isScalableAddon = (features.length === 0 && usageLimits.length === 0 && usageLimitsExtensions.length > 0)
+
+  const minQuantity: number | undefined = isScalableAddon
     ? faker.number.int({ min: 1, max: 10 })
-    : undefined;
-  const maxQuantity: number | undefined = faker.datatype.boolean()
-    ? faker.number.int({ min: minQuantity ?? 1, max: 10 })
-    : undefined;
+    : 1;
+  const maxQuantity: number | undefined = isScalableAddon
+    ? faker.number.int({ min: minQuantity, max: 10 })
+    : 1;
 
   return {
     description: faker.lorem.sentence(),
     private: faker.datatype.boolean({ probability: 0.1 }),
     price: faker.number.float({ min: 0, max: 100 }),
-    availableFor: faker.datatype.boolean({probability: 0.3})
+    availableFor: faker.datatype.boolean({ probability: 0.3 })
       ? faker.helpers.arrayElements(plans, faker.number.int({ min: 1, max: plans.length }))
       : plans,
-    dependsOn: faker.datatype.boolean({probability: 0.2})
+    dependsOn: faker.datatype.boolean({ probability: 0.2 })
       ? faker.helpers.arrayElements(
           preCreatedAddons,
           faker.number.int({ min: 0, max: preCreatedAddons.length })
         )
       : [],
-    excludes: faker.datatype.boolean({probability: 0.2})
+    excludes: faker.datatype.boolean({ probability: 0.2 })
       ? faker.helpers.arrayElements(
           preCreatedAddons,
           faker.number.int({ min: 0, max: preCreatedAddons.length })
@@ -360,4 +369,40 @@ function _generateDefaultValueAndValueNumeric(): [number, number | undefined] {
     ? faker.number.int({ min: defaultValue, max: 100 })
     : undefined;
   return [defaultValue, value];
+}
+
+function _generateExpressionsForFeatures(
+  features: Record<string, TestFeature>,
+  usageLimits: Record<string, TestUsageLimit>
+): void {
+  Object.keys(features).forEach(key => {
+    const feature = features[key];
+
+    if (feature.valueType === 'BOOLEAN') {
+      const linkedUsageLimitKeys = Object.entries(usageLimits)
+        .filter(([_, usageLimit]) => usageLimit.linkedFeatures?.includes(key) && usageLimit.valueType === 'NUMERIC')
+        .map(([limitKey]) => limitKey);
+
+      if (linkedUsageLimitKeys.length === 0) {
+        feature.expression = `pricingContext['${key}']`;
+        feature.serverExpression = undefined;
+      } else {
+        const createExpression = (operator: "<" | "<=") => {
+          const conditions = linkedUsageLimitKeys.map(limitKey => 
+            `subscriptionContext['${limitKey}'] ${operator} pricingContext['usageLimits']['${limitKey}']`
+          ).join(' && ');
+          
+          return `pricingContext['features']['${key}'] && (${conditions})`;
+        };
+        
+        feature.expression = createExpression('<');
+        feature.serverExpression = createExpression('<=');
+      }
+    }
+
+    if (feature.valueType === 'TEXT') {
+      feature.expression = `pricingContext['${key}'] === pricingContext['${key}']`;
+      feature.serverExpression = undefined;
+    }
+  });
 }

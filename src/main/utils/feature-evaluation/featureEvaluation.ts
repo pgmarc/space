@@ -1,6 +1,7 @@
 import {
   DetailedFeatureEvaluation,
   EvaluationContext,
+  FeatureEvaluationResult,
   PricingContext,
   SimpleFeatureEvaluation,
   SubscriptionContext,
@@ -21,7 +22,7 @@ function evaluateAllFeatures(
       pricingContext,
       subscriptionContext,
       evaluationContext,
-      simple
+      { simple: simple }
     );
   }
 
@@ -33,22 +34,20 @@ function evaluateFeature(
   pricingContext: PricingContext,
   subscriptionContext: SubscriptionContext,
   evaluationContext: EvaluationContext,
-  simple: boolean = true
-):
-  | boolean
-  | { eval: boolean; used: Record<string, number> | null; limit: Record<string, number> | null } {
-  const featureEvaluation: boolean = _evaluate(
+  options: { simple: boolean; expectedConsumption?: Record<string, number> } = { simple: true }
+): boolean | FeatureEvaluationResult {
+  const featureEvaluation: FeatureEvaluationResult = _evaluate(
     featureId,
     pricingContext,
     subscriptionContext,
     evaluationContext,
-    simple
+    options.expectedConsumption
   );
 
-  if (simple) {
-    return featureEvaluation;
+  if (options.simple) {
+    return featureEvaluation.eval;
   } else {
-    return { eval: featureEvaluation, used: null, limit: null };
+    return featureEvaluation;
   }
 }
 
@@ -57,10 +56,137 @@ function _evaluate(
   pricingContext: PricingContext,
   subscriptionContext: SubscriptionContext,
   evaluationContext: EvaluationContext,
-  simple: boolean = true
-): boolean {
-  // TODO: Perform Evaluation
-  return true;
+  expectedConsumption?: Record<string, number>
+): FeatureEvaluationResult {
+  // Check if feature exists
+  if (!pricingContext.features[featureId]) {
+    return _createErrorResult(
+      'FLAG_NOT_FOUND',
+      `Feature ${featureId} not found in "pricingContext".`
+    );
+  }
+
+  const featureExpression: string | undefined = evaluationContext[featureId];
+
+  // Validate feature expression
+  const expressionError = validateExpression(featureId, featureExpression);
+  if (expressionError) return expressionError;
+
+  // Evaluate the expression
+  try {
+    const evalResult: Boolean = eval(featureExpression!);
+
+    if (typeof evalResult !== 'boolean') {
+      return _createErrorResult(
+        'TYPE_MISMATCH',
+        `Feature ${featureId} has an expression that does not return a boolean!`
+      );
+    }
+
+    if (evalResult === null || evalResult === undefined) {
+      return _createErrorResult(
+        'TYPE_MISMATCH',
+        `Error while evaluating expression for feature ${featureId}. The returned expression is null or undefined`
+      );
+    }
+
+    return _buildSuccessResult(
+      featureId,
+      featureExpression!,
+      evalResult,
+      pricingContext,
+      subscriptionContext,
+      expectedConsumption
+    );
+  } catch (error) {
+    return _createErrorResult(
+      'EVALUATION_ERROR',
+      `Error evaluating feature ${featureId}: ${error}`
+    );
+  }
+}
+
+function _createErrorResult(code: string, message: string): FeatureEvaluationResult {
+  console.warn(`[WARNING] ${message}`);
+  return {
+    eval: false,
+    limit: null,
+    used: null,
+    error: { code, message },
+  };
+}
+
+function validateExpression(
+  featureId: string,
+  expression?: string
+): FeatureEvaluationResult | null {
+  if (!expression) {
+    return _createErrorResult('PARSE_ERROR', `Feature ${featureId} has no expression defined!`);
+  }
+
+  if (!expression.includes('pricingContext') && !expression.includes('subscriptionContext')) {
+    return _createErrorResult(
+      'PARSE_ERROR',
+      `Feature ${featureId} has no expression defined! If an expression is intended, please ensure it only references hard-coded values or variables from "pricingContext" and "subscriptionContext".`
+    );
+  }
+
+  return null;
+}
+
+function _buildSuccessResult(
+  featureId: string,
+  featureExpression: string,
+  evalResult: boolean,
+  pricingContext: PricingContext,
+  subscriptionContext: SubscriptionContext,
+  expectedConsumption?: Record<string, number>
+): FeatureEvaluationResult {
+  const limitsInvolvedInEvaluation = [
+    ...featureExpression.matchAll(/subscriptionContext\['([^']+)'\]/g),
+  ];
+
+  const featureLimits: Record<string, number | boolean> = {};
+  const usageLevels: Record<string, number> = {};
+
+  for (const limit of limitsInvolvedInEvaluation) {
+    const limitKey = limit[1];
+    featureLimits[limitKey] = pricingContext.usageLimits[limitKey];
+
+    if (expectedConsumption) {
+      const updatedUsageLevel = _updateUsageLevel(
+        subscriptionContext[limitKey],
+        expectedConsumption[limitKey]
+      );
+      if (!updatedUsageLevel) {
+        return _createErrorResult(
+          'INVALID_EXPECTED_CONSUMPTION',
+          `No expectedConsumption value was provided for limit '${limitKey}', which is used in the evaluation of feature '${featureId}'. Please note that if you provide an expectedConsumption for any limit, you must provide it for all limits involved in that feature's evaluation.`
+        );
+      }
+      usageLevels[limitKey] = updatedUsageLevel;
+    } else {
+      usageLevels[limitKey] = subscriptionContext[limitKey];
+    }
+  }
+
+  return {
+    eval: evalResult,
+    limit: featureLimits,
+    used: usageLevels,
+    error: null,
+  };
+}
+
+function _updateUsageLevel(
+  currentUsageLevel: number,
+  expectedConsumption?: number
+): number | undefined {
+  if (!expectedConsumption) {
+    return undefined;
+  }
+
+  return currentUsageLevel + expectedConsumption;
 }
 
 export { evaluateAllFeatures, evaluateFeature };

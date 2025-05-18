@@ -21,20 +21,20 @@ export interface FeatureIndexQueryParams {
 
 export type SimpleFeatureEvaluation = Record<string, boolean>;
 
-export type DetailedFeatureEvaluation = Record<
-  string,
-  {
-    used: Record<string, number> | null;
-    limit: Record<string, number> | null;
-    eval: boolean;
-  }
->;
+export type DetailedFeatureEvaluation = Record<string, FeatureEvaluationResult>;
 
-export type PricingContext = Record<
-  'features' | 'usageLimits',
-  Record<string, string | boolean | number | PaymentType[]>
->;
+export type PricingContext = {features: Record<string, string | boolean>, usageLimits: Record<string, number | boolean>};
 
-export type SubscriptionContext = Record<string, number>
+export type SubscriptionContext = Record<string, number>;
 
-export type EvaluationContext = Record<string, string>
+export type EvaluationContext = Record<string, string>;
+
+export interface FeatureEvaluationResult {
+  eval: boolean;
+  used: Record<string, number | boolean> | null;
+  limit: Record<string, number | boolean> | null;
+  error: {
+    code: string;
+    message: string;
+  } | null;
+}

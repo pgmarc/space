@@ -9,7 +9,7 @@ function flattenUsageLevelsIntoSubscriptionContext(
 
   for (const [serviceName, context] of Object.entries(subscriptionContextByServices)) {
     for (const [usageLimitName, usageLevelValue] of Object.entries(context)) {
-      const flattenedKey = `${serviceName}-${usageLimitName}`;
+      const flattenedKey = `${serviceName.toLowerCase()}-${usageLimitName}`;
       flattened[flattenedKey] = usageLevelValue.consumed;
     }
   }
@@ -24,7 +24,7 @@ function flattenFeatureEvaluationsIntoEvaluationContext(
 
   for (const [serviceName, context] of Object.entries(evaluationContextByServices)) {
     for (const [featureName, expression] of Object.entries(context)) {
-      const flattenedKey = `${serviceName}-${featureName}`;
+      const flattenedKey = `${serviceName.toLowerCase()}-${featureName}`;
       flattened[flattenedKey] = expression;
     }
   }
@@ -40,7 +40,7 @@ function flattenConfigurationsIntoPricingContext(
   for (const [serviceName, context] of Object.entries(contextByServices)) {
     for (const [category, categoryValue] of Object.entries(context)) {
       for (const [itemName, itemValue] of Object.entries(categoryValue)) {
-        const flattenedKey = `${serviceName}-${itemName}`;
+        const flattenedKey = `${serviceName.toLowerCase()}-${itemName}`;
         flattened[category as 'features' | 'usageLimits'][flattenedKey] = itemValue;
       }
     }
@@ -77,7 +77,7 @@ function mapSubscriptionsToConfigurationsByService(
   for (const [serviceName, subscription] of Object.entries(userSubscriptionsByService)) {
     const pricing: LeanPricing = userPricings[serviceName];
 
-    if (!subscription.plan && pricing.plans) {
+    if (!subscription.plan && pricing.plans && Object.keys(pricing.plans).length > 0) {
       throw new Error(
         `No plan found in user subscription for service ${serviceName}, whose pricing do have plans`
       );
@@ -127,10 +127,21 @@ function getFeatureEvaluationExpressionsByService(
       }
 
       const featureKey = feature.name;
-      const expressionToUse = server && feature.serverExpression 
+      let expressionToUse = server && feature.serverExpression 
         ? feature.serverExpression 
         : feature.expression!;
-        
+      
+      expressionToUse = expressionToUse
+        // Replace subscriptionContext['keyName'] with subscriptionContext['serviceName-keyName']
+        .replace(/subscriptionContext\['([^']+)'\]/g, (match, key) => 
+          `subscriptionContext['${serviceName.toLowerCase()}-${key}']`)
+        // Replace pricingContext['features']['keyName'] with pricingContext['features']['serviceName-keyName']
+        .replace(/pricingContext\['features'\]\['([^']+)'\]/g, (match, key) => 
+          `pricingContext['usageLimits']['${serviceName.toLowerCase()}-${key}']`)
+        // Replace pricingContext['usageLimits']['keyName'] with pricingContext['usageLimits']['serviceName-keyName']
+        .replace(/pricingContext\['usageLimits'\]\['([^']+)'\]/g, (match, key) => 
+          `pricingContext['usageLimits']['${serviceName.toLowerCase()}-${key}']`);
+
       evaluationExpressionsByService[serviceName][featureKey] = expressionToUse;
     }
   }

@@ -43,8 +43,11 @@ async function createRandomContract(app?: any): Promise<TestContract> {
   
   const response = await request(copyApp)
     .post(`${baseUrl}/contracts`)
-    .send(contract)
-    .expect(201);
+    .send(contract);
+  
+  if (response.status !== 201) {
+    throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+  }
 
   return response.body;
 }

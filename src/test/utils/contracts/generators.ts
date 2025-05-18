@@ -179,12 +179,16 @@ async function _generateSubscriptionAddOns(
       const addOn = pricing.addOns[addOnName];
 
       if (!addOn.availableFor || _addOnAvailableForPlan(addOn.availableFor, planName)) {
-        const count = faker.number.int({ min: 1, max: 10 });
+
+        const minQuantity = pricing.addOns[addOnName].subscriptionConstraint?.minQuantity;
+        const maxQuantity = pricing.addOns[addOnName].subscriptionConstraint?.maxQuantity;
+
+        const count = faker.number.int({ min: minQuantity ?? 1, max: maxQuantity ?? 10 });
         subscriptionAddOns[serviceName][addOnName] = _isScalableAddon(addOn) ? count : 1;
       }
     }
 
-    _solveAddOnDependenciesAndExclusions(subscriptionAddOns, pricing.addOns);
+    _solveAddOnDependenciesAndExclusions(subscriptionAddOns[serviceName], pricing.addOns);
   }
 
   return subscriptionAddOns;
@@ -203,26 +207,24 @@ function _isScalableAddon(addOn: TestAddOn): boolean {
 }
 
 function _solveAddOnDependenciesAndExclusions(
-  subscriptionAddOns: Record<string, Record<string, number>>,
+  subscriptionAddOns: Record<string, number>,
   pricingAddons: Record<string, TestAddOn>
 ): void {
-  for (const serviceName in subscriptionAddOns) {
-    for (const addOnName in subscriptionAddOns[serviceName]) {
-      const pricingAddon = pricingAddons[addOnName];
+  for (const addOnName in subscriptionAddOns) {
+    const pricingAddon = pricingAddons[addOnName];
 
-      if (pricingAddon.dependsOn) {
-        for (const dependency of pricingAddon.dependsOn) {
-          if (!subscriptionAddOns[dependency]) {
-            subscriptionAddOns[serviceName][dependency] = 1;
-          }
+    if (pricingAddon.dependsOn) {
+      for (const dependency of pricingAddon.dependsOn) {
+        if (!subscriptionAddOns[dependency]) {
+          subscriptionAddOns[dependency] = 1;
         }
       }
+    }
 
-      if (pricingAddon.excludes) {
-        for (const exclusion of pricingAddon.excludes) {
-          if (subscriptionAddOns[exclusion]) {
-            delete subscriptionAddOns[exclusion];
-          }
+    if (pricingAddon.excludes) {
+      for (const exclusion of pricingAddon.excludes) {
+        if (subscriptionAddOns[exclusion]) {
+          delete subscriptionAddOns[exclusion];
         }
       }
     }

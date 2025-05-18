@@ -143,3 +143,5 @@ public/static
 
 # Generated files for testing purposes
 src/test/data/generated/
+
+.DS_Store
