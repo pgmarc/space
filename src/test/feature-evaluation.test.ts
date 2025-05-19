@@ -198,60 +198,157 @@ describe('Features API Test Suite', function () {
   });
 
   describe('GET /features/:userId', function () {
-    it('Should return 200 and the feature evaluation for a user', async function () {
-      const createServiceResponse = await request(app)
-        .post(`${baseUrl}/services`)
-        .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
+    let petclinicService: any;
 
-      const petclinicService = createServiceResponse.body;
+    beforeAll(async function () {
+      const createServiceResponse = await request(app)
+      .post(`${baseUrl}/services`)
+      .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
+      petclinicService = createServiceResponse.body;
+    });
+
+    async function createTestContract(userId = uuidv4()) {
+      const contractData = {
+      userContact: {
+        userId,
+        username: 'tUser',
+      },
+      billingPeriod: {
+        autoRenew: true,
+        renewalDays: 365,
+      },
+      contractedServices: {
+        [petclinicService.name]: Object.keys(petclinicService.activePricings)[0],
+      },
+      subscriptionPlans: {
+        [petclinicService.name]: "GOLD"
+      },
+      subscriptionAddOns: {
+        [petclinicService.name]: {
+        petAdoptionCentre: 1,
+        extraPets: 2,
+        extraVisits: 6
+        }
+      }
+      };
 
       const createContractResponse = await request(app)
-        .post(`${baseUrl}/contracts`)
-        .send({
-          userContact: {
-            userId: uuidv4(),
-            username: 'tUser',
-          },
-          billingPeriod: {
-            autoRenew: true,
-            renewalDays: 365,
-          },
-          contractedServices: {
-            [petclinicService.name]: Object.keys(petclinicService.activePricings)[0],
-          },
-          subscriptionPlans: {
-            [petclinicService.name]: "GOLD"
-          },
-          subscriptionAddOns: {
-            [petclinicService.name]: {
-              petAdoptionCentre: 1,
-              extraPets: 2,
-              extraVisits: 6
-            }
-          }
-        });
+      .post(`${baseUrl}/contracts`)
+      .send(contractData);
 
-      const newContract = createContractResponse.body;
+      return createContractResponse.body;
+    }
+
+    it('Should return 200 and the feature evaluation for a user', async function () {
+      const newContract = await createTestContract();
 
       const response = await request(app).get(
-        `${baseUrl}/features/${newContract.userContact.userId}`
+      `${baseUrl}/features/${newContract.userContact.userId}`
       );
 
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
-        "petclinic-pets": true,
-        "petclinic-visits": true,
-        "petclinic-calendar": true,
-        "petclinic-vetSelection": true,
-        "petclinic-consultations": false,
-        "petclinic-petsDashboard": false,
-        "petclinic-lowSupportPriority": true,
-        "petclinic-mediumSupportPriority": true,
-        "petclinic-highSupportPriority": false,
-        "petclinic-slaCoverage": true,
-        "petclinic-petAdoptionCentre": true,
-        "petclinic-smartClinicReports": false,
-      })
+      "petclinic-pets": true,
+      "petclinic-visits": true,
+      "petclinic-calendar": true,
+      "petclinic-vetSelection": true,
+      "petclinic-consultations": false,
+      "petclinic-petsDashboard": false,
+      "petclinic-lowSupportPriority": true,
+      "petclinic-mediumSupportPriority": true,
+      "petclinic-highSupportPriority": false,
+      "petclinic-slaCoverage": true,
+      "petclinic-petAdoptionCentre": true,
+      "petclinic-smartClinicReports": false,
+      });
+    });
+
+    it('Should return 200 and visits as false since its limit has been reached', async function () {
+      const testUserId = uuidv4();
+      await createTestContract(testUserId);
+
+      // Reach the limit of 9 visits
+      await request(app).put(
+      `${baseUrl}/contracts/${testUserId}/usageLevels`).send({
+        [petclinicService.name]: {
+        maxVisits: 9
+        }
+      });
+
+      const response = await request(app).get(
+      `${baseUrl}/features/${testUserId}`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body["petclinic-visits"]).toBeFalsy();
+    });
+
+    it('Should return 200 and visits as true since the feature is evaluated with server expression', async function () {
+      const testUserId = uuidv4();
+      await createTestContract(testUserId);
+
+      // Reach the limit of 9 visits
+      await request(app).put(
+      `${baseUrl}/contracts/${testUserId}/usageLevels`).send({
+        [petclinicService.name]: {
+        maxVisits: 9
+        }
+      });
+
+      const response = await request(app).get(
+      `${baseUrl}/features/${testUserId}?server=true`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body["petclinic-visits"]).toBeTruthy();
+    });
+
+    it('Should return 200 and a detailed feature evaluation for a user', async function () {
+      const newContract = await createTestContract();
+
+      const response = await request(app).get(
+      `${baseUrl}/features/${newContract.userContact.userId}?details=true`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+      "petclinic-pets": {
+        eval: true,
+        used: {
+        "petclinic-maxPets": 0
+        },
+        limit: {
+        "petclinic-maxPets": 6
+        },
+        error: null
+      },
+      "petclinic-visits": {
+        eval: true,
+        used: {
+        "petclinic-maxVisits": 0
+        },
+        limit: {
+        "petclinic-maxVisits": 9
+        },
+        error: null
+      },
+      "petclinic-calendar": {eval: true, used: null, limit: null, error: null},
+      "petclinic-vetSelection": {eval: true, used: null, limit: null, error: null},
+      "petclinic-consultations": {eval: false, used: null, limit: null, error: null},
+      "petclinic-petsDashboard": {eval: false, used: null, limit: null, error: null},
+      "petclinic-lowSupportPriority": {eval: true, used: null, limit: null, error: null},
+      "petclinic-mediumSupportPriority": {eval: true, used: null, limit: null, error: null},
+      "petclinic-highSupportPriority": {eval: false, used: null, limit: null, error: null},
+      "petclinic-slaCoverage": {eval: true, used: null, limit: null, error: null},
+      "petclinic-petAdoptionCentre": {eval: true, used: null, limit: null, error: null},
+      "petclinic-smartClinicReports": {eval: false, used: null, limit: null, error: null},
+      });
+    });
+
+    afterAll(async function () {
+      // TODO: Remove this contract deletion once implemented automatic contract novation with service deletion
+      await request(app).delete(`${baseUrl}/contracts/${testUserId}`);
+      await request(app).delete(`${baseUrl}/services/${petclinicService.name}`);
     });
   });
 

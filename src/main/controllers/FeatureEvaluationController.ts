@@ -1,7 +1,7 @@
 import container from '../config/container.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 import FeatureEvaluationService from '../services/FeatureEvaluationService';
-import { FeatureIndexQueryParams } from '../types/models/FeatureEvaluation.js';
+import { FeatureEvalQueryParams, FeatureIndexQueryParams } from '../types/models/FeatureEvaluation.js';
 
 class FeatureEvaluationController {
   private readonly featureEvaluationService: FeatureEvaluationService;
@@ -26,7 +26,8 @@ class FeatureEvaluationController {
   async eval(req: any, res: any) {
     try {
       const userId = req.params.userId;
-      const featureEvaluation = await this.featureEvaluationService.eval(userId);
+      const options = this._transformEvalQueryParams(req.query);
+      const featureEvaluation = await this.featureEvaluationService.eval(userId, options);
       res.json(featureEvaluation);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
@@ -50,6 +51,21 @@ class FeatureEvaluationController {
       sort: indexQueryParams.sort as 'featureName' | 'serviceName',
       order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
       show: indexQueryParams.show as 'active' | 'archived' | 'all',
+    };
+
+    const optionalFields: string[] = Object.keys(transformedData);
+
+    removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
+
+    return transformedData;
+  }
+
+  _transformEvalQueryParams(
+    indexQueryParams: Record<string, string | number>
+  ): FeatureEvalQueryParams {
+    const transformedData: FeatureEvalQueryParams = {
+      details: indexQueryParams['details'] === "true",
+      server: indexQueryParams['server'] === "true",
     };
 
     const optionalFields: string[] = Object.keys(transformedData);

@@ -1,7 +1,7 @@
 import container from '../config/container';
 import ServiceRepository from '../repositories/mongoose/ServiceRepository';
 import { LeanContract } from '../types/models/Contract';
-import { DetailedFeatureEvaluation, FeatureIndexQueryParams, LeanFeature, PricingContext, SimpleFeatureEvaluation } from '../types/models/FeatureEvaluation';
+import { DetailedFeatureEvaluation, FeatureEvalQueryParams, FeatureIndexQueryParams, LeanFeature, PricingContext, SimpleFeatureEvaluation } from '../types/models/FeatureEvaluation';
 import { LeanPricing } from '../types/models/Pricing';
 import { flattenConfigurationsIntoPricingContext, flattenFeatureEvaluationsIntoEvaluationContext, flattenUsageLevelsIntoSubscriptionContext, getFeatureEvaluationExpressionsByService, getUserSubscriptionsFromContract, mapSubscriptionsToConfigurationsByService } from '../utils/feature-evaluation/evaluationContextsManagement';
 import { evaluateAllFeatures } from '../utils/feature-evaluation/featureEvaluation';
@@ -52,7 +52,7 @@ class FeatureEvaluationService {
     return paginatedFeatures;
   }
 
-  async eval(userId: string): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
+  async eval(userId: string, options: FeatureEvalQueryParams): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
     
     try{
       // Step 1.1: Retrieve the user contract
@@ -74,13 +74,13 @@ class FeatureEvaluationService {
       const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(userConfigurationsByService);
 
       // Step 3.1: Create a map containing the evaluation expression to consider for each feature
-      const evaluationExpressionsByService: Record<string, Record<string, string>> = getFeatureEvaluationExpressionsByService(userPricings, true); // Change second param with server when including query params
+      const evaluationExpressionsByService: Record<string, Record<string, string>> = getFeatureEvaluationExpressionsByService(userPricings, options.server!); // Change second param with server when including query params
 
       // Step 3.2: Build the evaluation context
       const evaluationContext: Record<string, string> = flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
 
       // Step 4: Perform the evaluation
-      const evaluationResults: SimpleFeatureEvaluation = evaluateAllFeatures(pricingContext, subscriptionContext, evaluationContext, true) as SimpleFeatureEvaluation;
+      const evaluationResults: SimpleFeatureEvaluation | DetailedFeatureEvaluation = evaluateAllFeatures(pricingContext, subscriptionContext, evaluationContext, !options.details);
 
       return evaluationResults;
     

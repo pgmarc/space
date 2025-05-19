@@ -59,7 +59,7 @@ function _evaluate(
   expectedConsumption?: Record<string, number>
 ): FeatureEvaluationResult {
   // Check if feature exists
-  if (!pricingContext.features[featureId]) {
+  if (pricingContext.features[featureId] === undefined) {
     return _createErrorResult(
       'FLAG_NOT_FOUND',
       `Feature ${featureId} not found in "pricingContext".`
@@ -172,8 +172,8 @@ function _buildSuccessResult(
 
   return {
     eval: evalResult,
-    limit: featureLimits,
-    used: usageLevels,
+    limit: Object.keys(featureLimits).length === 0 ? null : featureLimits,
+    used: Object.keys(usageLevels).length === 0 ? null : usageLevels,
     error: null,
   };
 }

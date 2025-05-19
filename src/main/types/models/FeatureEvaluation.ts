@@ -19,6 +19,11 @@ export interface FeatureIndexQueryParams {
   show?: 'active' | 'archived' | 'all';
 }
 
+export interface FeatureEvalQueryParams {
+  details?: boolean;
+  server?: boolean;
+}
+
 export type SimpleFeatureEvaluation = Record<string, boolean>;
 
 export type DetailedFeatureEvaluation = Record<string, FeatureEvaluationResult>;
