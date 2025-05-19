@@ -11,6 +11,8 @@ import {
 import { zoomPricingPath } from './utils/services/ServiceTestData';
 import { retrievePricingFromPath } from 'pricing4ts/server';
 import { ExpectedPricingType } from '../main/types/models/Pricing';
+import { TestContract } from './types/models/Contract';
+import { createRandomContract } from './utils/contracts/contracts';
 
 const withCommonDescribe = (name: string, fn: () => void) => {
   describe(name, () => {
@@ -116,17 +118,23 @@ describe('Services API Test Suite', function () {
 
   withCommonDescribe('DELETE /services/{serviceName}', function () {
     it('Should return 204', async function () {
-      const createdService = await createRandomService();
+      const newContract = await createRandomContract();
+      const serviceName = Object.keys(newContract.contractedServices)[0];
 
-      const responseBefore = await request(app).get(`${baseUrl}/services/${createdService.name}`);
+      const responseBefore = await request(app).get(`${baseUrl}/services/${serviceName}`);
       expect(responseBefore.status).toEqual(200);
-      expect(responseBefore.body.name.toLowerCase()).toBe(createdService.name.toLowerCase());
+      expect(responseBefore.body.name.toLowerCase()).toBe(serviceName.toLowerCase());
 
-      const responseDelete = await request(app).delete(`${baseUrl}/services/${createdService.name}`);
+      const responseDelete = await request(app).delete(`${baseUrl}/services/${serviceName}`);
       expect(responseDelete.status).toEqual(204);
 
-      const responseAfter = await request(app).get(`${baseUrl}/services/${createdService.name}`);
+      const responseAfter = await request(app).get(`${baseUrl}/services/${serviceName}`);
       expect(responseAfter.status).toEqual(404);
+
+      const contractsAfter = await request(app).get(`${baseUrl}/contracts?serviceName=${serviceName}`);
+      expect(contractsAfter.status).toEqual(200);
+      expect(Array.isArray(contractsAfter.body)).toBe(true);
+      expect(contractsAfter.body.every((c: TestContract) => new Date() > c.billingPeriod.endDate && !c.billingPeriod.autoRenew)).toBeTruthy();
     });
   });
 

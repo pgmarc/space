@@ -346,8 +346,6 @@ describe('Features API Test Suite', function () {
     });
 
     afterAll(async function () {
-      // TODO: Remove this contract deletion once implemented automatic contract novation with service deletion
-      await request(app).delete(`${baseUrl}/contracts/${testUserId}`);
       await request(app).delete(`${baseUrl}/services/${petclinicService.name}`);
     });
   });

@@ -4,6 +4,7 @@
       "$oid": "68162b0f0837988da2dcfe6a"
     },
     "name": "Zoom",
+    "disabled": false,
     "activePricings": {
       "2024": {
         "id": {

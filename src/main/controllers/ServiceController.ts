@@ -17,7 +17,7 @@ class ServiceController {
     this.updatePricingAvailability = this.updatePricingAvailability.bind(this);
     this.addPricingToService = this.addPricingToService.bind(this);
     this.prune = this.prune.bind(this);
-    this.destroy = this.destroy.bind(this);
+    this.disable = this.disable.bind(this);
     this.destroyPricing = this.destroyPricing.bind(this);
   }
 
@@ -193,10 +193,10 @@ class ServiceController {
     }
   }
 
-  async destroy(req: any, res: any) {
+  async disable(req: any, res: any) {
     try {
       const serviceName = req.params.serviceName;
-      const result = await this.serviceService.destroy(serviceName);
+      const result = await this.serviceService.disable(serviceName);
 
       if (result) {
         res.status(204).send();

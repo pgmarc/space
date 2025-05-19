@@ -39,6 +39,7 @@ export interface ContractQueryFilters {
   firstName?: string;
   lastName?: string;
   email?: string;
+  serviceName?: string; // Nuevo parámetro para filtrar por servicio contratado
   page?: number;
   offset?: number;
   limit?: number;

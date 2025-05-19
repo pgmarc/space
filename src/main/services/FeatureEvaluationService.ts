@@ -53,7 +53,8 @@ class FeatureEvaluationService {
   }
 
   async eval(userId: string, options: FeatureEvalQueryParams): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
-    
+    // TODO: gestiona el caso de que el contrato del usuario tenga un billing period terminado. Hay que o bien 
+    // gestionar la renovacion, o lanzar un error porque no esté permitida.
     try{
       // Step 1.1: Retrieve the user contract
       const contract = await this.contractService.show(userId);

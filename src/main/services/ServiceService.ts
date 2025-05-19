@@ -11,16 +11,21 @@ import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
 import { LeanService } from '../types/models/Service';
 import { ExpectedPricingType } from '../types/models/Pricing';
+import { LeanContract } from '../types/models/Contract';
+import ContractRepository from '../repositories/mongoose/ContractRepository';
+import { performNovation } from '../utils/contracts/novation';
 // import CacheService from "./CacheService";
 
 class ServiceService {
   private readonly serviceRepository: ServiceRepository;
   private readonly pricingRepository: PricingRepository;
+  private readonly contractRepository: ContractRepository;
   // private cacheService: CacheService;
 
   constructor() {
     this.serviceRepository = container.resolve('serviceRepository');
     this.pricingRepository = container.resolve('pricingRepository');
+    this.contractRepository = container.resolve('contractRepository');
     // this.cacheService = container.resolve('cacheService');
   }
 
@@ -322,12 +327,19 @@ class ServiceService {
     return result;
   }
 
-  async destroy(serviceName: string) {
+  async disable(serviceName: string) {
     const service = await this.serviceRepository.findByName(serviceName);
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
-    const result = await this.serviceRepository.destroy(service.name);
+
+    const contractNovationResult = await this._removeServiceFromContracts(service.name);
+
+    if (!contractNovationResult) {
+      throw new Error(`Failed to remove service ${serviceName} from contracts`);
+    }
+
+    const result = await this.serviceRepository.disable(service.name);
 
     return result;
   }
@@ -384,6 +396,74 @@ class ServiceService {
     }
     const remotePricingYaml = await response.text();
     return retrievePricingFromYaml(remotePricingYaml);
+  }
+
+  async _removeServiceFromContracts(serviceName: string): Promise<boolean> {
+    const contracts: LeanContract[] = await this.contractRepository.findAll({});
+    const novatedContracts: LeanContract[] = [];
+    const contractsToDisable: LeanContract[] = [];
+
+    for (const contract of contracts) {
+      // Remove this service from the subscription objects
+      const newSubscription: Record<string, any> = {
+        contractedServices: {},
+        subscriptionPlans: {},
+        subscriptionAddOns: {},
+      };
+
+      // Rebuild subscription objects without the service to be removed
+      for (const key in contract.contractedServices) {
+        if (key !== serviceName) {
+          newSubscription.contractedServices[key] = contract.contractedServices[key];
+        }
+      }
+
+      for (const key in contract.subscriptionPlans) {
+        if (key !== serviceName) {
+          newSubscription.subscriptionPlans[key] = contract.subscriptionPlans[key];
+        }
+      }
+
+      for (const key in contract.subscriptionAddOns) {
+        if (key !== serviceName) {
+          newSubscription.subscriptionAddOns[key] = contract.subscriptionAddOns[key];
+        }
+      }
+
+      // Check if objects have the same content by comparing their JSON string representation
+      const hasContractChanged = JSON.stringify(contract.contractedServices) !== JSON.stringify(newSubscription.contractedServices);
+
+      // If objects are equal, skip this contract
+      if (!hasContractChanged) {
+        continue;
+      } 
+
+      const newContract = performNovation(contract, newSubscription);
+
+      if (contract.usageLevels[serviceName]) {
+        delete contract.usageLevels[serviceName];
+      }
+
+      if (Object.keys(newSubscription.contractedServices).length === 0) {
+        newContract.usageLevels = {};
+        newContract.billingPeriod = {
+          startDate: new Date(),
+          endDate: new Date(),
+          autoRenew: false,
+          renewalDays: 0,
+        };
+
+        contractsToDisable.push(newContract);
+        continue;
+      }
+
+      novatedContracts.push(newContract);
+    }
+
+    const resultNovations = await this.contractRepository.bulkUpdate(novatedContracts);
+    const resultDisables = await this.contractRepository.bulkUpdate(contractsToDisable, true);
+
+    return resultNovations && resultDisables;
   }
 }
 

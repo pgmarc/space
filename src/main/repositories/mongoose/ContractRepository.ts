@@ -10,6 +10,7 @@ class ContractRepository extends RepositoryBase {
       firstName,
       lastName,
       email,
+      serviceName,
       page = 1,
       offset = 0,
       limit = 20,
@@ -22,6 +23,7 @@ class ContractRepository extends RepositoryBase {
       ...(firstName ? { 'userContact.firstName': { $regex: new RegExp(firstName, 'i') } } : {}),
       ...(lastName ? { 'userContact.lastName': { $regex: new RegExp(lastName, 'i') } } : {}),
       ...(email ? { 'userContact.email': { $regex: new RegExp(email, 'i') } } : {}),
+      ...(serviceName ? { 'contractedServices': { $elemMatch: { name: { $regex: new RegExp(serviceName, 'i') } } } } : {}),
     })
       .skip(offset == 0 ? (page - 1) * limit : offset)
       .limit(limit > 100 ? 100 : limit)
@@ -51,6 +53,38 @@ class ContractRepository extends RepositoryBase {
       { new: true }
     );
     return contract ? toPlainObject<LeanContract>(contract.toJSON()) : null;
+  }
+
+  async bulkUpdate(contracts: LeanContract[], disable = false): Promise<boolean> {
+    
+    if (contracts.length === 0) {
+      return true;
+    }
+    
+    const bulkOps = contracts.map(contract => ({
+      updateOne: {
+        filter: { 'userContact.userId': contract.userContact.userId },
+        update: {
+          $set: {
+            ...contract,
+            disable: disable,
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+    const result = await ContractMongoose.bulkWrite(bulkOps);
+
+    if (result.modifiedCount === 0 && result.upsertedCount === 0) {
+      throw new Error('No contracts were updated or inserted');
+    }
+
+    if (result.modifiedCount > 0) {
+      console.log(`${result.modifiedCount} of ${contracts.length} contracts were updated`);
+    }
+
+    return true;
   }
 
   async prune(): Promise<number> {

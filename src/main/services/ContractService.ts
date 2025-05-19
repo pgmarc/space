@@ -2,6 +2,7 @@ import container from '../config/container';
 import {
   ContractToCreate,
   LeanContract,
+  Subscription,
   UsageLevel,
   UsageLevelsResetQuery,
   UserContact,
@@ -12,6 +13,7 @@ import ServiceService from './ServiceService';
 import { LeanPeriod, LeanPricing } from '../types/models/Pricing';
 import { addDays, addHours, addMinutes, addMonths, addSeconds, addYears } from 'date-fns';
 import { isSubscriptionValid } from '../controllers/validation/ContractValidation';
+import { performNovation } from '../utils/contracts/novation';
 
 class ContractService {
   private readonly contractRepository: ContractRepository;
@@ -79,31 +81,7 @@ class ContractService {
       throw new Error(`Contract with userId ${userId} not found`);
     }
 
-    contract.history.push({
-      startDate: contract.billingPeriod.startDate,
-      endDate: new Date(),
-      contractedServices: contract.contractedServices,
-      subscriptionPlans: contract.subscriptionPlans,
-      subscriptionAddOns: contract.subscriptionAddOns,
-    });
-
-    const newContract: LeanContract = {
-      ...contract,
-      contractedServices: newSubscription.contractedServices,
-      subscriptionPlans: newSubscription.subscriptionPlans,
-      subscriptionAddOns: newSubscription.subscriptionAddOns,
-    };
-
-    const startDate = new Date();
-    const renewalDays = newContract.billingPeriod?.renewalDays ?? 30; // Default to 30 days if not provided
-    const endDate = addDays(new Date(startDate), renewalDays);
-
-    newContract.billingPeriod = {
-      startDate: startDate,
-      endDate: endDate,
-      autoRenew: newSubscription.billingPeriod?.autoRenew ?? false,
-      renewalDays: renewalDays,
-    };
+    const newContract = performNovation(contract, newSubscription);
 
     const result = await this.contractRepository.update(userId, newContract);
 

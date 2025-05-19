@@ -13,6 +13,7 @@ const pricingDataSchema = new Schema(
 const serviceSchema = new Schema(
   {
     name: { type: String, required: true },
+    disabled: { type: Boolean, default: false },
     activePricings: {type: Map, of: pricingDataSchema},
     archivedPricings: {type: Map, of: pricingDataSchema}
   },

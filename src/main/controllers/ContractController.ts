@@ -167,6 +167,7 @@ class ContractController {
       firstName: indexQueryParams.firstName as string,
       lastName: indexQueryParams.lastName as string,
       email: indexQueryParams.email as string,
+      serviceName: indexQueryParams.serviceName as string,
       page: parseInt(indexQueryParams['page'] as string) || 1,
       offset: parseInt(indexQueryParams['offset'] as string) || 0,
       limit: parseInt(indexQueryParams['limit'] as string) || 20,
