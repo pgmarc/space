@@ -10,6 +10,7 @@ class FeatureEvaluationController {
     this.featureEvaluationService = container.resolve('featureEvaluationService');
     this.index = this.index.bind(this);
     this.eval = this.eval.bind(this);
+    this.generatePricingToken = this.generatePricingToken.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -29,6 +30,23 @@ class FeatureEvaluationController {
       const options = this._transformEvalQueryParams(req.query);
       const featureEvaluation = await this.featureEvaluationService.eval(userId, options);
       res.json(featureEvaluation);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      }else if (err.message.toLowerCase().includes('invalid')) {
+        res.status(400).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async generatePricingToken(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const options = this._transformGenerateTokenQueryParams(req.query);
+      const token = await this.featureEvaluationService.generatePricingToken(userId, options);
+      res.json({pricingToken: token});
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
@@ -70,9 +88,15 @@ class FeatureEvaluationController {
       server: indexQueryParams['server'] === "true",
     };
 
-    const optionalFields: string[] = Object.keys(transformedData);
+    return transformedData;
+  }
 
-    removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
+  _transformGenerateTokenQueryParams(
+    indexQueryParams: Record<string, string | number>
+  ): {server: boolean} {
+    const transformedData: {server: boolean} = {
+      server: indexQueryParams['server'] === "true",
+    };
 
     return transformedData;
   }

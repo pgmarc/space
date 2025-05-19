@@ -46,6 +46,7 @@
     "express": "^4.18.2",
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
+    "jose": "^6.0.11",
     "js-yaml": "^4.1.0",
     "mongo-seeding": "^4.0.2",
     "mongoose": "^8.14.0",

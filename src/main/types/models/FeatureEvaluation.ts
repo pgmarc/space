@@ -22,6 +22,7 @@ export interface FeatureIndexQueryParams {
 export interface FeatureEvalQueryParams {
   details?: boolean;
   server?: boolean;
+  returnContexts?: boolean;
 }
 
 export type SimpleFeatureEvaluation = Record<string, boolean>;

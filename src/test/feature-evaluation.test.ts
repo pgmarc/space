@@ -6,6 +6,8 @@ import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
 import { v4 as uuidv4 } from 'uuid';
 import { subDays, subMilliseconds } from 'date-fns';
+import { jwtVerify } from 'jose';
+import { encryptJWTSecret } from '../main/utils/jwt';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -19,12 +21,95 @@ function isArchivedPricing(pricingVersion: string, service: LeanService): boolea
   );
 }
 
+const DETAILED_EVALUATION_EXPECTED_RESULT = {
+  'petclinic-pets': {
+    eval: true,
+    used: {
+      'petclinic-maxPets': 0,
+    },
+    limit: {
+      'petclinic-maxPets': 6,
+    },
+    error: null,
+  },
+  'petclinic-visits': {
+    eval: true,
+    used: {
+      'petclinic-maxVisits': 0,
+    },
+    limit: {
+      'petclinic-maxVisits': 9,
+    },
+    error: null,
+  },
+  'petclinic-calendar': { eval: true, used: null, limit: null, error: null },
+  'petclinic-vetSelection': { eval: true, used: null, limit: null, error: null },
+  'petclinic-consultations': { eval: false, used: null, limit: null, error: null },
+  'petclinic-petsDashboard': { eval: false, used: null, limit: null, error: null },
+  'petclinic-lowSupportPriority': { eval: true, used: null, limit: null, error: null },
+  'petclinic-mediumSupportPriority': { eval: true, used: null, limit: null, error: null },
+  'petclinic-highSupportPriority': { eval: false, used: null, limit: null, error: null },
+  'petclinic-slaCoverage': { eval: true, used: null, limit: null, error: null },
+  'petclinic-petAdoptionCentre': { eval: true, used: null, limit: null, error: null },
+  'petclinic-smartClinicReports': { eval: false, used: null, limit: null, error: null },
+}
+
 describe('Features API Test Suite', function () {
   let app: Server;
 
   beforeAll(async function () {
     app = await getApp();
   });
+
+  let petclinicService: any;
+
+  async function createTestContract(userId = uuidv4()) {
+    const contractData = {
+      userContact: {
+        userId,
+        username: 'tUser',
+      },
+      billingPeriod: {
+        autoRenew: true,
+        renewalDays: 365,
+      },
+      contractedServices: {
+        [petclinicService.name]: Object.keys(petclinicService.activePricings)[0],
+      },
+      subscriptionPlans: {
+        [petclinicService.name]: 'GOLD',
+      },
+      subscriptionAddOns: {
+        [petclinicService.name]: {
+          petAdoptionCentre: 1,
+          extraPets: 2,
+          extraVisits: 6,
+        },
+      },
+    };
+
+    const createContractResponse = await request(app)
+      .post(`${baseUrl}/contracts`)
+      .send(contractData);
+
+    return createContractResponse.body;
+  }
+
+  // Custom describe for evaluation testing
+  const evaluationDescribe = (name: string, fn: () => void) => {
+    describe(name, () => {
+      fn();
+      beforeAll(async function () {
+        const createServiceResponse = await request(app)
+          .post(`${baseUrl}/services`)
+          .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
+        petclinicService = createServiceResponse.body;
+      });
+      afterAll(async function () {
+        await request(app).delete(`${baseUrl}/services/${petclinicService.name}`);
+      });
+    });
+  };
 
   describe('GET /features', function () {
     it('Should return 200 and the features', async function () {
@@ -196,69 +281,28 @@ describe('Features API Test Suite', function () {
     });
   });
 
-  describe('POST /features/:userId', function () {
-    let petclinicService: any;
-
-    beforeAll(async function () {
-      const createServiceResponse = await request(app)
-      .post(`${baseUrl}/services`)
-      .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
-      petclinicService = createServiceResponse.body;
-    });
-
-    async function createTestContract(userId = uuidv4()) {  
-      const contractData = {
-      userContact: {
-        userId,
-        username: 'tUser',
-      },
-      billingPeriod: {
-        autoRenew: true,
-        renewalDays: 365,
-      },
-      contractedServices: {
-        [petclinicService.name]: Object.keys(petclinicService.activePricings)[0],
-      },
-      subscriptionPlans: {
-        [petclinicService.name]: "GOLD"
-      },
-      subscriptionAddOns: {
-        [petclinicService.name]: {
-        petAdoptionCentre: 1,
-        extraPets: 2,
-        extraVisits: 6
-        }
-      }
-      };
-
-      const createContractResponse = await request(app)
-      .post(`${baseUrl}/contracts`)
-      .send(contractData);
-
-      return createContractResponse.body;
-    }
-
+  evaluationDescribe('POST /features/:userId', function () {
     it('Should return 200 and the feature evaluation for a user', async function () {
       const newContract = await createTestContract();
 
       const response = await request(app).post(
-      `${baseUrl}/features/${newContract.userContact.userId}`
+        `${baseUrl}/features/${newContract.userContact.userId}`
       );
 
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
-      "petclinic-pets": true,
-      "petclinic-visits": true,
-      "petclinic-calendar": true,
-      "petclinic-vetSelection": true,
-      "petclinic-consultations": false,
-      "petclinic-petsDashboard": false,
-      "petclinic-lowSupportPriority": true,
-      "petclinic-mediumSupportPriority": true,
-      "petclinic-highSupportPriority": false,
-      "petclinic-slaCoverage": true,
-      "petclinic-petAdoptionCentre": true,
-      "petclinic-smartClinicReports": false,
+        'petclinic-pets': true,
+        'petclinic-visits': true,
+        'petclinic-calendar': true,
+        'petclinic-vetSelection': true,
+        'petclinic-consultations': false,
+        'petclinic-petsDashboard': false,
+        'petclinic-lowSupportPriority': true,
+        'petclinic-mediumSupportPriority': true,
+        'petclinic-highSupportPriority': false,
+        'petclinic-slaCoverage': true,
+        'petclinic-petAdoptionCentre': true,
+        'petclinic-smartClinicReports': false,
       });
     });
 
@@ -267,19 +311,18 @@ describe('Features API Test Suite', function () {
       await createTestContract(testUserId);
 
       // Reach the limit of 9 visits
-      await request(app).put(
-      `${baseUrl}/contracts/${testUserId}/usageLevels`).send({
-        [petclinicService.name]: {
-        maxVisits: 9
-        }
-      });
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .send({
+          [petclinicService.name]: {
+            maxVisits: 9,
+          },
+        });
 
-      const response = await request(app).post(
-      `${baseUrl}/features/${testUserId}`
-      );
+      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
 
       expect(response.status).toEqual(200);
-      expect(response.body["petclinic-visits"]).toBeFalsy();
+      expect(response.body['petclinic-visits']).toBeFalsy();
     });
 
     it('Given expired user subscription but with autoRenew = true should return 200', async function () {
@@ -287,21 +330,22 @@ describe('Features API Test Suite', function () {
       await createTestContract(testUserId);
 
       // Expire user subscription
-      await request(app).put(
-      `${baseUrl}/contracts/${testUserId}/billingPeriod`).send({
-        endDate: subDays(new Date(), 1),
-        autoRenew: true
-      });
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/billingPeriod`)
+        .send({
+          endDate: subDays(new Date(), 1),
+          autoRenew: true,
+        });
 
-      const response = await request(app).post(
-      `${baseUrl}/features/${testUserId}`
-      );
+      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
 
       expect(response.status).toEqual(200);
       expect(Object.keys(response.body).length).toBeGreaterThan(0);
 
       const userContract = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
-      expect((new Date(userContract.billingPeriod.endDate)).getFullYear()).toBe(new Date().getFullYear() + 1); // + 1 year because the test contract is set to renew 1 year
+      expect(new Date(userContract.billingPeriod.endDate).getFullYear()).toBe(
+        new Date().getFullYear() + 1
+      ); // + 1 year because the test contract is set to renew 1 year
     });
 
     it('Given expired user subscription with autoRenew = false should return 400', async function () {
@@ -309,18 +353,19 @@ describe('Features API Test Suite', function () {
       await createTestContract(testUserId);
 
       // Expire user subscription
-      await request(app).put(
-      `${baseUrl}/contracts/${testUserId}/billingPeriod`).send({
-        endDate: subMilliseconds(new Date(), 1),
-        autoRenew: false
-      });
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/billingPeriod`)
+        .send({
+          endDate: subMilliseconds(new Date(), 1),
+          autoRenew: false,
+        });
 
-      const response = await request(app).post(
-      `${baseUrl}/features/${testUserId}`
-      );
+      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
 
       expect(response.status).toEqual(400);
-      expect(response.body.error).toEqual('Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.');
+      expect(response.body.error).toEqual(
+        'Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.'
+      );
     });
 
     it('Should return 200 and visits as false since its limit has been reached', async function () {
@@ -328,65 +373,57 @@ describe('Features API Test Suite', function () {
       await createTestContract(testUserId);
 
       // Reach the limit of 9 visits
-      await request(app).put(
-      `${baseUrl}/contracts/${testUserId}/usageLevels`).send({
-        [petclinicService.name]: {
-        maxVisits: 9
-        }
-      });
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .send({
+          [petclinicService.name]: {
+            maxVisits: 9,
+          },
+        });
 
-      const response = await request(app).post(
-      `${baseUrl}/features/${testUserId}`
-      );
+      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
 
       expect(response.status).toEqual(200);
-      expect(response.body["petclinic-visits"]).toBeFalsy();
+      expect(response.body['petclinic-visits']).toBeFalsy();
     });
 
     it('Should return 200 and a detailed feature evaluation for a user', async function () {
       const newContract = await createTestContract();
 
       const response = await request(app).post(
-      `${baseUrl}/features/${newContract.userContact.userId}?details=true`
+        `${baseUrl}/features/${newContract.userContact.userId}?details=true`
       );
 
       expect(response.status).toEqual(200);
-      expect(response.body).toEqual({
-      "petclinic-pets": {
-        eval: true,
-        used: {
-        "petclinic-maxPets": 0
-        },
-        limit: {
-        "petclinic-maxPets": 6
-        },
-        error: null
-      },
-      "petclinic-visits": {
-        eval: true,
-        used: {
-        "petclinic-maxVisits": 0
-        },
-        limit: {
-        "petclinic-maxVisits": 9
-        },
-        error: null
-      },
-      "petclinic-calendar": {eval: true, used: null, limit: null, error: null},
-      "petclinic-vetSelection": {eval: true, used: null, limit: null, error: null},
-      "petclinic-consultations": {eval: false, used: null, limit: null, error: null},
-      "petclinic-petsDashboard": {eval: false, used: null, limit: null, error: null},
-      "petclinic-lowSupportPriority": {eval: true, used: null, limit: null, error: null},
-      "petclinic-mediumSupportPriority": {eval: true, used: null, limit: null, error: null},
-      "petclinic-highSupportPriority": {eval: false, used: null, limit: null, error: null},
-      "petclinic-slaCoverage": {eval: true, used: null, limit: null, error: null},
-      "petclinic-petAdoptionCentre": {eval: true, used: null, limit: null, error: null},
-      "petclinic-smartClinicReports": {eval: false, used: null, limit: null, error: null},
-      });
+      expect(response.body).toEqual(DETAILED_EVALUATION_EXPECTED_RESULT);
     });
+  });
 
-    afterAll(async function () {
-      await request(app).delete(`${baseUrl}/services/${petclinicService.name}`);
+  evaluationDescribe('POST /features/:userId/pricing-token', function () {
+    it('Should return 200 and the feature evaluation for a user', async function () {
+      const newContract = await createTestContract();
+
+      const response = await request(app).post(
+        `${baseUrl}/features/${newContract.userContact.userId}/pricing-token`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body.pricingToken).toBeDefined();
+
+      const token = response.body.pricingToken;
+
+      const { payload, protectedHeader } = await jwtVerify(token, encryptJWTSecret(process.env.JWT_SECRET!), {
+        algorithms: ['HS256'], // It is important to specify the algorithm used to sign the JWT
+      });
+
+      expect(protectedHeader).toBeDefined();
+      expect(protectedHeader.alg).toEqual('HS256');
+      expect(payload).toBeDefined();
+      expect(payload.features).toEqual(DETAILED_EVALUATION_EXPECTED_RESULT)
+      expect(payload.sub).toBeDefined();
+      expect(payload.sub).toEqual(newContract.userContact.userId);
+      expect(payload.pricingContext).toBeDefined();
+      expect(payload.subscriptionContext).toBeDefined();
     });
   });
 

@@ -16,8 +16,8 @@ const loadFileRoutes = function (app: express.Application) {
     .post(featureEvaluationController.eval)
 
   app
-    .route(baseUrl + '/features/:userId')
-    .get(featureEvaluationController.eval)
+    .route(baseUrl + '/features/:userId/pricing-token')
+    .post(featureEvaluationController.generatePricingToken)
 };
 
 export default loadFileRoutes;
