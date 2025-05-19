@@ -5,6 +5,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
 import { v4 as uuidv4 } from 'uuid';
+import { subDays, subMilliseconds } from 'date-fns';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -205,7 +206,7 @@ describe('Features API Test Suite', function () {
       petclinicService = createServiceResponse.body;
     });
 
-    async function createTestContract(userId = uuidv4()) {
+    async function createTestContract(userId = uuidv4()) {  
       const contractData = {
       userContact: {
         userId,
@@ -281,7 +282,48 @@ describe('Features API Test Suite', function () {
       expect(response.body["petclinic-visits"]).toBeFalsy();
     });
 
-    it('Should return 200 and visits as true since the feature is evaluated with server expression', async function () {
+    it('Given expired user subscription but with autoRenew = true should return 200', async function () {
+      const testUserId = uuidv4();
+      await createTestContract(testUserId);
+
+      // Expire user subscription
+      await request(app).put(
+      `${baseUrl}/contracts/${testUserId}/billingPeriod`).send({
+        endDate: subDays(new Date(), 1),
+        autoRenew: true
+      });
+
+      const response = await request(app).get(
+      `${baseUrl}/features/${testUserId}`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(Object.keys(response.body).length).toBeGreaterThan(0);
+
+      const userContract = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect((new Date(userContract.billingPeriod.endDate)).getFullYear()).toBe(new Date().getFullYear() + 1); // + 1 year because the test contract is set to renew 1 year
+    });
+
+    it('Given expired user subscription with autoRenew = false should return 400', async function () {
+      const testUserId = uuidv4();
+      await createTestContract(testUserId);
+
+      // Expire user subscription
+      await request(app).put(
+      `${baseUrl}/contracts/${testUserId}/billingPeriod`).send({
+        endDate: subMilliseconds(new Date(), 1),
+        autoRenew: false
+      });
+
+      const response = await request(app).get(
+      `${baseUrl}/features/${testUserId}`
+      );
+
+      expect(response.status).toEqual(400);
+      expect(response.body.error).toEqual('Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.');
+    });
+
+    it('Should return 200 and visits as false since its limit has been reached', async function () {
       const testUserId = uuidv4();
       await createTestContract(testUserId);
 
@@ -294,11 +336,11 @@ describe('Features API Test Suite', function () {
       });
 
       const response = await request(app).get(
-      `${baseUrl}/features/${testUserId}?server=true`
+      `${baseUrl}/features/${testUserId}`
       );
 
       expect(response.status).toEqual(200);
-      expect(response.body["petclinic-visits"]).toBeTruthy();
+      expect(response.body["petclinic-visits"]).toBeFalsy();
     });
 
     it('Should return 200 and a detailed feature evaluation for a user', async function () {

@@ -1,9 +1,24 @@
+import { isAfter } from 'date-fns';
 import container from '../config/container';
 import ServiceRepository from '../repositories/mongoose/ServiceRepository';
 import { LeanContract } from '../types/models/Contract';
-import { DetailedFeatureEvaluation, FeatureEvalQueryParams, FeatureIndexQueryParams, LeanFeature, PricingContext, SimpleFeatureEvaluation } from '../types/models/FeatureEvaluation';
+import {
+  DetailedFeatureEvaluation,
+  FeatureEvalQueryParams,
+  FeatureIndexQueryParams,
+  LeanFeature,
+  PricingContext,
+  SimpleFeatureEvaluation,
+} from '../types/models/FeatureEvaluation';
 import { LeanPricing } from '../types/models/Pricing';
-import { flattenConfigurationsIntoPricingContext, flattenFeatureEvaluationsIntoEvaluationContext, flattenUsageLevelsIntoSubscriptionContext, getFeatureEvaluationExpressionsByService, getUserSubscriptionsFromContract, mapSubscriptionsToConfigurationsByService } from '../utils/feature-evaluation/evaluationContextsManagement';
+import {
+  flattenConfigurationsIntoPricingContext,
+  flattenFeatureEvaluationsIntoEvaluationContext,
+  flattenUsageLevelsIntoSubscriptionContext,
+  getFeatureEvaluationExpressionsByService,
+  getUserSubscriptionsFromContract,
+  mapSubscriptionsToConfigurationsByService,
+} from '../utils/feature-evaluation/evaluationContextsManagement';
 import { evaluateAllFeatures } from '../utils/feature-evaluation/featureEvaluation';
 import ContractService from './ContractService';
 import ServiceService from './ServiceService';
@@ -52,55 +67,69 @@ class FeatureEvaluationService {
     return paginatedFeatures;
   }
 
-  async eval(userId: string, options: FeatureEvalQueryParams): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
-    // TODO: gestiona el caso de que el contrato del usuario tenga un billing period terminado. Hay que o bien 
-    // gestionar la renovacion, o lanzar un error porque no esté permitida.
-    try{
-      // Step 1.1: Retrieve the user contract
-      const contract = await this.contractService.show(userId);
-      
-      // Step 1.2: Build the subscription context
-      const subscriptionContext = flattenUsageLevelsIntoSubscriptionContext(contract.usageLevels);
-  
-      // Step 2.1: Retrieve all pricings to which the user is subscribed
-      const userPricings = await this._getPricingsByContract(contract);
-  
-      // Step 2.2: Get User Subscriptions
-      const userSubscriptionByService: Record<string, {plan?: string, addOns?: Record<string, number>}> = getUserSubscriptionsFromContract(contract)
-  
-      // Step 2.3: Build user configurations by service using the information of subscriptions and pricings
-      const userConfigurationsByService: Record<string, PricingContext> = mapSubscriptionsToConfigurationsByService(userSubscriptionByService, userPricings);
-    
-      // Step 2.4: Build de pricing context
-      const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(userConfigurationsByService);
+  async eval(
+    userId: string,
+    options: FeatureEvalQueryParams
+  ): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
+    // Step 1.1: Retrieve the user contract
+    const contract = await this.contractService.show(userId);
 
-      // Step 3.1: Create a map containing the evaluation expression to consider for each feature
-      const evaluationExpressionsByService: Record<string, Record<string, string>> = getFeatureEvaluationExpressionsByService(userPricings, options.server!); // Change second param with server when including query params
+    // Step 1.2: Check if the user's contract has expired and if it can be renewed
+    const isContractExpired = isAfter(new Date(), contract.billingPeriod.endDate);
 
-      // Step 3.2: Build the evaluation context
-      const evaluationContext: Record<string, string> = flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
-
-      // Step 4: Perform the evaluation
-      const evaluationResults: SimpleFeatureEvaluation | DetailedFeatureEvaluation = evaluateAllFeatures(pricingContext, subscriptionContext, evaluationContext, !options.details);
-
-      return evaluationResults;
-    
-    }catch (error) {
-      throw new Error(`Error retrieving user contract: ${error}`);
+    if (isContractExpired && !contract.billingPeriod.autoRenew) {
+      throw new Error(
+        'Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.'
+      );
+    } else if (isContractExpired) {
+      await this.contractService.renew(userId);
     }
+
+    // Step 1.3: Build the subscription context
+    const subscriptionContext = flattenUsageLevelsIntoSubscriptionContext(contract.usageLevels);
+
+    // Step 2.1: Retrieve all pricings to which the user is subscribed
+    const userPricings = await this._getPricingsByContract(contract);
+
+    // Step 2.2: Get User Subscriptions
+    const userSubscriptionByService: Record<
+      string,
+      { plan?: string; addOns?: Record<string, number> }
+    > = getUserSubscriptionsFromContract(contract);
+
+    // Step 2.3: Build user configurations by service using the information of subscriptions and pricings
+    const userConfigurationsByService: Record<string, PricingContext> =
+      mapSubscriptionsToConfigurationsByService(userSubscriptionByService, userPricings);
+
+    // Step 2.4: Build de pricing context
+    const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(
+      userConfigurationsByService
+    );
+
+    // Step 3.1: Create a map containing the evaluation expression to consider for each feature
+    const evaluationExpressionsByService: Record<
+      string,
+      Record<string, string>
+    > = getFeatureEvaluationExpressionsByService(userPricings, options.server!); // Change second param with server when including query params
+
+    // Step 3.2: Build the evaluation context
+    const evaluationContext: Record<string, string> =
+      flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
+
+    // Step 4: Perform the evaluation
+    const evaluationResults: SimpleFeatureEvaluation | DetailedFeatureEvaluation =
+      evaluateAllFeatures(pricingContext, subscriptionContext, evaluationContext, !options.details);
+
+    return evaluationResults;
   }
 
   async _getPricingsByContract(contract: LeanContract): Promise<Record<string, LeanPricing>> {
     const pricingsToReturn: Record<string, LeanPricing> = {};
 
     for (const serviceName in contract.contractedServices) {
-      
       const pricingVersion = contract.contractedServices[serviceName];
 
-      const pricing = await this.serviceService.showPricing(
-        serviceName,
-        pricingVersion
-      );
+      const pricing = await this.serviceService.showPricing(serviceName, pricingVersion);
 
       pricingsToReturn[serviceName] = pricing;
     }

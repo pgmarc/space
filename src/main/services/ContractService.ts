@@ -92,6 +92,29 @@ class ContractService {
     return result;
   }
 
+  async renew(userId: string): Promise<LeanContract>{
+    const contract = await this.contractRepository.findByUserId(userId);
+    
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    if (!contract.billingPeriod.autoRenew) {
+      throw new Error(`Contract with userId ${userId} is not set to auto-renew. It must be renewed manually.`);
+    }
+
+    const newEndDate = addDays(new Date(contract.billingPeriod.endDate), contract.billingPeriod.renewalDays);
+    contract.billingPeriod.endDate = newEndDate;
+
+    const result = await this.contractRepository.update(userId, contract);
+
+    if (!result) {
+      throw new Error(`Failed to update contract for userId ${userId}`);
+    }
+
+    return result;
+  }
+
   async novateUserContact(
     userId: string,
     userContact: Omit<UserContact, 'userId'>
