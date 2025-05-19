@@ -54,6 +54,8 @@ const DETAILED_EVALUATION_EXPECTED_RESULT = {
   'petclinic-smartClinicReports': { eval: false, used: null, limit: null, error: null },
 }
 
+// TODO: No termina de funcionar la nueva configuración de los tests, hay que arreglarlo.
+
 describe('Features API Test Suite', function () {
   let app: Server;
 
