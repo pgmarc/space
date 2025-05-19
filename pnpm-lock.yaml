@@ -589,8 +589,8 @@ packages:
   '@types/node@22.15.2':
     resolution: {integrity: sha512-uKXqKN9beGoMdBfcaTY1ecwz6ctxuJAcUlwE55938g0ZJ8lRxwAZqRz2AJ4pzpt5dHdTPMB863UZ0ESiFUcP7A==}
 
-  '@types/papaparse@5.3.15':
-    resolution: {integrity: sha512-JHe6vF6x/8Z85nCX4yFdDslN11d+1pr12E526X8WAfhadOeaOTx5AuIkvDKIBopfvlzpzkdMx4YyvSKCM9oqtw==}
+  '@types/papaparse@5.3.16':
+    resolution: {integrity: sha512-T3VuKMC2H0lgsjI9buTB3uuKj3EMD2eap1MOuEQuBQ44EnDx/IkGhU6EwiTf9zG3za4SKlmwKAImdDKdNnCsXg==}
 
   '@types/qs@6.9.18':
     resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
@@ -2776,7 +2776,7 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/papaparse@5.3.15':
+  '@types/papaparse@5.3.16':
     dependencies:
       '@types/node': 22.15.2
 
@@ -4303,7 +4303,7 @@ snapshots:
   pricing4ts@0.10.0(@openfeature/core@1.8.0)(minizinc@4.4.2):
     dependencies:
       '@openfeature/server-sdk': 1.18.0(@openfeature/core@1.8.0)
-      '@types/papaparse': 5.3.15
+      '@types/papaparse': 5.3.16
       assert: 2.1.0
       currency-codes: 2.2.0
       js-yaml: 4.1.0
