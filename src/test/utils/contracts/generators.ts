@@ -212,60 +212,27 @@ function _solveAddOnDependenciesAndExclusions(
   subscriptionAddOns: Record<string, number>,
   pricingAddons: Record<string, TestAddOn>
 ): void {
-  // Process dependencies until no more changes are made
-  _processAddOnDependencies(subscriptionPlan, subscriptionAddOns, pricingAddons);
-  
-  // Process exclusions once after all dependencies are resolved
-  _processAddOnExclusions(subscriptionAddOns, pricingAddons);
-}
+  for (const addOnName in subscriptionAddOns) {
+    const pricingAddon = pricingAddons[addOnName];
 
-function _processAddOnDependencies(
-  subscriptionPlan: string,
-  subscriptionAddOns: Record<string, number>,
-  pricingAddons: Record<string, TestAddOn>
-): void {
-  let changesMade = true;
-  
-  // Continue processing dependencies until no more changes are made
-  while (changesMade) {
-    changesMade = false;
-    
-    for (const addOnName in subscriptionAddOns) {
-      const pricingAddon = pricingAddons[addOnName];
-      
-      if (!pricingAddon?.dependsOn) continue;
-      
-      // Check if any dependency is missing
+    if (pricingAddon.dependsOn) {
       for (const dependency of pricingAddon.dependsOn) {
         if (!subscriptionAddOns[dependency]) {
-          // Can we add the dependency?
           if (pricingAddons[dependency]?.availableFor?.includes(subscriptionPlan)) {
             subscriptionAddOns[dependency] = 1;
-            changesMade = true;
           } else {
-            // Cannot satisfy dependency - remove the add-on
             delete subscriptionAddOns[addOnName];
-            changesMade = true;
             break;
           }
         }
       }
     }
-  }
-}
 
-function _processAddOnExclusions(
-  subscriptionAddOns: Record<string, number>,
-  pricingAddons: Record<string, TestAddOn>
-): void {
-  for (const addOnName in subscriptionAddOns) {
-    const pricingAddon = pricingAddons[addOnName];
-    
-    if (!pricingAddon?.excludes) continue;
-    
-    for (const exclusion of pricingAddon.excludes) {
-      if (subscriptionAddOns[exclusion]) {
-        delete subscriptionAddOns[exclusion];
+    if (pricingAddon.excludes) {
+      for (const exclusion of pricingAddon.excludes) {
+        if (subscriptionAddOns[exclusion]) {
+          delete subscriptionAddOns[exclusion];
+        }
       }
     }
   }

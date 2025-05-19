@@ -311,13 +311,13 @@ export function generateAddOn(
     dependsOn: faker.datatype.boolean({ probability: 0.2 })
       ? faker.helpers.arrayElements(
           preCreatedAddons,
-          faker.number.int({ min: 0, max: preCreatedAddons.length })
+          biasedRandomInt(1, 3)
         )
       : [],
     excludes: faker.datatype.boolean({ probability: 0.2 })
       ? faker.helpers.arrayElements(
           preCreatedAddons,
-          faker.number.int({ min: 0, max: preCreatedAddons.length })
+          biasedRandomInt(1, 3)
         )
       : [],
     features:
