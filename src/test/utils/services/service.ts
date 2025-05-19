@@ -3,7 +3,7 @@ import request from 'supertest';
 import { baseUrl, getApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
 import { generatePricingFile } from './pricing';
-import { faker } from '@faker-js/faker';
+import { v4 as uuidv4 } from 'uuid';
 import { TestService } from '../../types/models/Service';
 import { TestPricing } from '../../types/models/Pricing';
 
@@ -152,8 +152,10 @@ async function createRandomService(app?: any) {
   }
 
   const pricingFilePath = await generatePricingFile(
-    faker.word.noun({ length: { min: 3, max: 10 } })
+    uuidv4()
   );
+
+
   const response = await request(appCopy)
     .post(`${baseUrl}/services`)
     .attach('pricing', pricingFilePath);

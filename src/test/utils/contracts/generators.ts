@@ -189,7 +189,7 @@ async function _generateSubscriptionAddOns(
       }
     }
 
-    _solveAddOnDependenciesAndExclusions(subscriptionAddOns[serviceName], pricing.addOns);
+    _solveAddOnDependenciesAndExclusions(planName, subscriptionAddOns[serviceName], pricing.addOns);
   }
 
   return subscriptionAddOns;
@@ -201,32 +201,71 @@ function _addOnAvailableForPlan(availableFor: string[] | undefined, planName: st
 
 function _isScalableAddon(addOn: TestAddOn): boolean {
   return (
-    addOn.features === undefined &&
-    addOn.usageLimits === undefined &&
-    addOn.usageLimitsExtensions !== undefined
+    Object.keys(addOn.features ?? {}).length === 0 &&
+    Object.keys(addOn.usageLimits ?? {}).length === 0 &&
+    Object.keys(addOn.usageLimitsExtensions ?? {}).length > 0
   );
 }
 
 function _solveAddOnDependenciesAndExclusions(
+  subscriptionPlan: string,
+  subscriptionAddOns: Record<string, number>,
+  pricingAddons: Record<string, TestAddOn>
+): void {
+  // Process dependencies until no more changes are made
+  _processAddOnDependencies(subscriptionPlan, subscriptionAddOns, pricingAddons);
+  
+  // Process exclusions once after all dependencies are resolved
+  _processAddOnExclusions(subscriptionAddOns, pricingAddons);
+}
+
+function _processAddOnDependencies(
+  subscriptionPlan: string,
+  subscriptionAddOns: Record<string, number>,
+  pricingAddons: Record<string, TestAddOn>
+): void {
+  let changesMade = true;
+  
+  // Continue processing dependencies until no more changes are made
+  while (changesMade) {
+    changesMade = false;
+    
+    for (const addOnName in subscriptionAddOns) {
+      const pricingAddon = pricingAddons[addOnName];
+      
+      if (!pricingAddon?.dependsOn) continue;
+      
+      // Check if any dependency is missing
+      for (const dependency of pricingAddon.dependsOn) {
+        if (!subscriptionAddOns[dependency]) {
+          // Can we add the dependency?
+          if (pricingAddons[dependency]?.availableFor?.includes(subscriptionPlan)) {
+            subscriptionAddOns[dependency] = 1;
+            changesMade = true;
+          } else {
+            // Cannot satisfy dependency - remove the add-on
+            delete subscriptionAddOns[addOnName];
+            changesMade = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+function _processAddOnExclusions(
   subscriptionAddOns: Record<string, number>,
   pricingAddons: Record<string, TestAddOn>
 ): void {
   for (const addOnName in subscriptionAddOns) {
     const pricingAddon = pricingAddons[addOnName];
-
-    if (pricingAddon.dependsOn) {
-      for (const dependency of pricingAddon.dependsOn) {
-        if (!subscriptionAddOns[dependency]) {
-          subscriptionAddOns[dependency] = 1;
-        }
-      }
-    }
-
-    if (pricingAddon.excludes) {
-      for (const exclusion of pricingAddon.excludes) {
-        if (subscriptionAddOns[exclusion]) {
-          delete subscriptionAddOns[exclusion];
-        }
+    
+    if (!pricingAddon?.excludes) continue;
+    
+    for (const exclusion of pricingAddon.excludes) {
+      if (subscriptionAddOns[exclusion]) {
+        delete subscriptionAddOns[exclusion];
       }
     }
   }

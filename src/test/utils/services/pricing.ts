@@ -23,7 +23,7 @@ export async function generatePricingFile(serviceName?: string, version?: string
     };
   }
   pricing = {
-    syntaxVersion: '2.1',
+    syntaxVersion: '3.0',
     ...pricing,
   };
   const yamlStr = yaml.dump(pricing, {
@@ -144,7 +144,7 @@ export function generatePricing(version?: string): TestPricing {
   }
 
   return {
-    version: version ?? String(faker.date.recent().getFullYear()),
+    version: version ?? uuidv4(),
     currency: 'USD',
     createdAt: new Date().toISOString().split('T')[0],
     features,
@@ -257,7 +257,7 @@ export function generatePlan(
 ): TestPlan {
   return {
     description: faker.lorem.sentence(),
-    price: faker.number.float({ min: 0, max: 100 }),
+    price: faker.number.float({ min: 0, max: 100, multipleOf: 0.1 }),
     private: faker.datatype.boolean({ probability: 0.1 }),
     features: Object.fromEntries(
       Object.keys(features)
@@ -304,7 +304,7 @@ export function generateAddOn(
   return {
     description: faker.lorem.sentence(),
     private: faker.datatype.boolean({ probability: 0.1 }),
-    price: faker.number.float({ min: 0, max: 100 }),
+    price: faker.number.float({ min: 0, max: 100, multipleOf: 0.1 }),
     availableFor: faker.datatype.boolean({ probability: 0.3 })
       ? faker.helpers.arrayElements(plans, faker.number.int({ min: 1, max: plans.length }))
       : plans,

@@ -434,14 +434,18 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 400: Given last active pricing', async function () {
-      await request(app).delete(`${baseUrl}/services/${testService}/pricings/2023`);
+
+      const newService = await createRandomService();
+      const lastActivePricing = Object.keys(newService.activePricings)[0];
+
+      await request(app).delete(`${baseUrl}/services/${newService.name}/pricings/2023`);
 
       const responseDelete = await request(app).delete(
-        `${baseUrl}/services/${testService}/pricings/2024`
+        `${baseUrl}/services/${newService.name}/pricings/${lastActivePricing}`
       );
       expect(responseDelete.status).toEqual(400);
       expect(responseDelete.body.error).toBe(
-        `You cannot delete the last active pricing for service ${testService}`
+        `You cannot delete the last active pricing for service ${newService.name}`
       );
     });
   });

@@ -49,7 +49,7 @@ async function createRandomContract(app?: any): Promise<TestContract> {
     .send(contract);
   
   if (response.status !== 201) {
-    throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+    throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
   }
 
   return response.body;
@@ -67,7 +67,7 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
   .send(contract);
 
   if (response.status !== 201) {
-    throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+    throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
   }
   
   createdContracts.push(response.body);
@@ -80,7 +80,7 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
       .send(generatedContract);
 
     if (response.status !== 201) {
-      throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+      throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
     }
 
     createdContracts.push(response.body);

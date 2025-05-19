@@ -4,8 +4,6 @@ import { Server } from 'http';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
-import { testUserId } from './utils/contracts/ContractTestData';
-import { createRandomContract } from './utils/contracts/contracts';
 import { v4 as uuidv4 } from 'uuid';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {

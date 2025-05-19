@@ -48,7 +48,7 @@ class ServiceRepository extends RepositoryBase {
   }
 
   async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[], disabled = false): Promise<LeanPricing[] | null> {
-    const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve }, disabled: disabled });
+    const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve } });
     if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
       return null;
     }
