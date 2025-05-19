@@ -196,7 +196,7 @@ describe('Features API Test Suite', function () {
     });
   });
 
-  describe('GET /features/:userId', function () {
+  describe('POST /features/:userId', function () {
     let petclinicService: any;
 
     beforeAll(async function () {
@@ -241,7 +241,7 @@ describe('Features API Test Suite', function () {
     it('Should return 200 and the feature evaluation for a user', async function () {
       const newContract = await createTestContract();
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${newContract.userContact.userId}`
       );
 
@@ -274,7 +274,7 @@ describe('Features API Test Suite', function () {
         }
       });
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${testUserId}`
       );
 
@@ -293,7 +293,7 @@ describe('Features API Test Suite', function () {
         autoRenew: true
       });
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${testUserId}`
       );
 
@@ -315,7 +315,7 @@ describe('Features API Test Suite', function () {
         autoRenew: false
       });
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${testUserId}`
       );
 
@@ -335,7 +335,7 @@ describe('Features API Test Suite', function () {
         }
       });
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${testUserId}`
       );
 
@@ -346,7 +346,7 @@ describe('Features API Test Suite', function () {
     it('Should return 200 and a detailed feature evaluation for a user', async function () {
       const newContract = await createTestContract();
 
-      const response = await request(app).get(
+      const response = await request(app).post(
       `${baseUrl}/features/${newContract.userContact.userId}?details=true`
       );
 

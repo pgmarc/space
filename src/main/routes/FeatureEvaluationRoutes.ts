@@ -13,6 +13,10 @@ const loadFileRoutes = function (app: express.Application) {
 
   app
     .route(baseUrl + '/features/:userId')
+    .post(featureEvaluationController.eval)
+
+  app
+    .route(baseUrl + '/features/:userId')
     .get(featureEvaluationController.eval)
 };
 
