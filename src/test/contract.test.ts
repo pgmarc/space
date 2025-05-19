@@ -43,7 +43,6 @@ describe('Contract API Test Suite', function () {
       const testContract = allContracts[0];
       const username = testContract.userContact.username;
 
-      // TODO: This request is not sending query params
       const response = await request(app)
         .get(`${baseUrl}/contracts?username=${username}`)
         .expect(200);
@@ -191,6 +190,30 @@ describe('Contract API Test Suite', function () {
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBeTruthy();
       expect(response.body.length).toBeLessThanOrEqual(100);
+    });
+
+    it('Should return 200: Should return filtered contracts by serviceName query parameter', async function () {
+      // First, get all contracts to find one with a specific service
+      const allContracts = await getAllContracts(app);
+      
+      // Find a contract with at least one contracted service
+      const testContract = allContracts.find(
+        contract => Object.keys(contract.contractedServices).length > 0
+      );
+      
+      // Get the first serviceName from the contract
+      const serviceName = Object.keys(testContract.contractedServices)[0];
+      
+      const response = await request(app)
+        .get(`${baseUrl}/contracts?serviceName=${serviceName}`)
+        .expect(200);
+      
+      expect(response.body).toBeDefined();
+      expect(Array.isArray(response.body)).toBeTruthy();
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body.every((contract: TestContract) => 
+        Object.keys(contract.contractedServices).includes(serviceName)
+      )).toBeTruthy();
     });
   });
 

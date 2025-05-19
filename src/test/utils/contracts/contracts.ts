@@ -10,8 +10,11 @@ async function getAllContracts(app?: any): Promise<any[]> {
   let copyApp = await useApp(app);
   
   const response = await request(copyApp)
-    .get(`${baseUrl}/contracts`)
-    .expect(200);
+    .get(`${baseUrl}/contracts`);
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to fetch contracts. Status: ${response.status}. Body: ${response.body}`);
+  }
 
   return response.body;
 }
@@ -61,8 +64,11 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
   
   let response = await request(copyApp)
   .post(`${baseUrl}/contracts`)
-  .send(contract)
-  .expect(201);
+  .send(contract);
+
+  if (response.status !== 201) {
+    throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+  }
   
   createdContracts.push(response.body);
 
@@ -71,8 +77,11 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
     
     response = await request(copyApp)
       .post(`${baseUrl}/contracts`)
-      .send(generatedContract)
-      .expect(201);
+      .send(generatedContract);
+
+    if (response.status !== 201) {
+      throw new Error(`Failed to create contract. Status: ${response.status}. Body: ${response.body}`);
+    }
 
     createdContracts.push(response.body);
   }

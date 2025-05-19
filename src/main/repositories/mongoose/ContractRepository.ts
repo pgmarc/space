@@ -18,18 +18,51 @@ class ContractRepository extends RepositoryBase {
       order = 'asc',
     } = queryFilters || {};
 
-    const contracts = await ContractMongoose.find({
-      ...(username ? { 'userContact.username': { $regex: new RegExp(username, 'i') } } : {}),
-      ...(firstName ? { 'userContact.firstName': { $regex: new RegExp(firstName, 'i') } } : {}),
-      ...(lastName ? { 'userContact.lastName': { $regex: new RegExp(lastName, 'i') } } : {}),
-      ...(email ? { 'userContact.email': { $regex: new RegExp(email, 'i') } } : {}),
-      ...(serviceName ? { 'contractedServices': { $elemMatch: { name: { $regex: new RegExp(serviceName, 'i') } } } } : {}),
-    })
-      .skip(offset == 0 ? (page - 1) * limit : offset)
-      .limit(limit > 100 ? 100 : limit)
-      .sort({ [sort ? `userContact.${sort}` : 'userContact.username']: order === 'asc' ? 1 : -1 });
+    const matchConditions = [];
 
-    return contracts.map(contract => toPlainObject<LeanContract>(contract.toJSON()));
+    if (username) {
+      matchConditions.push({ 'userContact.username': { $regex: username, $options: 'i' } });
+    }
+    if (firstName) {
+      matchConditions.push({ 'userContact.firstName': { $regex: firstName, $options: 'i' } });
+    }
+    if (lastName) {
+      matchConditions.push({ 'userContact.lastName': { $regex: lastName, $options: 'i' } });
+    }
+    if (email) {
+      matchConditions.push({ 'userContact.email': { $regex: email, $options: 'i' } });
+    }
+    if (serviceName) {
+      matchConditions.push({
+        contractedServicesArray: {
+          $elemMatch: {
+            k: { $regex: serviceName, $options: 'i' },
+          },
+        },
+      });
+    }
+
+    const contracts = await ContractMongoose.aggregate([
+      {
+        $addFields: {
+          contractedServicesArray: { $objectToArray: '$contractedServices' },
+        },
+      },
+      ...(matchConditions.length > 0 ? [{ $match: { $and: matchConditions } }] : []),
+      {
+        $sort: {
+          [`userContact.${sort ?? 'username'}`]: order === 'asc' ? 1 : -1,
+        },
+      },
+      {
+        $skip: offset === 0 ? (page - 1) * limit : offset,
+      },
+      {
+        $limit: Math.min(limit, 100),
+      },
+    ]);
+
+    return contracts.map(contract => toPlainObject<LeanContract>(contract));
   }
 
   async findByUserId(userId: string): Promise<LeanContract | null> {
@@ -56,11 +89,10 @@ class ContractRepository extends RepositoryBase {
   }
 
   async bulkUpdate(contracts: LeanContract[], disable = false): Promise<boolean> {
-    
     if (contracts.length === 0) {
       return true;
     }
-    
+
     const bulkOps = contracts.map(contract => ({
       updateOne: {
         filter: { 'userContact.userId': contract.userContact.userId },
