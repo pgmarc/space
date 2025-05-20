@@ -35,6 +35,18 @@ class CacheService {
       EX: expirationInSeconds ?? 300,
     });
   }
+
+  async match(keyLocationPattern: string): Promise<string[]> {
+  if (!this.redisClient) {
+    throw new Error('Redis client not initialized');
+  }
+  
+  // Obtener todas las claves (nota: usar con precaución en BD grandes)
+  const allKeys = await this.redisClient.keys(keyLocationPattern);
+  
+  return allKeys;
+}
+
 }
 
 export default CacheService;

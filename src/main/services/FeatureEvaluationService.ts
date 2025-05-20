@@ -5,10 +5,12 @@ import { LeanContract } from '../types/models/Contract';
 import {
   DetailedFeatureEvaluation,
   FeatureEvalQueryParams,
+  FeatureEvaluationResult,
   FeatureIndexQueryParams,
   LeanFeature,
   PricingContext,
   SimpleFeatureEvaluation,
+  SingleFeatureEvalQueryParams,
   SubscriptionContext,
 } from '../types/models/FeatureEvaluation';
 import { LeanPricing } from '../types/models/Pricing';
@@ -20,7 +22,7 @@ import {
   getUserSubscriptionsFromContract,
   mapSubscriptionsToConfigurationsByService,
 } from '../utils/feature-evaluation/evaluationContextsManagement';
-import { evaluateAllFeatures } from '../utils/feature-evaluation/featureEvaluation';
+import { evaluateAllFeatures, evaluateFeature } from '../utils/feature-evaluation/featureEvaluation';
 import ContractService from './ContractService';
 import ServiceService from './ServiceService';
 import { generateTokenFromEvalResult } from '../utils/jwt';
@@ -81,66 +83,18 @@ class FeatureEvaluationService {
         result: SimpleFeatureEvaluation | DetailedFeatureEvaluation;
       }
   > {
-    // Step 1.1: Retrieve the user contract
-    const contract = await this.contractService.show(userId);
+    // Step 1: Retrieve contexts
+    const { subscriptionContext, pricingContext, evaluationContext }= await this._retrieveContextsByUserId(userId, options.server);
 
-    if (!contract) {
-      throw new Error(`Contract with userId ${userId} not found`);
-    }
-
-    // Step 1.2: Check if the user's contract has expired and if it can be renewed
-    const isContractExpired = isAfter(new Date(), contract.billingPeriod.endDate);
-
-    if (isContractExpired && !contract.billingPeriod.autoRenew) {
-      throw new Error(
-        'Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.'
-      );
-    } else if (isContractExpired) {
-      await this.contractService.renew(userId);
-    }
-
-    // Step 1.3: Build the subscription context
-    const subscriptionContext: SubscriptionContext = flattenUsageLevelsIntoSubscriptionContext(
-      contract.usageLevels
-    );
-
-    // Step 2.1: Retrieve all pricings to which the user is subscribed
-    const userPricings = await this._getPricingsByContract(contract);
-
-    // Step 2.2: Get User Subscriptions
-    const userSubscriptionByService: Record<
-      string,
-      { plan?: string; addOns?: Record<string, number> }
-    > = getUserSubscriptionsFromContract(contract);
-
-    // Step 2.3: Build user configurations by service using the information of subscriptions and pricings
-    const userConfigurationsByService: Record<string, PricingContext> =
-      mapSubscriptionsToConfigurationsByService(userSubscriptionByService, userPricings);
-
-    // Step 2.4: Build de pricing context
-    const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(
-      userConfigurationsByService
-    );
-
-    // Step 3.1: Create a map containing the evaluation expression to consider for each feature
-    const evaluationExpressionsByService: Record<
-      string,
-      Record<string, string>
-    > = getFeatureEvaluationExpressionsByService(userPricings, options.server ?? false);
-
-    // Step 3.2: Build the evaluation context
-    const evaluationContext: Record<string, string> =
-      flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
-
-    // Step 4: Perform the evaluation
-    const evaluationResults = evaluateAllFeatures(
+    // Step 2: Perform the evaluation
+    const evaluationResults = await evaluateAllFeatures(
       pricingContext, 
       subscriptionContext, 
       evaluationContext, 
       !options.details
     );
 
-    // Return appropriate response based on options
+    // Step 3: Return appropriate response based on options
     return options.returnContexts 
       ? {
           pricingContext,
@@ -171,6 +125,28 @@ class FeatureEvaluationService {
     );
 
     return token;
+  }
+
+  async evalFeature(
+    userId: string,
+    featureId: string,
+    expectedConsumption: Record<string, number>,
+    options: SingleFeatureEvalQueryParams
+  ): Promise<boolean | FeatureEvaluationResult> {
+
+    // Step 1: Retrieve contexts
+    const {subscriptionContext, pricingContext, evaluationContext} = await this._retrieveContextsByUserId(userId, options.server);
+
+    if (options.revert){
+      await this.contractService._revertExpectedConsumption(userId, featureId, options.latest);
+      return true;
+    }else{
+      // Step 2: Perform the evaluation
+      const evaluationResults = await evaluateFeature(featureId, pricingContext, subscriptionContext, evaluationContext, {simple: false, expectedConsumption: expectedConsumption, userId: userId});
+  
+      // Step 3: Return appropriate response based on options
+      return evaluationResults as FeatureEvaluationResult;
+    }
   }
 
   async _getPricingsByContract(contract: LeanContract): Promise<Record<string, LeanPricing>> {
@@ -331,6 +307,61 @@ class FeatureEvaluationService {
     }
 
     return pricingsToReturn;
+  }
+
+  async _retrieveContextsByUserId(userId: string, server: boolean = false): Promise<{subscriptionContext: SubscriptionContext, pricingContext: PricingContext, evaluationContext: Record<string, string>}> {
+    // Step 1.1: Retrieve the user contract
+    const contract = await this.contractService.show(userId);
+
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    // Step 1.2: Check if the user's contract has expired and if it can be renewed
+    const isContractExpired = isAfter(new Date(), contract.billingPeriod.endDate);
+
+    if (isContractExpired && !contract.billingPeriod.autoRenew) {
+      throw new Error(
+        'Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.'
+      );
+    } else if (isContractExpired) {
+      await this.contractService.renew(userId);
+    }
+
+    // Step 1.3: Build the subscription context
+    const subscriptionContext: SubscriptionContext = flattenUsageLevelsIntoSubscriptionContext(
+      contract.usageLevels
+    );
+
+    // Step 2.1: Retrieve all pricings to which the user is subscribed
+    const userPricings = await this._getPricingsByContract(contract);
+
+    // Step 2.2: Get User Subscriptions
+    const userSubscriptionByService: Record<
+      string,
+      { plan?: string; addOns?: Record<string, number> }
+    > = getUserSubscriptionsFromContract(contract);
+
+    // Step 2.3: Build user configurations by service using the information of subscriptions and pricings
+    const userConfigurationsByService: Record<string, PricingContext> =
+      mapSubscriptionsToConfigurationsByService(userSubscriptionByService, userPricings);
+
+    // Step 2.4: Build de pricing context
+    const pricingContext: PricingContext = flattenConfigurationsIntoPricingContext(
+      userConfigurationsByService
+    );
+
+    // Step 3.1: Create a map containing the evaluation expression to consider for each feature
+    const evaluationExpressionsByService: Record<
+      string,
+      Record<string, string>
+    > = getFeatureEvaluationExpressionsByService(userPricings, server ?? false);
+
+    // Step 3.2: Build the evaluation context
+    const evaluationContext: Record<string, string> =
+      flattenFeatureEvaluationsIntoEvaluationContext(evaluationExpressionsByService);
+
+    return {subscriptionContext, pricingContext, evaluationContext};
   }
 }
 

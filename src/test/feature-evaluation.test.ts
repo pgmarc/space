@@ -1,13 +1,14 @@
 import request from 'supertest';
 import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
 import { v4 as uuidv4 } from 'uuid';
 import { subDays, subMilliseconds } from 'date-fns';
 import { jwtVerify } from 'jose';
 import { encryptJWTSecret } from '../main/utils/jwt';
+import { LeanContract } from '../main/types/models/Contract';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -282,7 +283,7 @@ describe('Features API Test Suite', function () {
   });
 
   evaluationDescribe('POST /features/:userId', function () {
-    it('Should return 200 and the feature evaluation for a user', async function () {
+    it('Should return 200 and the evaluation for a user', async function () {
       const newContract = await createTestContract();
 
       const response = await request(app).post(
@@ -387,7 +388,7 @@ describe('Features API Test Suite', function () {
       expect(response.body['petclinic-visits']).toBeFalsy();
     });
 
-    it('Should return 200 and a detailed feature evaluation for a user', async function () {
+    it('Should return 200 and a detailed evaluation for a user', async function () {
       const newContract = await createTestContract();
 
       const response = await request(app).post(
@@ -400,7 +401,7 @@ describe('Features API Test Suite', function () {
   });
 
   evaluationDescribe('POST /features/:userId/pricing-token', function () {
-    it('Should return 200 and the feature evaluation for a user', async function () {
+    it('Should return 200 and the evaluation for a user', async function () {
       const userId = uuidv4();
       const newContract = await createTestContract(userId);
 
@@ -425,6 +426,64 @@ describe('Features API Test Suite', function () {
       expect(payload.sub).toEqual(newContract.userContact.userId);
       expect(payload.pricingContext).toBeDefined();
       expect(payload.subscriptionContext).toBeDefined();
+    });
+  });
+
+  evaluationDescribe('POST /features/:userId/:featureId', function () {
+
+    let testUserId: string;
+    let testFeatureId: string;
+
+    beforeEach(async function () {
+      const newContract: LeanContract = await createTestContract();
+      const testServiceName = Object.keys(newContract.usageLevels)[0].toLowerCase();
+      const testFeatureName = "pets";
+      testUserId = newContract.userContact.userId;
+      testFeatureId = `${testServiceName}-${testFeatureName}`;
+    })
+
+    it('Should return 200 and the feature evaluation', async function () {
+      const response = await request(app).post(
+        `${baseUrl}/features/${testUserId}/${testFeatureId}`
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        used: {
+          'petclinic-maxPets': 0,
+        },
+        limit: {
+          'petclinic-maxPets': 6,
+        },
+        eval: true,
+        error: null
+      });
+    });
+
+    it('Should return 200: Given expected consumption', async function () {
+      const response = await request(app).post(
+        `${baseUrl}/features/${testUserId}/${testFeatureId}`
+      ).send({
+        "petclinic-maxPets": 1
+      });
+
+      // TODO: Hay un undefined que peta. Checkear
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        used: {
+          'petclinic-maxPets': 1,
+        },
+        limit: {
+          'petclinic-maxPets': 6,
+        },
+        eval: true,
+        error: null
+      });
+
+      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect(contractAfter.usageLevels).toBeDefined();
+      expect(contractAfter.usageLevels[testFeatureId]).toBeDefined();
+      expect(contractAfter.usageLevels[testFeatureId].maxPets).toEqual(1);
     });
   });
 

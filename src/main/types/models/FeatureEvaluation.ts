@@ -44,3 +44,5 @@ export interface FeatureEvaluationResult {
     message: string;
   } | null;
 }
+
+export type SingleFeatureEvalQueryParams = Omit<FeatureEvalQueryParams, "details"> & {revert?: boolean, latest?: boolean};

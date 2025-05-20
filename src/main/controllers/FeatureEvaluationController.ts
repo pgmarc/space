@@ -1,7 +1,7 @@
 import container from '../config/container.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 import FeatureEvaluationService from '../services/FeatureEvaluationService';
-import { FeatureEvalQueryParams, FeatureIndexQueryParams } from '../types/models/FeatureEvaluation.js';
+import { FeatureEvalQueryParams, FeatureEvaluationResult, FeatureIndexQueryParams, SingleFeatureEvalQueryParams } from '../types/models/FeatureEvaluation.js';
 
 class FeatureEvaluationController {
   private readonly featureEvaluationService: FeatureEvaluationService;
@@ -11,6 +11,7 @@ class FeatureEvaluationController {
     this.index = this.index.bind(this);
     this.eval = this.eval.bind(this);
     this.generatePricingToken = this.generatePricingToken.bind(this);
+    this.evalFeature = this.evalFeature.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -48,6 +49,31 @@ class FeatureEvaluationController {
       const token = await this.featureEvaluationService.generatePricingToken(userId, options);
       res.json({pricingToken: token});
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      }else if (err.message.toLowerCase().includes('invalid')) {
+        res.status(400).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async evalFeature(req: any, res: any) {
+    try {
+      const userId = req.params.userId;
+      const featureId = req.params.featureId;
+      const expectedConsumption = req.body ?? {};
+      const options = this._transformFeatureEvalQueryParams(req.query);
+      const featureEvaluation: boolean | FeatureEvaluationResult = await this.featureEvaluationService.evalFeature(userId, featureId, expectedConsumption, options);
+
+      if (typeof featureEvaluation === 'boolean') {
+        res.status(204).json("Usage level reset successfully");
+      }else{
+        res.json(featureEvaluation);
+      }
+    }
+    catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       }else if (err.message.toLowerCase().includes('invalid')) {
@@ -96,6 +122,18 @@ class FeatureEvaluationController {
   ): {server: boolean} {
     const transformedData: {server: boolean} = {
       server: indexQueryParams['server'] === "true",
+    };
+
+    return transformedData;
+  }
+
+  _transformFeatureEvalQueryParams(
+    queryParams: Record<string, string | number>
+  ): SingleFeatureEvalQueryParams {
+    const transformedData: SingleFeatureEvalQueryParams = {
+      server: queryParams['server'] === "true",
+      revert: queryParams['revert'] === "true",
+      latest: queryParams['latest'] === "true",
     };
 
     return transformedData;

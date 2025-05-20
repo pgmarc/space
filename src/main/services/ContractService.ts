@@ -14,14 +14,17 @@ import { LeanPeriod, LeanPricing } from '../types/models/Pricing';
 import { addDays, addHours, addMinutes, addMonths, addSeconds, addYears } from 'date-fns';
 import { isSubscriptionValid } from '../controllers/validation/ContractValidation';
 import { performNovation } from '../utils/contracts/novation';
+import CacheService from './CacheService';
 
 class ContractService {
   private readonly contractRepository: ContractRepository;
   private readonly serviceService: ServiceService;
+  private readonly cacheService: CacheService;
 
   constructor() {
     this.contractRepository = container.resolve('contractRepository');
     this.serviceService = container.resolve('serviceService');
+    this.cacheService = container.resolve('cacheService');
   }
 
   async index(queryParams: any) {
@@ -201,6 +204,62 @@ class ContractService {
     return updatedContract;
   }
 
+  async _applyExpectedConsumption(userId: string, usageLimitId: string, expectedConsumption: number): Promise<void> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    const serviceName: string = usageLimitId.split('.')[0];
+    const usageLimit: string = usageLimitId.split('.')[1];
+
+    
+    if (contract.usageLevels[serviceName][usageLimit]) {
+      await this.cacheService.set(`${(new Date()).getTime()}.usageLevels.${userId}.${serviceName}.${usageLimit}`, contract.usageLevels[serviceName][usageLimit], 120); // 120 secs = 2 mins
+      
+      contract.usageLevels[serviceName][usageLimit].consumed +=
+        expectedConsumption
+
+      const updatedContract = await this.contractRepository.update(userId, contract);
+
+      if (!updatedContract) {
+        throw new Error(`Failed to update contract for userId ${userId}`);
+      }
+    }else{
+      throw new Error(`Usage level ${usageLimit} not found in contract for userId ${userId}`);
+    }
+  }
+
+  async _revertExpectedConsumption(userId: string, usageLimitId: string, latest: boolean = false): Promise<void> {
+    const contract = await this.contractRepository.findByUserId(userId);
+    if (!contract) {
+      throw new Error(`Contract with userId ${userId} not found`);
+    }
+
+    const serviceName: string = usageLimitId.split('.')[0];
+    const usageLimit: string = usageLimitId.split('.')[1];
+    
+    if (contract.usageLevels[serviceName][usageLimit]) {
+
+      const previousCachedValue = await this._getCachedUsageLevel(userId, serviceName, usageLimit, latest);
+      
+      if (!previousCachedValue) {
+        throw new Error(`No previous cached value found for user ${contract.userContact.username}, serviceName ${serviceName}, usageLimit ${usageLimit}. This may be caused because the usage level update that you are trying to revert was made more that 2 minutes ago.`);
+      }
+
+      contract.usageLevels[serviceName][usageLimit].consumed +=
+        previousCachedValue
+
+      const updatedContract = await this.contractRepository.update(userId, contract);
+
+      if (!updatedContract) {
+        throw new Error(`Failed to update contract for userId ${userId}`);
+      }
+    }else{
+      throw new Error(`Usage level ${usageLimit} not found in contract for user ${contract.userContact.username}`);
+    }
+  }
+
   async prune(): Promise<number> {
     const result: number = await this.contractRepository.prune();
 
@@ -214,6 +273,22 @@ class ContractService {
     }
 
     await this.contractRepository.destroy(userId);
+  }
+
+  async _getCachedUsageLevel(userId: string, serviceName: string, usageLimit: string, latest: boolean = false): Promise<number | null> {
+    
+    let cachedValues: string[] = await this.cacheService.match(`*.usageLevels.${userId}.${serviceName}.${usageLimit}`);
+    cachedValues = cachedValues.sort((a, b) => {
+      const aTimestamp = parseInt(a.split('.')[0]);
+      const bTimestamp = parseInt(b.split('.')[0]);
+      return aTimestamp - bTimestamp;
+    });
+
+    if (cachedValues.length === 0) {
+      return null;
+    }
+
+    return await this.cacheService.get(latest ? cachedValues[cachedValues.length - 1] : cachedValues[0]);
   }
 
   async _createUsageLevels(
