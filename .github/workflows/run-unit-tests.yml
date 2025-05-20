@@ -30,8 +30,8 @@ jobs:
           envkey_MONGO_INITDB_ROOT_USERNAME: ${{secrets.CI_MONGO_INITDB_ROOT_USERNAME}}
           envkey_MONGO_INITDB_ROOT_PASSWORD: ${{secrets.CI_MONGO_INITDB_ROOT_PASSWORD}}
           envkey_DATABASE_NAME: ${{ vars.CI_MONGO_INITDB_DATABASE }}
-          envkey_DATABASE_USERNAME: ${{secrets.CI_MONGO_INITDB_ROOT_USERNAME}}
-          envkey_DATABASE_PASSWORD: ${{secrets.CI_MONGO_INITDB_ROOT_PASSWORD}}
+          envkey_DATABASE_USERNAME: "testUser"
+          envkey_DATABASE_PASSWORD: "testUser"
           envkey_SERVER_PORT: "8080"
           envkey_BASE_URL_PATH: "/api"
           # envkey_ADMIN_PASSWORD: secrets.ADMIN_PASSWORD
