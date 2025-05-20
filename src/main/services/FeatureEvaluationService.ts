@@ -311,7 +311,7 @@ class FeatureEvaluationService {
 
   async _retrieveContextsByUserId(userId: string, server: boolean = false): Promise<{subscriptionContext: SubscriptionContext, pricingContext: PricingContext, evaluationContext: Record<string, string>}> {
     // Step 1.1: Retrieve the user contract
-    const contract = await this.contractService.show(userId);
+    let contract = await this.contractService.show(userId);
 
     if (!contract) {
       throw new Error(`Contract with userId ${userId} not found`);
@@ -328,7 +328,22 @@ class FeatureEvaluationService {
       await this.contractService.renew(userId);
     }
 
-    // Step 1.3: Build the subscription context
+    // Step 1.3: Reset all expired renewable usage levels
+    const usageLevelsToRenew = []
+
+    for (const serviceName in contract.usageLevels) {
+      const usageLevels = contract.usageLevels[serviceName];
+      for (const level in usageLevels) {
+        const usageLevel = usageLevels[level];
+        if (usageLevel.resetTimeStamp && isAfter(new Date(), usageLevel.resetTimeStamp)) {
+          usageLevelsToRenew.push(`${serviceName}-${level}`);
+        }
+      }
+    }
+    
+    contract = await this.contractService._resetRenewableUsageLevels(contract, usageLevelsToRenew);
+
+    // Step 1.4: Build the subscription context
     const subscriptionContext: SubscriptionContext = flattenUsageLevelsIntoSubscriptionContext(
       contract.usageLevels
     );

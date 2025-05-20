@@ -1,11 +1,11 @@
 import request from 'supertest';
 import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { LeanFeature } from '../main/types/models/FeatureEvaluation';
 import { LeanService } from '../main/types/models/Service';
 import { v4 as uuidv4 } from 'uuid';
-import { subDays, subMilliseconds } from 'date-fns';
+import { addMonths, subDays, subMilliseconds } from 'date-fns';
 import { jwtVerify } from 'jose';
 import { encryptJWTSecret } from '../main/utils/jwt';
 import { LeanContract } from '../main/types/models/Contract';
@@ -53,7 +53,7 @@ const DETAILED_EVALUATION_EXPECTED_RESULT = {
   'petclinic-slaCoverage': { eval: true, used: null, limit: null, error: null },
   'petclinic-petAdoptionCentre': { eval: true, used: null, limit: null, error: null },
   'petclinic-smartClinicReports': { eval: false, used: null, limit: null, error: null },
-}
+};
 
 describe('Features API Test Suite', function () {
   let app: Server;
@@ -105,9 +105,9 @@ describe('Features API Test Suite', function () {
           .post(`${baseUrl}/services`)
           .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
 
-          if (createServiceResponse.status === 201) {
-            petclinicService = createServiceResponse.body;
-          }
+        if (createServiceResponse.status === 201) {
+          petclinicService = createServiceResponse.body;
+        }
       });
     });
   };
@@ -405,23 +405,25 @@ describe('Features API Test Suite', function () {
       const userId = uuidv4();
       const newContract = await createTestContract(userId);
 
-      const response = await request(app).post(
-        `${baseUrl}/features/${userId}/pricing-token`
-      );
+      const response = await request(app).post(`${baseUrl}/features/${userId}/pricing-token`);
 
       expect(response.status).toEqual(200);
       expect(response.body.pricingToken).toBeDefined();
 
       const token = response.body.pricingToken;
 
-      const { payload, protectedHeader } = await jwtVerify(token, encryptJWTSecret(process.env.JWT_SECRET!), {
-        algorithms: ['HS256'], // It is important to specify the algorithm used to sign the JWT
-      });
+      const { payload, protectedHeader } = await jwtVerify(
+        token,
+        encryptJWTSecret(process.env.JWT_SECRET!),
+        {
+          algorithms: ['HS256'], // It is important to specify the algorithm used to sign the JWT
+        }
+      );
 
       expect(protectedHeader).toBeDefined();
       expect(protectedHeader.alg).toEqual('HS256');
       expect(payload).toBeDefined();
-      expect(payload.features).toEqual(DETAILED_EVALUATION_EXPECTED_RESULT)
+      expect(payload.features).toEqual(DETAILED_EVALUATION_EXPECTED_RESULT);
       expect(payload.sub).toBeDefined();
       expect(payload.sub).toEqual(newContract.userContact.userId);
       expect(payload.pricingContext).toBeDefined();
@@ -430,17 +432,19 @@ describe('Features API Test Suite', function () {
   });
 
   evaluationDescribe('POST /features/:userId/:featureId', function () {
-
     let testUserId: string;
     let testFeatureId: string;
+    let testUsageLimitId: string;
 
     beforeEach(async function () {
       const newContract: LeanContract = await createTestContract();
       const testServiceName = Object.keys(newContract.usageLevels)[0].toLowerCase();
-      const testFeatureName = "pets";
+      const testFeatureName = 'visits';
+      const testUsageLimitName = 'maxVisits';
       testUserId = newContract.userContact.userId;
       testFeatureId = `${testServiceName}-${testFeatureName}`;
-    })
+      testUsageLimitId = `${testServiceName}-${testUsageLimitName}`;
+    });
 
     it('Should return 200 and the feature evaluation', async function () {
       const response = await request(app).post(
@@ -456,34 +460,97 @@ describe('Features API Test Suite', function () {
           'petclinic-maxPets': 6,
         },
         eval: true,
-        error: null
+        error: null,
       });
     });
 
     it('Should return 200: Given expected consumption', async function () {
-      const response = await request(app).post(
-        `${baseUrl}/features/${testUserId}/${testFeatureId}`
-      ).send({
-        "petclinic-maxPets": 1
-      });
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .send({
+          [testUsageLimitId]: 1,
+        });
 
-      // TODO: Hay un undefined que peta. Checkear
+      
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
         used: {
-          'petclinic-maxPets': 1,
+          [testUsageLimitId]: 1,
         },
         limit: {
-          'petclinic-maxPets': 6,
+          [testUsageLimitId]: 9,
         },
         eval: true,
-        error: null
+        error: null,
       });
 
       const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
       expect(contractAfter.usageLevels).toBeDefined();
-      expect(contractAfter.usageLevels[testFeatureId]).toBeDefined();
-      expect(contractAfter.usageLevels[testFeatureId].maxPets).toEqual(1);
+
+      const usageLevelService = testUsageLimitId.split('-')[0];
+      const usageLevelName = testUsageLimitId.split('-')[1];
+
+      expect(contractAfter.usageLevels[usageLevelService][usageLevelName]).toBeDefined();
+      expect(contractAfter.usageLevels[usageLevelService][usageLevelName].consumed).toEqual(1);
+    });
+
+    it('Should return 200: Given expired renewable usage level', async function () {
+      
+      const serviceName = testUsageLimitId.split('-')[0];
+      const usageLevelName = testUsageLimitId.split('-')[1];
+
+      await request(app).put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .send({
+          [serviceName]: {
+            [usageLevelName]: 4,
+          }});
+
+      const contractBefore = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect(contractBefore.usageLevels).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName]).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName][usageLevelName]).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName][usageLevelName].consumed).toEqual(4);
+
+      vi.useFakeTimers()
+      vi.setSystemTime(addMonths(new Date(), 2)); // Enough to expire the renewable usage level
+      
+      // Mock de CacheService
+      vi.mock('../main/services/CacheService', () => {
+        return {
+          default: class MockCacheService {
+            get = vi.fn().mockResolvedValue(null);
+            set = vi.fn().mockResolvedValue(undefined);
+            match = vi.fn().mockResolvedValue([]);
+            setRedisClient = vi.fn();
+          }
+        };
+      });
+
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .send({
+          [testUsageLimitId]: 1,
+        });
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        used: {
+          [testUsageLimitId]: 1,
+        },
+        limit: {
+          [testUsageLimitId]: 9,
+        },
+        eval: true,
+        error: null,
+      });
+
+      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect(contractAfter.usageLevels).toBeDefined();
+      expect(contractAfter.usageLevels[serviceName][usageLevelName]).toBeDefined();
+      expect(contractAfter.usageLevels[serviceName][usageLevelName].consumed).toEqual(1);
+
+      vi.useRealTimers()
+      vi.clearAllMocks();
     });
   });
 

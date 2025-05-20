@@ -36,7 +36,9 @@ async function evaluateFeature(
   pricingContext: PricingContext,
   subscriptionContext: SubscriptionContext,
   evaluationContext: EvaluationContext,
-  options: { simple: boolean; expectedConsumption?: Record<string, number>; userId?: string } = { simple: true }
+  options: { simple: boolean; expectedConsumption?: Record<string, number>; userId?: string } = {
+    simple: true,
+  }
 ): Promise<boolean | FeatureEvaluationResult> {
   const featureEvaluation: FeatureEvaluationResult = _evaluate(
     featureId,
@@ -46,26 +48,33 @@ async function evaluateFeature(
     options.expectedConsumption
   );
 
-  if (featureEvaluation.eval && featureEvaluation.used !== null){
+  if (featureEvaluation.eval && featureEvaluation.used !== null) {
     const expectedConsumption = options.expectedConsumption;
 
     if (expectedConsumption && Object.keys(expectedConsumption).length > 0) {
       // First validate all limits exist in expectedConsumption
       for (const limit in featureEvaluation.used) {
         if (expectedConsumption[limit] === undefined) {
-          throw new Error(`Expected consumption for limit '${limit}' not provided. Please provide expected consumption for all limits involved in the evaluation of feature '${featureId}' or none at all.`);
+          throw new Error(
+            `Expected consumption for limit '${limit}' not provided. Please provide expected consumption for all limits involved in the evaluation of feature '${featureId}' or none at all.`
+          );
         }
       }
-      
-      const contractService: ContractService = container.resolve('contractService');
-      // TODO: Handle reset of renewable limits usage levels
-      
+
       // Then apply all consumptions after validation has passed
       if (options.userId) {
+        const contractService: ContractService = container.resolve('contractService');
+
         const limits = Object.keys(featureEvaluation.used);
-        await Promise.all(limits.map(limit => 
-          contractService._applyExpectedConsumption(options.userId!, limit, expectedConsumption[limit])
-        ));
+        await Promise.all(
+          limits.map(limit =>
+            contractService._applyExpectedConsumption(
+              options.userId!,
+              limit,
+              expectedConsumption[limit]
+            )
+          )
+        );
       }
     }
   }
