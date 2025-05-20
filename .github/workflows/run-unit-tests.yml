@@ -57,7 +57,7 @@ jobs:
           redis-version: '7.x'
 
       - name: Install dependencies
-        run: npm run install
+        run: npm i
 
       - name: Run tests
         run: npm run test
