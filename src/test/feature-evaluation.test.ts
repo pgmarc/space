@@ -533,6 +533,68 @@ describe('Features API Test Suite', function () {
       vi.useRealTimers();
       vi.clearAllMocks();
     });
+
+    it('Should return 200: Given expired renewable usage levels should reset all and evaluate one', async function () {
+      
+      const serviceName = testUsageLimitId.split('-')[0];
+      const usageLevelName = testUsageLimitId.split('-')[1];
+
+      await request(app).put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .send({
+          [serviceName]: {
+            [usageLevelName]: 4,
+            calendarEventsCreationLimit: 10
+          }});
+
+      const contractBefore = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect(contractBefore.usageLevels).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName]).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName][usageLevelName]).toBeDefined();
+      expect(contractBefore.usageLevels[serviceName][usageLevelName].consumed).toEqual(4);
+
+      vi.useFakeTimers();
+      vi.setSystemTime(addMonths(new Date(), 2)); // Enough to expire the renewable usage level
+      
+      // Mock de CacheService
+      vi.mock('../main/services/CacheService', () => {
+        return {
+          default: class MockCacheService {
+            get = vi.fn().mockResolvedValue(null);
+            set = vi.fn().mockResolvedValue(undefined);
+            match = vi.fn().mockResolvedValue([]);
+            setRedisClient = vi.fn();
+          }
+        };
+      });
+
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .send({
+          [testUsageLimitId]: 1,
+        });
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        used: {
+          [testUsageLimitId]: 1,
+        },
+        limit: {
+          [testUsageLimitId]: 9,
+        },
+        eval: true,
+        error: null,
+      });
+
+      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      expect(contractAfter.usageLevels).toBeDefined();
+      expect(contractAfter.usageLevels[serviceName][usageLevelName]).toBeDefined();
+      expect(contractAfter.usageLevels[serviceName][usageLevelName].consumed).toEqual(1);
+      expect(contractAfter.usageLevels[serviceName].calendarEventsCreationLimit).toBeDefined();
+      expect(contractAfter.usageLevels[serviceName].calendarEventsCreationLimit.consumed).toEqual(0);
+
+      vi.useRealTimers();
+      vi.clearAllMocks();
+    });
   });
 
   afterAll(async function () {

@@ -128,7 +128,7 @@ function getFeatureEvaluationExpressionsByService(
 
       const featureKey = feature.name;
       let expressionToUse = server && feature.serverExpression 
-        ? feature.serverExpression 
+        ? (feature.serverExpression ?? feature.expression!) 
         : feature.expression!;
       
       expressionToUse = expressionToUse

@@ -18,7 +18,7 @@ features:
   calendar:
     valueType: BOOLEAN
     defaultValue: false
-    expression: pricingContext['features']['calendar']
+    expression: pricingContext['features']['calendar'] && subscriptionContext['calendarEventsCreationLimit'] < pricingContext['usageLimits']['calendarEventsCreationLimit']
     type: DOMAIN
   vetSelection:
     valueType: BOOLEAN
@@ -84,6 +84,16 @@ usageLimits:
       unit: MONTH
     linkedFeatures:
       - visits
+  calendarEventsCreationLimit:
+    valueType: NUMERIC
+    defaultValue: 5
+    unit: event
+    type: RENEWABLE
+    period:
+      value: 1
+      unit: MONTH
+    linkedFeatures:
+      - calendar
 plans:
   BASIC:
     price: 0.0
@@ -107,6 +117,8 @@ plans:
         value: 4
       maxVisits:
         value: 3
+      calendarEventsCreationLimit:
+        value: 15
   PLATINUM:
     price: 12.0
     unit: user/month
@@ -128,6 +140,8 @@ plans:
         value: 7
       maxVisits:
         value: 6
+      calendarEventsCreationLimit:
+        value: 50
 addOns:
   petLover:
     availableFor:
