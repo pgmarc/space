@@ -11,19 +11,19 @@ const loadFileRoutes = function (app: express.Application) {
 
   app
     .route(baseUrl + '/features')
-    .get(featureEvaluationController.index)
+    .get(featureEvaluationController.index);
 
   app
     .route(baseUrl + '/features/:userId')
-    .post(featureEvaluationController.eval)
+    .post(featureEvaluationController.eval);
 
   app
     .route(baseUrl + '/features/:userId/pricing-token')
-    .post(featureEvaluationController.generatePricingToken)
+    .post(featureEvaluationController.generatePricingToken);
 
   app
     .route(baseUrl + '/features/:userId/:featureId')
-    .post(FeatureEvaluationValidation.expectedConsumptionSingleFeature, handleValidation, featureEvaluationController.evalFeature)
+    .post(FeatureEvaluationValidation.expectedConsumptionSingleFeature, handleValidation, featureEvaluationController.evalFeature);
 };
 
 export default loadFileRoutes;

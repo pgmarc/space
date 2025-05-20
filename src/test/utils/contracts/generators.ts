@@ -10,7 +10,7 @@ async function generateContractAndService(
   userId?: string,
   app?: any
 ): Promise<{ contract: ContractToCreate; services: Record<string, string> }> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> = await _generateNewContractedServices(appCopy);
 
@@ -24,7 +24,7 @@ async function generateContract(
   userId?: string,
   app?: any
 ): Promise<ContractToCreate> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const servicesToConsiderKeys = faker.helpers.arrayElements(
     Object.keys(contractedServices),
@@ -66,7 +66,7 @@ async function generateContract(
 }
 
 async function generateNovation(app?: any) {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> =
     await _generateExistentContractedServices(appCopy);
@@ -87,7 +87,7 @@ async function generateNovation(app?: any) {
 }
 
 async function _generateNewContractedServices(app?: any): Promise<Record<string, string>> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> = {};
 
@@ -101,7 +101,7 @@ async function _generateNewContractedServices(app?: any): Promise<Record<string,
 }
 
 async function _generateExistentContractedServices(app?: any): Promise<Record<string, string>> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const contractedServices: Record<string, string> = {};
   const services = await getAllServices(appCopy);
@@ -123,7 +123,7 @@ async function _generateSubscriptionPlans(
   contractedServices: Record<string, string>,
   app?: any
 ): Promise<Record<string, string>> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const subscriptionPlans: Record<string, string> = {};
 
@@ -147,7 +147,7 @@ async function _generateSubscriptionAddOns(
   subscriptionPlans: Record<string, string>,
   app?: any
 ): Promise<Record<string, Record<string, number>>> {
-  let appCopy = await useApp(app);
+  const appCopy = await useApp(app);
 
   const subscriptionAddOns: Record<string, Record<string, number>> = {};
 

@@ -23,15 +23,15 @@ const loadFileRoutes = function (app: express.Application) {
   
     app
     .route(baseUrl + '/contracts/:userId/usageLevels')
-    .put(ContractValidator.incrementUsageLevels, handleValidation, contractController.resetUsageLevels)
+    .put(ContractValidator.incrementUsageLevels, handleValidation, contractController.resetUsageLevels);
 
     app
     .route(baseUrl + '/contracts/:userId/userContact')
-    .put(ContractValidator.novateUserContact, handleValidation, contractController.novateUserContact)
+    .put(ContractValidator.novateUserContact, handleValidation, contractController.novateUserContact);
 
     app
     .route(baseUrl + '/contracts/:userId/billingPeriod')
-    .put(ContractValidator.novateBillingPeriod, handleValidation, contractController.novateBillingPeriod)
+    .put(ContractValidator.novateBillingPeriod, handleValidation, contractController.novateBillingPeriod);
 };
 
 export default loadFileRoutes;

@@ -3,5 +3,5 @@ export function removeOptionalFieldsOfQueryParams(queryParams: any, optionalFiel
     if (!queryParams[field] || Number.isNaN(queryParams[field])) {
       delete queryParams[field];
     }
-  })
+  });
 }

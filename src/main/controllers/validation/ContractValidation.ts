@@ -188,7 +188,7 @@ const incrementUsageLevels = [
     .withMessage(
       'The input must be an object with the structure: Record<string, Record<string, number>>'
     ),
-]
+];
 
 const novateUserContact = [
   body()
@@ -214,7 +214,7 @@ const novateUserContact = [
     .optional()
     .isString()
     .withMessage('The phone field must be a string'),
-]
+];
 
 const novateBillingPeriod = [
   body()
@@ -233,7 +233,7 @@ const novateBillingPeriod = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('renewalDays must be a positive integer'),
-]
+];
 
 async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   const selectedPricings: Record<string, LeanPricing> = {};

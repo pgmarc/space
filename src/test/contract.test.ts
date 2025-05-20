@@ -28,7 +28,7 @@ describe('Contract API Test Suite', function () {
 
     beforeAll(async function () {
       contracts = await createRandomContracts(10, app);
-    })
+    });
 
     it('Should return 200 and the contracts', async function () {
       const response = await request(app).get(`${baseUrl}/contracts`).expect(200);

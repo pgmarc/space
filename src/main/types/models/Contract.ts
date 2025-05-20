@@ -69,7 +69,7 @@ export interface ContractToCreate {
   subscriptionAddOns: Record<string, Record<string, number>>; // service name → { addOn: count }
 }
 
-export interface Subscription extends Pick<ContractToCreate, 'contractedServices' | 'subscriptionPlans' | 'subscriptionAddOns'> {}
+export type Subscription = Pick<ContractToCreate, 'contractedServices' | 'subscriptionPlans' | 'subscriptionAddOns'>
 
 export interface UsageLevelsResetQuery {
   reset?: boolean;

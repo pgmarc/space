@@ -292,7 +292,7 @@ export function generateAddOn(
   preCreatedAddons: string[]
 ): TestAddOn {
 
-  const isScalableAddon = (features.length === 0 && usageLimits.length === 0 && usageLimitsExtensions.length > 0)
+  const isScalableAddon = (features.length === 0 && usageLimits.length === 0 && usageLimitsExtensions.length > 0);
 
   const minQuantity: number | undefined = isScalableAddon
     ? faker.number.int({ min: 1, max: 10 })

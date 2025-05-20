@@ -169,7 +169,7 @@ class FeatureEvaluationService {
     serviceName?: string,
     pricingVersion?: string
   ): LeanFeature[] {
-    let features = [];
+    const features = [];
 
     for (const pricingServiceName in pricings) {
       const shouldAddService =
@@ -329,7 +329,7 @@ class FeatureEvaluationService {
     }
 
     // Step 1.3: Reset all expired renewable usage levels
-    const usageLevelsToRenew = []
+    const usageLevelsToRenew = [];
 
     for (const serviceName in contract.usageLevels) {
       const usageLevels = contract.usageLevels[serviceName];

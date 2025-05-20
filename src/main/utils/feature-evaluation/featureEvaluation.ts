@@ -16,7 +16,7 @@ async function evaluateAllFeatures(
   simple: boolean = true
 ): Promise<SimpleFeatureEvaluation | DetailedFeatureEvaluation> {
   const features = Object.keys(evaluationContext);
-  let result: SimpleFeatureEvaluation | DetailedFeatureEvaluation = {};
+  const result: SimpleFeatureEvaluation | DetailedFeatureEvaluation = {};
 
   for (const featureId of features) {
     result[featureId] = await evaluateFeature(
@@ -109,7 +109,7 @@ function _evaluate(
 
   // Evaluate the expression
   try {
-    const evalResult: Boolean = eval(featureExpression!);
+    const evalResult: boolean = eval(featureExpression!);
 
     if (typeof evalResult !== 'boolean') {
       return _createErrorResult(

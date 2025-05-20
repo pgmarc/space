@@ -511,7 +511,7 @@ describe('Features API Test Suite', function () {
       expect(contractBefore.usageLevels[serviceName][usageLevelName]).toBeDefined();
       expect(contractBefore.usageLevels[serviceName][usageLevelName].consumed).toEqual(4);
 
-      vi.useFakeTimers()
+      vi.useFakeTimers();
       vi.setSystemTime(addMonths(new Date(), 2)); // Enough to expire the renewable usage level
       
       // Mock de CacheService
@@ -549,7 +549,7 @@ describe('Features API Test Suite', function () {
       expect(contractAfter.usageLevels[serviceName][usageLevelName]).toBeDefined();
       expect(contractAfter.usageLevels[serviceName][usageLevelName].consumed).toEqual(1);
 
-      vi.useRealTimers()
+      vi.useRealTimers();
       vi.clearAllMocks();
     });
   });

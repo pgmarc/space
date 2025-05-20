@@ -22,7 +22,7 @@ const getApp = async (): Promise<Server> => {
 const useApp = async (app?: any) => {
 
   return app ?? (await getApp());
-}
+};
 
 const shutdownApp = async () => {
   if (testServer) {

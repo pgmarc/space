@@ -7,7 +7,7 @@ import { TestContract } from '../../types/models/Contract';
 
 async function getAllContracts(app?: any): Promise<any[]> {
   
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
   
   const response = await request(copyApp)
     .get(`${baseUrl}/contracts`);
@@ -21,7 +21,7 @@ async function getAllContracts(app?: any): Promise<any[]> {
 
 async function getContractByUserId(userId: string, app?: any): Promise<TestContract> {
   
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
   
   const response = await request(copyApp)
     .get(`${baseUrl}/contracts/${userId}`)
@@ -40,7 +40,7 @@ async function getRandomContract(app?: any): Promise<any[]> {
 }
 
 async function createRandomContract(app?: any): Promise<TestContract> {
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
   
   const {contract} = await generateContractAndService(undefined, copyApp);
   
@@ -56,7 +56,7 @@ async function createRandomContract(app?: any): Promise<TestContract> {
 }
 
 async function createRandomContracts(amount: number, app?: any): Promise<TestContract[]> {
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
 
   const createdContracts: TestContract[] = [];
   
@@ -90,7 +90,7 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
 }
 
 async function incrementUsageLevel(userId: string, serviceName: string, usageLimitName: string, app?: any): Promise<TestContract> {
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
   
   const response = await request(copyApp)
     .put(`${baseUrl}/contracts/${userId}/usageLevels`)
@@ -105,7 +105,7 @@ async function incrementUsageLevel(userId: string, serviceName: string, usageLim
 }
 
 async function incrementAllUsageLevel(userId: string, usageLevels: Record<string, Record<string, UsageLevel>>, app?: any): Promise<TestContract> {
-  let copyApp = await useApp(app);
+  const copyApp = await useApp(app);
   
   const updatedUsageLevels = Object.keys(usageLevels).reduce((acc, serviceName) => {
     acc[serviceName] = Object.keys(usageLevels[serviceName]).reduce((innerAcc, usageLimitName) => {
