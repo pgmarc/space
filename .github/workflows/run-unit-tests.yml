@@ -63,8 +63,5 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Seed DB
-        run: npx tsx --tsconfig tsconfig.json ./scripts/seedMongo.ts
-
       - name: Run tests
-        run: npm run test
+        run: npm run test:ci
