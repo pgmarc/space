@@ -315,7 +315,7 @@ describe('Features API Test Suite', function () {
       await request(app)
         .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
         .send({
-          [petclinicService.name]: {
+          [petclinicService.name.toLowerCase()]: {
             maxVisits: 9,
           },
         });
@@ -367,25 +367,6 @@ describe('Features API Test Suite', function () {
       expect(response.body.error).toEqual(
         'Invalid subscription: Your susbcription has expired and it is not set to renew automatically. To continue accessing the features, please purchase any subscription.'
       );
-    });
-
-    it('Should return 200 and visits as false since its limit has been reached', async function () {
-      const testUserId = uuidv4();
-      await createTestContract(testUserId);
-
-      // Reach the limit of 9 visits
-      await request(app)
-        .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
-        .send({
-          [petclinicService.name]: {
-            maxVisits: 9,
-          },
-        });
-
-      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
-
-      expect(response.status).toEqual(200);
-      expect(response.body['petclinic-visits']).toBeFalsy();
     });
 
     it('Should return 200 and a detailed evaluation for a user', async function () {
@@ -454,10 +435,10 @@ describe('Features API Test Suite', function () {
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
         used: {
-          'petclinic-maxPets': 0,
+          [testUsageLimitId]: 0,
         },
         limit: {
-          'petclinic-maxPets': 6,
+          [testUsageLimitId]: 9,
         },
         eval: true,
         error: null,

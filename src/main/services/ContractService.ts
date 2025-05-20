@@ -431,6 +431,11 @@ class ContractService {
   }
 
   async _resetRenewableUsageLevels(contract: LeanContract, usageLimitsToRenew: string[]): Promise<LeanContract> {
+    
+    if (usageLimitsToRenew.length === 0) {
+      return contract;
+    }
+    
     const contractToUpdate = { ...contract };
 
     for (const usageLimitId of usageLimitsToRenew) {

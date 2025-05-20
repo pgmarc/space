@@ -340,8 +340,10 @@ class FeatureEvaluationService {
         }
       }
     }
-    
-    contract = await this.contractService._resetRenewableUsageLevels(contract, usageLevelsToRenew);
+
+    if (usageLevelsToRenew.length > 0) {
+      contract = await this.contractService._resetRenewableUsageLevels(contract, usageLevelsToRenew);
+    }
 
     // Step 1.4: Build the subscription context
     const subscriptionContext: SubscriptionContext = flattenUsageLevelsIntoSubscriptionContext(
