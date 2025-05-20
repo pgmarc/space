@@ -43,7 +43,16 @@ const DETAILED_EVALUATION_EXPECTED_RESULT = {
     },
     error: null,
   },
-  'petclinic-calendar': { eval: true, used: null, limit: null, error: null },
+  'petclinic-calendar': { 
+    eval: true, 
+    used: {
+      'petclinic-calendarEventsCreationLimit': 0,
+    }, 
+    limit: {
+      'petclinic-calendarEventsCreationLimit': 15,  
+    }, 
+    error: null 
+  },
   'petclinic-vetSelection': { eval: true, used: null, limit: null, error: null },
   'petclinic-consultations': { eval: false, used: null, limit: null, error: null },
   'petclinic-petsDashboard': { eval: false, used: null, limit: null, error: null },
