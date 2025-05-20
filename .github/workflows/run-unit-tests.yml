@@ -27,11 +27,7 @@ jobs:
           envkey_MONGO_HOST: "localhost"
           envkey_MONGO_PORT: ${{ vars.CI_MONGO_PORT }}
           envkey_MONGO_INITDB_DATABASE: ${{ vars.CI_MONGO_INITDB_DATABASE }}
-          envkey_MONGO_INITDB_ROOT_USERNAME: ${{vars.CI_MONGO_INITDB_ROOT_USERNAME}}
-          envkey_MONGO_INITDB_ROOT_PASSWORD: ${{vars.CI_MONGO_INITDB_ROOT_PASSWORD}}
           envkey_DATABASE_NAME: ${{ vars.CI_MONGO_INITDB_DATABASE }}
-          envkey_DATABASE_USERNAME: ${{vars.CI_MONGO_INITDB_ROOT_USERNAME}}
-          envkey_DATABASE_PASSWORD: ${{vars.CI_MONGO_INITDB_ROOT_PASSWORD}}
           envkey_SERVER_PORT: "8080"
           envkey_BASE_URL_PATH: "/api"
           # envkey_ADMIN_PASSWORD: secrets.ADMIN_PASSWORD
@@ -45,16 +41,11 @@ jobs:
           file_name: .env
           fail_on_empty: false
           sort_keys: false
-        
-      - name: Show env
-        run: cat .env
 
       - name: Start MongoDBs
         uses: supercharge/mongodb-github-action@1.10.0
         with:
           mongodb-version: '7.0.16'
-          mongodb-username: ${{ vars.CI_MONGO_INITDB_ROOT_USERNAME }}
-          mongodb-password: ${{ vars.CI_MONGO_INITDB_ROOT_PASSWORD }}
           mongodb-db: ${{ vars.CI_MONGO_INITDB_DATABASE }}
           mongodb-port: ${{ vars.CI_MONGO_PORT }}
 
