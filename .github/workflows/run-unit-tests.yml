@@ -37,7 +37,7 @@ jobs:
           # envkey_ADMIN_PASSWORD: secrets.ADMIN_PASSWORD
           # envkey_USER_PASSWORD: secrets.USER_PASSWORD
           envkey_REDIS_URL: "redis://localhost:6379"
-          directory: ./api
+          directory: .
           file_name: .env
           fail_on_empty: false
           sort_keys: false
