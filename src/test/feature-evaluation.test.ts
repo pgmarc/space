@@ -54,8 +54,6 @@ const DETAILED_EVALUATION_EXPECTED_RESULT = {
   'petclinic-smartClinicReports': { eval: false, used: null, limit: null, error: null },
 }
 
-// TODO: No termina de funcionar la nueva configuración de los tests, hay que arreglarlo.
-
 describe('Features API Test Suite', function () {
   let app: Server;
 
@@ -105,10 +103,10 @@ describe('Features API Test Suite', function () {
         const createServiceResponse = await request(app)
           .post(`${baseUrl}/services`)
           .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
-        petclinicService = createServiceResponse.body;
-      });
-      afterAll(async function () {
-        await request(app).delete(`${baseUrl}/services/${petclinicService.name}`);
+
+          if (createServiceResponse.status === 201) {
+            petclinicService = createServiceResponse.body;
+          }
       });
     });
   };
@@ -403,10 +401,11 @@ describe('Features API Test Suite', function () {
 
   evaluationDescribe('POST /features/:userId/pricing-token', function () {
     it('Should return 200 and the feature evaluation for a user', async function () {
-      const newContract = await createTestContract();
+      const userId = uuidv4();
+      const newContract = await createTestContract(userId);
 
       const response = await request(app).post(
-        `${baseUrl}/features/${newContract.userContact.userId}/pricing-token`
+        `${baseUrl}/features/${userId}/pricing-token`
       );
 
       expect(response.status).toEqual(200);
