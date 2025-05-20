@@ -8,4 +8,4 @@ export {
   githubPricingPath,
   clockifyPricingPath,
   zoomPricingPath,
-}
+};

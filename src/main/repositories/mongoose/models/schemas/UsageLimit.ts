@@ -41,6 +41,10 @@ const usageLimitSchema = new Schema(
     period: {
       type: periodSchema,
     },
+    linkedFeatures: {
+      type: [String],
+      default: [],
+    }
   },
   { _id: false }
 );

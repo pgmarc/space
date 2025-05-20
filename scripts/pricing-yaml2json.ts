@@ -3,24 +3,7 @@ import { retrievePricingFromPath } from "pricing4ts/server";
 import { parsePricingToSpacePricingObject } from "../src/main/utils/pricing-yaml2json";
 import * as fs from "fs";
 import * as path from "path";
-
-interface ExpectedPricingType {
-  version: string;
-  currency: string;
-  createdAt: Date;
-  features: {
-    [key: string]: Feature
-  };
-  usageLimits?: {
-    [key: string]: UsageLimit
-  };
-  plans?: {
-    [key: string]: Plan
-  };
-  addOns?: {
-    [key: string]: AddOn
-  };
-}
+import { ExpectedPricingType } from "../src/main/types/models/Pricing";
 
 const pricing = retrievePricingFromPath("./public/test-pricings/zoom/2024.yml");
 

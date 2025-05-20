@@ -1,9 +1,14 @@
+import dotenv from 'dotenv';
 import type { Server } from 'http';
 import { initializeServer, disconnectDatabase } from '../../main/app';
 import { Application } from 'express';
 
+dotenv.config();
+
 let testServer: Server | null = null;
 let testApp: Application | null = null;
+
+const baseUrl = process.env.BASE_URL_PATH ?? '/api';
 
 const getApp = async (): Promise<Server> => {
   if (!testServer) {
@@ -12,6 +17,11 @@ const getApp = async (): Promise<Server> => {
     testApp = app;
   }
   return testServer;
+};
+
+const useApp = async (app?: any) => {
+
+  return app ?? (await getApp());
 };
 
 const shutdownApp = async () => {
@@ -32,4 +42,4 @@ const getIdType = () => {
   }
 };
 
-export { getApp, shutdownApp, getIdType };
+export { baseUrl, getApp, useApp, shutdownApp, getIdType };

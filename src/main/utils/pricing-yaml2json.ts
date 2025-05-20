@@ -1,25 +1,8 @@
-import { AddOn, Feature, Plan, Pricing, UsageLimit } from "pricing4ts";
+import { Plan as ParsedPlan, Pricing as ParsedPricing, Feature as ParsedFeature, UsageLimit as ParsedUsageLimit, AddOn as ParsedAddOn} from "pricing4ts";
 import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
+import { LeanAddOn, LeanPricingFeature, LeanPlan, LeanUsageLimit, ExpectedPricingType } from "../types/models/Pricing";
 
-export interface ExpectedPricingType {
-  version: string;
-  currency: string;
-  createdAt: Date;
-  features: {
-    [key: string]: Feature
-  };
-  usageLimits?: {
-    [key: string]: UsageLimit
-  };
-  plans?: {
-    [key: string]: Plan
-  };
-  addOns?: {
-    [key: string]: AddOn
-  };
-}
-
-export function parsePricingToSpacePricingObject(pricing: Pricing): ExpectedPricingType {
+export function parsePricingToSpacePricingObject(pricing: ParsedPricing): ExpectedPricingType {
   const json: ExpectedPricingType = {} as ExpectedPricingType;
   
   validateLegalKeysInObject(pricing.features, "features");
@@ -30,10 +13,86 @@ export function parsePricingToSpacePricingObject(pricing: Pricing): ExpectedPric
   json.version = pricing.version;
   json.currency = pricing.currency;
   json.createdAt = pricing.createdAt;
-  json.features = pricing.features;
-  json.usageLimits = pricing.usageLimits;
-  json.plans = pricing.plans;
-  json.addOns = pricing.addOns;
+  json.features = formatPricingFeatures(pricing.features);
+  json.usageLimits = formatPricingUsageLimits(pricing.usageLimits ?? {});
+  json.plans = formatPricingPlans(pricing.plans ?? {});
+  json.addOns = formatPricingAddOns(pricing.addOns ?? {});
 
   return json;
+}
+
+function formatPricingFeatures(features: Record<string, ParsedFeature>): Record<string, LeanPricingFeature> {
+  const formattedFeatures: Record<string, LeanPricingFeature> = {};
+  for (const featureName in features) {
+    const feature = features[featureName];
+    formattedFeatures[featureName] = {
+      ...feature,
+      value: feature.value as string | boolean | undefined,
+      defaultValue: feature.defaultValue as string | boolean,
+    };
+  }
+  return formattedFeatures;
+}
+
+function formatPricingUsageLimits(usageLimits: Record<string, ParsedUsageLimit>): Record<string, LeanUsageLimit> {
+  const formattedUsageLimits: Record<string, LeanUsageLimit> = {};
+  for (const usageLimitName in usageLimits) {
+    const usageLimit = usageLimits[usageLimitName];
+    formattedUsageLimits[usageLimitName] = {
+      ...usageLimit,
+      valueType: usageLimit.valueType as "BOOLEAN" | "NUMERIC",
+      type: usageLimit.type as "RENEWABLE" | "NON_RENEWABLE",
+      value: usageLimit.value as number | boolean | undefined,
+      defaultValue: usageLimit.defaultValue as number | boolean,
+    };
+  }
+  return formattedUsageLimits;
+}
+
+function formatPricingPlans(plans: Record<string, ParsedPlan>): Record<string, LeanPlan> {
+  const formattedPlans: Record<string, LeanPlan> = {};
+
+  for (const planName in plans) {
+    const plan = plans[planName];
+    formattedPlans[planName] = {
+      ...plan,
+      features: Object.fromEntries(
+        Object.entries(plan.features).map(([key, feature]) => [key, ((feature.value ?? feature.defaultValue) as string | boolean)])
+      ),
+      usageLimits: plan.usageLimits
+        ? Object.fromEntries(
+            Object.entries(plan.usageLimits).map(([key, usageLimit]) => [key, ((usageLimit.value ?? usageLimit.defaultValue) as number | boolean)])
+          )
+        : undefined,
+    };
+  }
+
+  return formattedPlans;
+
+}
+
+function formatPricingAddOns(addOns: Record<string, ParsedAddOn>): Record<string, LeanAddOn> {
+  const formattedAddOns: Record<string, LeanAddOn> = {};
+
+  for (const addOnName in addOns) {
+    const addOn = addOns[addOnName];
+    formattedAddOns[addOnName] = {
+      ...addOn,
+      price: addOn.price as string | number,
+      features: addOn.features ? Object.fromEntries(
+        Object.entries(addOn.features).map(([key, feature]) => [key, (feature.value as string | boolean)])
+      ) : undefined,
+      usageLimits: addOn.usageLimits
+        ? Object.fromEntries(
+            Object.entries(addOn.usageLimits).map(([key, usageLimit]) => [key, (usageLimit.value as number | boolean)])
+          )
+        : undefined,
+      usageLimitsExtensions: addOn.usageLimitsExtensions
+        ? Object.fromEntries(
+            Object.entries(addOn.usageLimitsExtensions).map(([key, usageLimit]) => [key, (usageLimit.value as number)])
+          )
+        : undefined,
+    };
+  }
+  return formattedAddOns;
 }

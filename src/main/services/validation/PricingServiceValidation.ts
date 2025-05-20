@@ -16,7 +16,7 @@ function validatePricingData(pricingData: ExpectedPricingType): string[] {
       if (typeof plan.price !== "number" && typeof plan.price !== "string") {
         errors.push(`Invalid price for plan: ${plan.name}. Only number or string allowed.`);
       }
-    })
+    });
   }
 
   if (pricingData.addOns){
@@ -24,7 +24,7 @@ function validatePricingData(pricingData: ExpectedPricingType): string[] {
       if (typeof addOn.price !== "number" && typeof addOn.price !== "string") {
         errors.push(`Invalid price for addOn: ${addOn.name}. Only number or string allowed.`);
       }
-    })
+    });
   }
 
   return errors;

@@ -8,7 +8,7 @@ const planSchema = new Schema(
     private: { type: Boolean, default: false },
     features: {
       type: Map,
-      of: Schema.Types.Mixed, // boolean, number or string
+      of: Schema.Types.Mixed, // boolean or string
       required: true,
     },
     usageLimits: {

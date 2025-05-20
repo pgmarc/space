@@ -1,0 +1,205 @@
+saasName: Petclinic
+createdAt: "2025-03-26"
+syntaxVersion: "3.0"
+currency: USD
+features:
+  pets:
+    valueType: BOOLEAN
+    defaultValue: true
+    expression: pricingContext['features']['pets'] && subscriptionContext['maxPets'] < pricingContext['usageLimits']['maxPets']
+    serverExpression: pricingContext['features']['pets'] && subscriptionContext['maxPets'] < pricingContext['usageLimits']['maxPets']
+    type: DOMAIN
+  visits:
+    valueType: BOOLEAN
+    defaultValue: true
+    expression: pricingContext['features']['visits'] && subscriptionContext['maxVisits'] < pricingContext['usageLimits']['maxVisits']
+    serverExpression: pricingContext['features']['visits'] && subscriptionContext['maxVisits'] <= pricingContext['usageLimits']['maxVisits']
+    type: DOMAIN
+  calendar:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['calendar'] && subscriptionContext['calendarEventsCreationLimit'] < pricingContext['usageLimits']['calendarEventsCreationLimit']
+    type: DOMAIN
+  vetSelection:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['vetSelection']
+    type: DOMAIN
+  consultations:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['consultations']
+    type: DOMAIN
+  petsDashboard:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['petsDashboard']
+    type: DOMAIN
+  lowSupportPriority:
+    valueType: BOOLEAN
+    defaultValue: true
+    expression: pricingContext['features']['lowSupportPriority']
+    type: SUPPORT
+  mediumSupportPriority:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['mediumSupportPriority']
+    type: SUPPORT
+  highSupportPriority:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['highSupportPriority']
+    type: SUPPORT
+  slaCoverage:
+    valueType: TEXT
+    defaultValue: "99%"
+    expression: pricingContext['features']['slaCoverage'] === pricingContext['features']['slaCoverage']
+    type: GUARANTEE
+  petAdoptionCentre:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['petAdoptionCentre']
+    type: DOMAIN
+  smartClinicReports:
+    valueType: BOOLEAN
+    defaultValue: false
+    expression: pricingContext['features']['smartClinicReports']
+    type: DOMAIN
+usageLimits:
+  maxPets:
+    valueType: NUMERIC
+    defaultValue: 2
+    unit: pet
+    type: NON_RENEWABLE
+    trackable: true
+    linkedFeatures:
+      - pets
+  maxVisits:
+    valueType: NUMERIC
+    defaultValue: 1
+    unit: visit
+    type: RENEWABLE
+    period:
+      value: 1
+      unit: MONTH
+    linkedFeatures:
+      - visits
+  calendarEventsCreationLimit:
+    valueType: NUMERIC
+    defaultValue: 5
+    unit: event
+    type: RENEWABLE
+    period:
+      value: 1
+      unit: MONTH
+    linkedFeatures:
+      - calendar
+plans:
+  BASIC:
+    price: 0.0
+    unit: user/month
+    features: null
+    usageLimits: null
+  GOLD:
+    price: 5.0
+    unit: user/month
+    features:
+      calendar:
+        value: true
+      vetSelection:
+        value: true
+      slaCoverage:
+        value: "99.5%"
+      mediumSupportPriority:
+        value: true
+    usageLimits:
+      maxPets:
+        value: 4
+      maxVisits:
+        value: 3
+      calendarEventsCreationLimit:
+        value: 15
+  PLATINUM:
+    price: 12.0
+    unit: user/month
+    features:
+      calendar:
+        value: true
+      vetSelection:
+        value: true
+      consultations:
+        value: true
+      slaCoverage:
+        value: "99.9%"
+      mediumSupportPriority:
+        value: true
+      highSupportPriority:
+        value: true
+    usageLimits:
+      maxPets:
+        value: 7
+      maxVisits:
+        value: 6
+      calendarEventsCreationLimit:
+        value: 50
+addOns:
+  petLover:
+    availableFor:
+    - BASIC
+    - GOLD
+    - PLATINUM
+    price: 100.00
+    usageLimits:
+      maxPets:
+        value: 30
+  extraPets:
+    availableFor:
+    - BASIC
+    - GOLD
+    - PLATINUM
+    price: 25.00
+    usageLimitsExtensions:
+      maxPets:
+        value: 1
+    subscriptionConstraints:
+      minQuantity: 1
+      maxQuantity: 10
+      quantityStep: 1
+  extraVisits:
+    availableFor:
+    - BASIC
+    - GOLD
+    - PLATINUM
+    price: 10.00
+    usageLimitsExtensions:
+      maxVisits:
+        value: 1
+    subscriptionConstraints:
+      minQuantity: 3
+      maxQuantity: .inf
+      quantityStep: 3
+  petDashboard:
+    availableFor:
+    - PLATINUM
+    price: 5.95
+    features:
+      petsDashboard:
+        value: true
+  petAdoptionCentre:
+    availableFor:
+    - BASIC
+    - GOLD
+    - PLATINUM
+    price: 15.95
+    features:
+      petAdoptionCentre:
+        value: true
+  smartClinicReports:
+    availableFor:
+    - PLATINUM
+    dependsOn:
+      - petDashboard
+    price: 3.95
+    features:
+      smartClinicReports:
+        value: true

@@ -1,6 +1,7 @@
 import container from '../config/container.js';
 import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
+import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 
 class ServiceController {
   private readonly serviceService: ServiceService;
@@ -13,8 +14,11 @@ class ServiceController {
     this.showPricing = this.showPricing.bind(this);
     this.create = this.create.bind(this);
     this.update = this.update.bind(this);
+    this.updatePricingAvailability = this.updatePricingAvailability.bind(this);
+    this.addPricingToService = this.addPricingToService.bind(this);
     this.prune = this.prune.bind(this);
-    this.destroy = this.destroy.bind(this);
+    this.disable = this.disable.bind(this);
+    this.destroyPricing = this.destroyPricing.bind(this);
   }
 
   async index(req: any, res: any) {
@@ -108,6 +112,32 @@ class ServiceController {
     }
   }
 
+  async addPricingToService(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const receivedFile = req.file;
+      let service;
+
+      if (!receivedFile) {
+        if (!req.body.pricing) {
+          res.status(400).send({ error: 'No file or URL provided' });
+          return;
+        }
+        service = await this.serviceService.addPricingToService(serviceName, req.body.pricing, 'url');
+      } else {
+        service = await this.serviceService.addPricingToService(serviceName, req.file, 'file');
+      }
+
+      res.status(201).json(service);
+    } catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
   async update(req: any, res: any) {
     try {
       const newServiceData = req.body;
@@ -121,6 +151,39 @@ class ServiceController {
     }
   }
 
+  async updatePricingAvailability(req: any, res: any) {
+    try{
+      const serviceName = req.params.serviceName;
+      const pricingVersion = req.params.pricingVersion;
+      const newAvailability = req.query.availability ?? "archived";
+
+      if (!newAvailability) {
+        res.status(400).send({ error: 'No availability provided' });
+        return;
+      }else if (newAvailability !== 'active' && newAvailability !== 'archived') {
+        res.status(400).send({ error: 'Invalid availability status. Either provide "active" or "archived"' });
+        return;
+      }else{
+        const service = await this.serviceService.updatePricingAvailability(
+          serviceName,
+          pricingVersion,
+          newAvailability
+        );
+
+        res.json(service);
+      }
+
+    }catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('last active pricing')) {
+        res.status(400).send({ error: err.message });
+      }else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
   async prune(req: any, res: any) {
     try {
       const result = await this.serviceService.prune();
@@ -130,10 +193,10 @@ class ServiceController {
     }
   }
 
-  async destroy(req: any, res: any) {
+  async disable(req: any, res: any) {
     try {
       const serviceName = req.params.serviceName;
-      const result = await this.serviceService.destroy(serviceName);
+      const result = await this.serviceService.disable(serviceName);
 
       if (result) {
         res.status(204).send();
@@ -144,6 +207,29 @@ class ServiceController {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async destroyPricing(req: any, res: any) {
+    try {
+      const serviceName = req.params.serviceName;
+      const pricingVersion = req.params.pricingVersion;
+
+      const result = await this.serviceService.destroyPricing(serviceName, pricingVersion);
+
+      if (result) {
+        res.status(204).send();
+      } else {
+        res.status(404).send({ error: 'Pricing not found' });
+      }
+    }catch (err: any) {
+      if (err.message.toLowerCase().includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('last active pricing')) {
+        res.status(400).send({ error: err.message });
+      }else {
         res.status(500).send({ error: err.message });
       }
     }
@@ -160,23 +246,11 @@ class ServiceController {
       order: (indexQueryParams.order as 'asc' | 'desc') || 'asc',
     };
 
-    const optionalFields = ['name', 'page', 'offset', 'limit', 'order'] as const;
+    const optionalFields = Object.keys(transformedData);
 
-    optionalFields.forEach(field => {
-      if (['name', 'order'].includes(field)) {
-        if (!transformedData[field]) {
-          delete transformedData[field];
-        }
-      } else if (this._containsNaN(transformedData[field]!)) {
-        delete transformedData[field];
-      }
-    });
+    removeOptionalFieldsOfQueryParams(transformedData, optionalFields);
 
     return transformedData;
-  }
-
-  _containsNaN(attr: any): boolean {
-    return Object.values(attr).every(value => Number.isNaN(value));
   }
 }
 

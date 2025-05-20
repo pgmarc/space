@@ -1,8 +1,9 @@
-import mongoose from 'mongoose';
-
 import RepositoryBase from '../RepositoryBase';
 import PricingMongoose from './models/PricingMongoose';
 import ServiceMongoose from './models/ServiceMongoose';
+import { LeanService } from '../../types/models/Service';
+import { toPlainObject } from '../../utils/mongoose';
+import { LeanPricing } from '../../types/models/Pricing';
 
 export type ServiceQueryFilters = {
   name?: string;
@@ -13,44 +14,57 @@ export type ServiceQueryFilters = {
 }
 
 class ServiceRepository extends RepositoryBase {
-  async findAll(queryFilters?: ServiceQueryFilters) {
+  async findAll(queryFilters?: ServiceQueryFilters, disabled = false) {
     const { name, page = 1, offset = 0, limit = 20, order = 'asc' } = queryFilters || {};
     
     const services = await ServiceMongoose.find({
       ...(name ? { name: { $regex: name, $options: 'i' } } : {}),
+      disabled: disabled,
     })
       .skip(offset == 0 ? (page - 1) * limit : offset)
       .limit(limit)
-      .sort({ name: order === 'asc' ? 1 : -1 })
+      .sort({ name: order === 'asc' ? 1 : -1 });
     
     return services.map((service) => service.toJSON());
   }
 
-  async findByName(name: string): Promise<any> {
-    const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' }  });
+  async findAllNoQueries(disabled = false): Promise<LeanService[] | null> {
+    const services = await ServiceMongoose.find({disabled: disabled});
+
+    if (!services || Array.isArray(services) && services.length === 0) {
+      return null;
+    }
+    
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
+  }
+
+  async findByName(name: string, disabled = false): Promise<LeanService | null> {
+    const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' }, disabled: disabled });
     if (!service) {
       return null;
     }
 
-    return service.toJSON();
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
-  async findPricingsByServiceId(serviceId: string, versionsToRetrieve: string[]) {
-    console.log({ _serviceId: serviceId, version: { $in: versionsToRetrieve } })
-    const pricings = await PricingMongoose.find({ _serviceId: serviceId, version: { $in: versionsToRetrieve } });
+  async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[], disabled = false): Promise<LeanPricing[] | null> {
+    const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve } });
     if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
       return null;
     }
 
-    return pricings.map((p) => p.toJSON());
+    return pricings.map((p) => toPlainObject<LeanPricing>(p.toJSON()));
   }
 
-  async create(data: any, ...args: any) {
-    return await ServiceMongoose.insertOne(data);
+  async create(data: any) {
+    
+    const service = await ServiceMongoose.insertOne(data);
+    
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
-  async update(id: string, data: any, ...args: any) {
-    const service = await ServiceMongoose.findOne({ _id: id });
+  async update(name: string, data: any) {
+    const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' } });
     if (!service) {
       return null;
     }
@@ -58,11 +72,25 @@ class ServiceRepository extends RepositoryBase {
     service.set(data);
     await service.save();
 
-    return service.toJSON();
+    return toPlainObject<LeanService>(service.toJSON());
   }
 
-  async destroy(id: string, ...args: any) {
-    const result = await ServiceMongoose.deleteOne({ _id: id });
+  async disable(name: string) {
+    const service = await ServiceMongoose.findOne({ name: { $regex: name, $options: 'i' } });
+
+    if (!service) {
+      return null;
+    }
+
+    service.set({ disabled: true });
+    await service.save();
+    
+    return toPlainObject<LeanService>(service.toJSON());
+  }
+
+  async destroy(name: string, ...args: any) {
+    const result = await ServiceMongoose.deleteOne({ name: { $regex: name, $options: 'i' } });
+    
     if (!result) {
       return null;
     }
@@ -71,7 +99,7 @@ class ServiceRepository extends RepositoryBase {
     }
   
     if (result.deletedCount === 1) {
-      await PricingMongoose.deleteMany({ _serviceId: new mongoose.Types.ObjectId(id) });
+      await PricingMongoose.deleteMany({ _serviceName: name });
     }
 
     return true;

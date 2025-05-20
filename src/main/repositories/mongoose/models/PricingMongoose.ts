@@ -6,7 +6,7 @@ import AddOn from './schemas/AddOn';
 
 const pricingSchema = new Schema(
   {
-    _serviceId: { type: String },
+    _serviceName: { type: String },
     version: { type: String, required: true },
     currency: { type: String, required: true },
     createdAt: { type: Date, required: true, default: Date.now },
@@ -21,7 +21,7 @@ const pricingSchema = new Schema(
       transform: function (doc, resultObject, options) {
         delete resultObject._id;
         delete resultObject.__v;
-        delete resultObject._serviceId;
+        delete resultObject._serviceName;
         delete resultObject.id;
         
         return resultObject;
@@ -41,13 +41,13 @@ const pricingSchema = new Schema(
 
 pricingSchema.virtual('service', {
   ref: 'Service',
-  localField: '_serviceId',
+  localField: '_serviceName',
   foreignField: '_id',
   justOne: true,
 });
 
 // Adding unique index for [name, owner, version]
-pricingSchema.index({ _serviceId: 1, version: 1 }, { unique: true });
+pricingSchema.index({ _serviceName: 1, version: 1 }, { unique: true });
 
 const pricingModel = mongoose.model('Pricing', pricingSchema, 'pricings');
 

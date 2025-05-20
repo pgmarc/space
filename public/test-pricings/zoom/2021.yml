@@ -1,309 +1,314 @@
-syntaxVersion: '2.1'
 saasName: Zoom - Meetings
-createdAt: '2021-11-17'
+syntaxVersion: '3.0'
 version: '2021'
-billing:
-  monthly: 1.0
-  annual: 0.83
-currency: USD
 url: https://web.archive.org/web/20211117162719/https://zoom.us/pricing
+createdAt: '2021-11-17'
+currency: USD
+billing:
+  monthly: 1
+  annual: 0.83
+variables: {}
 features:
   meetings:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   helpCenterTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: SUPPORT
   ticketTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   liveChatTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   phoneTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   localRecording:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   cloudRecording:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   telephoneDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   screenSharing:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   breakoutRooms:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   virtualBackground:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   personalMeetingId:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   privateChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   groupChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   hostControls:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   coAnnotationOnScreenShare:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   remoteKeyboardControl:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   remoteMouseControl:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   whiteboarding:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   multiShare:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   tlsEncryption:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
   aes256Encryption:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
   waitingRoom:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   builtIntoZoomForHomeDevices:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   pinMultiplePeople:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   spotlightMultiplePeople:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   filters:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: AUTOMATION
     automationType: FILTERING
   polling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   coHost:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   alternateHost:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   assignMeetingScheduler:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
   restApi:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: API
   skypeForBusinessInteroperability:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: WEB_SAAS
   streaming:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   reporting:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INFORMATION
   userManagement:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
   liveTranscription:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
   adminPortal:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
   ltiIntegration:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: MARKETPLACE
   recordingTranscripts:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
   branding:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   managedDomains:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
   singleSignOn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: IDENTITY_PROVIDER
   languageInterpretations:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   executiveBusinessReviews:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INFORMATION
   bundleDiscounts:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   webinar500:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   callOutDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   globalTollFreeDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   localDialInForPremiumCountries:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   premierSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   premierPlusSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   bronzePremierDeveloperSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   silverPremierDeveloperSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
   goldPremierDeveloperSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
 usageLimits:
   maxParticipants:
-    description: 'A Participant is an invitee in a meeting scheduled by someone with a Host license. Participants can join your meeting for free from their phone, desktop, mobile and tablet devices. A participant does not require a Zoom account in order to join a meeting.'
+    description: >-
+      A Participant is an invitee in a meeting scheduled by someone with a Host
+      license. Participants can join your meeting for free from their phone,
+      desktop, mobile and tablet devices. A participant does not require a Zoom
+      account in order to join a meeting.
     valueType: NUMERIC
     defaultValue: 100
     unit: participant
     type: NON_RENEWABLE
     linkedFeatures:
-    - meetings
+      - meetings
   minLicenses:
     description: ''
     valueType: NUMERIC
@@ -325,7 +330,7 @@ usageLimits:
     unit: min
     type: NON_RENEWABLE
     linkedFeatures:
-    - meetings
+      - meetings
   maxBreakoutRooms:
     description: ''
     valueType: NUMERIC
@@ -333,7 +338,7 @@ usageLimits:
     unit: room
     type: NON_RENEWABLE
     linkedFeatures:
-    - breakoutRooms
+      - breakoutRooms
   maxCloudRecordingSize:
     description: ''
     valueType: NUMERIC
@@ -341,7 +346,7 @@ usageLimits:
     unit: GB
     type: NON_RENEWABLE
     linkedFeatures:
-    - cloudRecording
+      - cloudRecording
 plans:
   BASIC:
     description: Personal Meeting
@@ -455,7 +460,7 @@ plans:
         value: 1
   ENTERPRISE:
     description: Large enterprise-ready
-    price: "Contact us"
+    price: Contact us
     unit: host/month
     features:
       ticketTechnicalSupport:
@@ -521,7 +526,7 @@ plans:
         value: .inf
 addOns:
   extraCloudRecordingStorage:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -530,8 +535,12 @@ addOns:
     usageLimitsExtensions:
       maxCloudRecordingSize:
         value: 1
+    subscriptionConstraints:
+      minQuantity: 1
+      maxQuantity: .inf
+      quantityStep: 1
   largeMeetings:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -543,7 +552,7 @@ addOns:
       maxParticipants:
         value: 1000
   audioConferencing:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -558,7 +567,7 @@ addOns:
       localDialInForPremiumCountries:
         value: true
   premierSupport:
-    description: ""
+    description: ''
     excludes:
       - premierPlusSupport
     availableFor:
@@ -566,13 +575,13 @@ addOns:
       - PRO
       - BUSINESS
       - ENTERPRISE
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       premierSupport:
         value: true
   premierPlusSupport:
-    description: ""
+    description: ''
     excludes:
       - premierSupport
     availableFor:
@@ -580,13 +589,13 @@ addOns:
       - PRO
       - BUSINESS
       - ENTERPRISE
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       premierPlusSupport:
         value: true
   bronzePremierDeveloperSupport:
-    description: ""
+    description: ''
     excludes:
       - silverPremierDeveloperSupport
       - goldPremierDeveloperSupport
@@ -595,13 +604,13 @@ addOns:
       - PRO
       - BUSINESS
       - ENTERPRISE
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       bronzePremierDeveloperSupport:
         value: true
   silverPremierDeveloperSupport:
-    description: ""
+    description: ''
     excludes:
       - bronzePremierDeveloperSupport
       - goldPremierDeveloperSupport
@@ -610,13 +619,13 @@ addOns:
       - PRO
       - BUSINESS
       - ENTERPRISE
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       silverPremierDeveloperSupport:
         value: true
   goldPremierDeveloperSupport:
-    description: ""
+    description: ''
     excludes:
       - bronzePremierDeveloperSupport
       - silverPremierDeveloperSupport
@@ -625,9 +634,8 @@ addOns:
       - PRO
       - BUSINESS
       - ENTERPRISE
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       goldPremierDeveloperSupport:
         value: true
-  

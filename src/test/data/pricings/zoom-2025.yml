@@ -1,12 +1,13 @@
-syntaxVersion: '2.1'
-saasName: Zoom - New
-createdAt: '2025-03-06'
+saasName: Zoom
+syntaxVersion: '3.0'
 version: '2025'
-billing:
-  monthly: 1.0
-  annual: 0.83
-currency: USD
 url: https://web.archive.org/web/20250306000112/https://zoom.us/pricing
+createdAt: '2025-03-06'
+currency: USD
+billing:
+  monthly: 1
+  annual: 0.83
+variables: {}
 tags:
   - Core Features
   - Meetings
@@ -18,891 +19,927 @@ tags:
   - Support
 features:
   meetings:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   localRecording:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   cloudRecording:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   teamChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   zoomWhiteBoards:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   mail:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   mailService:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   customMailDomain:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Core Features
   calendarClient:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   aiCompanion:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   calendarService:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   clips:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   notes:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Core Features
   zoomPhone:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   limitedDocsFeatures:
-    description: "Supercharge collaboration with AI-first docs that transform meeting content into actionable documents, wikis, and projects"
+    description: >-
+      Supercharge collaboration with AI-first docs that transform meeting
+      content into actionable documents, wikis, and projects
     valueType: BOOLEAN
     defaultValue: true
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   fullDocsFeatures:
-    description: "Supercharge collaboration with AI-first docs that transform meeting content into actionable documents, wikis, and projects"
+    description: >-
+      Supercharge collaboration with AI-first docs that transform meeting
+      content into actionable documents, wikis, and projects
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   automatedCaptions:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   translatedCaptions:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   workspaceReservation:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   visitorManagement:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Core Features
   zoomScheduler:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Core Features
   accessAccrossAnyDevice:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Core Features
   telephoneDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   screenSharing:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   breakoutRooms:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   virtualBackground:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   personalMeetingId:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   hostControls:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   coAnnotationOnScreenShare:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   remoteKeyboardControl:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   remoteMouseControl:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   multiShare:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   waitingRoom:
-    description: "The Waiting Room feature allows the host to control when a participant joins the meeting. As the meeting host, you can admit attendees one by one or all at once. In settings, you can choose who gets put into the Waiting Room or gets automatically admitted. Every account has the Waiting Room feature. Hosts can message the Waiting Room. You can customize the Waiting Room, if you're on a paid plan."
+    description: >-
+      The Waiting Room feature allows the host to control when a participant
+      joins the meeting. As the meeting host, you can admit attendees one by one
+      or all at once. In settings, you can choose who gets put into the Waiting
+      Room or gets automatically admitted. Every account has the Waiting Room
+      feature. Hosts can message the Waiting Room. You can customize the Waiting
+      Room, if you're on a paid plan.
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
   builtIntoZoomForHomeDevices:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Meetings
   pinMultiplePeople:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Meetings
   spotlightMultiplePeople:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Meetings
   filters:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: AUTOMATION
     automationType: FILTERING
     tag: Meetings
   polling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   coHost:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   alternateHost:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   assignMeetingScheduler:
-    description: "Allows you to assign someone else to set up your meetings for you. Assignee must also have a Pro plan."
+    description: >-
+      Allows you to assign someone else to set up your meetings for you.
+      Assignee must also have a Pro plan.
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Meetings
   restApi:
-    description: "Allows account owners, admins, and your developers secure access to Zoom REST API. API Rate Limits are applied at the account-level according to Account Type (Pro, Business, Enterprise, etc…) and the API Request Type (Light, Medium, Heavy, etc…). Some APIs are access-limited to specific account types. Use the API Rate Limits & API Reference Documentation for complete details."
+    description: >-
+      Allows account owners, admins, and your developers secure access to Zoom
+      REST API. API Rate Limits are applied at the account-level according to
+      Account Type (Pro, Business, Enterprise, etc…) and the API Request Type
+      (Light, Medium, Heavy, etc…). Some APIs are access-limited to specific
+      account types. Use the API Rate Limits & API Reference Documentation for
+      complete details.
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: API
     tag: Meetings
   skypeForBusinessInteroperability:
-    description: "Allows Lync users 2010, 2013 and Skype for Business users to initiate a Zoom meeting from the Lync contact list."
+    description: >-
+      Allows Lync users 2010, 2013 and Skype for Business users to initiate a
+      Zoom meeting from the Lync contact list.
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Meetings
   streaming:
-    description: "Stream live to Facebook, Youtube or a 3rd party service."
+    description: Stream live to Facebook, Youtube or a 3rd party service.
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: MARKETPLACE
     tag: Meetings
   reporting:
-    description: "Run usage reports to learn how many meetings are taking place, which days, number of participants, number of meeting minutes and more."
+    description: >-
+      Run usage reports to learn how many meetings are taking place, which days,
+      number of participants, number of meeting minutes and more.
     valueType: BOOLEAN
     defaultValue: false
     type: INFORMATION
     tag: Meetings
   userManagement:
-    description: "Owners and Admins can add, delete and assign roles and add-on features"
+    description: Owners and Admins can add, delete and assign roles and add-on features
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Meetings
   adminPortal:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Meetings
   ltiIntegration:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: MARKETPLACE
     tag: Meetings
   recordingTranscripts:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: BOT
     tag: Meetings
   branding:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   managedDomains:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Meetings
   languageInterpretations:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Meetings
   directChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   channelChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   groupChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   messageHistory:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INFORMATION
     tag: Team Chat
   fileHistory:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INFORMATION
     tag: Team Chat
   findPeopleInSearch:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   findChannelsInSearch:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   findFilesInSearch:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   applicationIntegrations:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: MARKETPLACE
     tag: Team Chat
   secureFileSharing:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Team Chat
   persistentMeetingChat:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Team Chat
   cloudStorage:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Core Features
   microsoft:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Integrations
   google:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Integrations
   salesforce:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Integrations
   servicenow:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Integrations
   hubspot:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: INTEGRATION
     integrationType: WEB_SAAS
     tag: Integrations
   avatars:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Engagement
   inMeetingsReactions:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Engagement
   quizzes:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Engagement
   appearanceTouchUp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: DOMAIN
     tag: Engagement
   originalSoundForMusicians:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Engagement
   endToEndEncryptionForZoomMeetings:
-    description: "When enabled, Zoom’s end-to-end encryption (E2EE) for Zoom Meetings means that communications between all meeting participants using Zoom clients in a given meeting are encrypted using cryptographic keys known only to the devices of those participants. This means that no third party — including Zoom — has access to the meeting’s private keys."
+    description: >-
+      When enabled, Zoom’s end-to-end encryption (E2EE) for Zoom Meetings means
+      that communications between all meeting participants using Zoom clients in
+      a given meeting are encrypted using cryptographic keys known only to the
+      devices of those participants. This means that no third party — including
+      Zoom — has access to the meeting’s private keys.
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Security and Compliance
   zoomCustomerManagedKey:
-    description: "Bring your own encryption keys to protect Zoom data at rest"
+    description: Bring your own encryption keys to protect Zoom data at rest
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
     tag: Security and Compliance
   enterpriseGradeSecurity:
-    description: "256-bit AES-GCM encryption for real-time content in transit, advanced chat encryption, passcodes, Waiting Rooms, lock a meeting, audio signatures, screen share watermarks, two-factor authentication, and more."
+    description: >-
+      256-bit AES-GCM encryption for real-time content in transit, advanced chat
+      encryption, passcodes, Waiting Rooms, lock a meeting, audio signatures,
+      screen share watermarks, two-factor authentication, and more.
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Security and Compliance
   encryptionByDefault:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Security and Compliance
   chatEtiquette:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Security and Compliance
   gdprControl:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Security and Compliance
   singleSignOn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: IDENTITY_PROVIDER
     tag: Phone
   unlimitedInternalCalling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   meteredUnboundCalling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   unlimitedOutboundCalling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   industryLeadingHdCallQuality:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   nativeWindowsApp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   nativeMacOsApp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   nativeLinuxApp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   nativeIosApp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   nativeAndroidApp:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   portExistingNumers:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   purchaseNewNumbers:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   tollFreeNumbers:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   phoneExtensionNumber:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   voicemailWithTranscription:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   unlimitedAutoAttendants:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   dialByNameDirectory:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   automaticCallDistributionGroups:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   barge:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   monitor:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: TRACKING
     tag: Phone
   whisper:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   takeover:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   holidayHoursRouting:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   businessHoursRouting:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   3WayAdHocConferenceCalls:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   callRecording:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   configurableAnonymousBlocking:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: TASK_AUTOMATION
     tag: Phone
   configurableSpecifiedCallBlocking:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: TASK_AUTOMATION
     tag: Phone
   emergencyCalling:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   nomadicE911Addressing:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   emergenceResponseCenter:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Phone
   sharedLineAppearance:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   sharedLineDelegation:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   callHandoffBetweenDevices:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   callPark:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   end2EndEncriptionForZoomPhone:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: GUARANTEE
     tag: Phone
   zeroTouchProvisioningOfPhones:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   mixTypesOfPlansInAnAccount:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   realTimeReporting:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: AUTOMATION
     automationType: TRACKING
     tag: Phone
   qualityDashboards:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INFORMATION
     tag: Phone
   supportForVirtualDesktopEnvironment:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   24x7GlobalCustomerCare:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Phone
   bringYourOwnCarrierSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Phone
   hybridIntegrationToLegacyPbxs:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
     tag: Phone
   sms:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   mms:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
     tag: Phone
   helpCenterTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: SUPPORT
     tag: Support
   ticketTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Support
   liveChatTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Support
   phoneTechnicalSupport:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Support
   knowledgeBase:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: SUPPORT
     tag: Support
   zoomCommunity:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: SUPPORT
     tag: Support
   chatBot:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: true
     type: AUTOMATION
     automationType: BOT
     tag: Support
   meetWithAgentOnVideo:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: SUPPORT
     tag: Support
   zoomWebinars:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   zoomSessions:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   callOutDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   globalTollFreeDialIn:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   localDialInForPremiumCountries:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   zoomPhonePowerPack:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   conferenceRoomConnector:
-    description: "Connect your H.323/SIP systems with desktop, tablet, mobile devices, Zoom Rooms and other H.323/SIP endpoints"
+    description: >-
+      Connect your H.323/SIP systems with desktop, tablet, mobile devices, Zoom
+      Rooms and other H.323/SIP endpoints
     valueType: BOOLEAN
     defaultValue: false
     type: INTEGRATION
     integrationType: EXTERNAL_DEVICE
   zoomClipsPlus:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: DOMAIN
   zoomCompliantManager:
-    description: ""
+    description: ''
     valueType: BOOLEAN
     defaultValue: false
     type: MANAGEMENT
 usageLimits:
   maxParticipants:
-    description: 'A Participant is an invitee in a meeting scheduled by someone with a Host license. Participants can join your meeting for free from their phone, desktop, mobile and tablet devices. A participant does not require a Zoom account in order to join a meeting.'
+    description: >-
+      A Participant is an invitee in a meeting scheduled by someone with a Host
+      license. Participants can join your meeting for free from their phone,
+      desktop, mobile and tablet devices. A participant does not require a Zoom
+      account in order to join a meeting.
     valueType: NUMERIC
     defaultValue: 100
     unit: participant
     type: NON_RENEWABLE
     linkedFeatures:
-    - meetings
+      - meetings
   minLicenses:
     description: ''
     valueType: NUMERIC
@@ -924,7 +961,7 @@ usageLimits:
     unit: min
     type: NON_RENEWABLE
     linkedFeatures:
-    - meetings
+      - meetings
   maxBreakoutRooms:
     description: ''
     valueType: NUMERIC
@@ -932,7 +969,7 @@ usageLimits:
     unit: room
     type: NON_RENEWABLE
     linkedFeatures:
-    - breakoutRooms
+      - breakoutRooms
   maxCloudRecordingSize:
     description: ''
     valueType: NUMERIC
@@ -940,8 +977,8 @@ usageLimits:
     unit: GB
     type: NON_RENEWABLE
     linkedFeatures:
-    - cloudRecording
-    - cloudStorage
+      - cloudRecording
+      - cloudStorage
   zoomWhiteBoardsLimit:
     description: ''
     valueType: NUMERIC
@@ -949,7 +986,7 @@ usageLimits:
     unit: board
     type: NON_RENEWABLE
     linkedFeatures:
-    - zoomWhiteBoards
+      - zoomWhiteBoards
   clipsLimit:
     description: ''
     valueType: NUMERIC
@@ -957,7 +994,7 @@ usageLimits:
     unit: clip
     type: NON_RENEWABLE
     linkedFeatures:
-    - clips
+      - clips
 plans:
   BASIC:
     description: Personal Meeting
@@ -1110,7 +1147,7 @@ plans:
       clipsLimit:
         value: .inf
   BUSINESS_PLUS:
-    description: ""
+    description: ''
     price: 22.49
     unit: user/month
     features:
@@ -1291,7 +1328,7 @@ plans:
         value: .inf
 addOns:
   zoomDocs:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
     price: 8.99
@@ -1300,7 +1337,7 @@ addOns:
       fullDocsFeatures:
         value: true
   largeMeetings:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1312,7 +1349,7 @@ addOns:
       maxParticipants:
         value: 1000
   zoomWebinars:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -1323,7 +1360,7 @@ addOns:
       zoomWebinars:
         value: true
   zoomSessions:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -1334,7 +1371,7 @@ addOns:
       zoomSessions:
         value: true
   zoomScheduler:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1344,7 +1381,7 @@ addOns:
       zoomScheduler:
         value: true
   zoomClipsPlus:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1356,7 +1393,7 @@ addOns:
       zoomClipsPlus:
         value: true
   extraCloudRecordingStorage:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -1366,8 +1403,12 @@ addOns:
     usageLimitsExtensions:
       maxCloudRecordingSize:
         value: 1
+    subscriptionConstraints:
+      minQuantity: 1
+      maxQuantity: .inf
+      quantityStep: 1
   zoomWhiteboard:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1377,7 +1418,7 @@ addOns:
       zoomWhiteBoardsLimit:
         value: .inf
   zoomTranslatedCaptions:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1388,7 +1429,7 @@ addOns:
       translatedCaptions:
         value: true
   audioConferencing:
-    description: ""
+    description: ''
     availableFor:
       - PRO
       - BUSINESS
@@ -1402,7 +1443,7 @@ addOns:
       localDialInForPremiumCountries:
         value: true
   zoomPhonePowerPack:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1414,7 +1455,7 @@ addOns:
       zoomPhonePowerPack:
         value: true
   conferenceRoomConnector:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
@@ -1426,25 +1467,25 @@ addOns:
       conferenceRoomConnector:
         value: true
   zoomCompliantManagerPoweredByThetaLake:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
       - BUSINESS
       - BUSINESS_PLUS
-    price: "Contact us"
+    price: Contact us
     unit: /month
     features:
       zoomCompliantManager:
         value: true
   zoomCustomerManagedKey:
-    description: ""
+    description: ''
     availableFor:
       - BASIC
       - PRO
       - BUSINESS
       - BUSINESS_PLUS
-    price: "Contact us"
+    price: Contact us
     unit: user/month
     features:
       zoomCustomerManagedKey:

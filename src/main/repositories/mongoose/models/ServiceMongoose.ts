@@ -8,16 +8,17 @@ const pricingDataSchema = new Schema(
     },
     url: { type: String },
   }
-)
+);
 
 const serviceSchema = new Schema(
   {
     name: { type: String, required: true },
+    disabled: { type: Boolean, default: false },
     activePricings: {type: Map, of: pricingDataSchema},
     archivedPricings: {type: Map, of: pricingDataSchema}
   },
   {
-    toJSON: {
+    toObject: {
       virtuals: true,
       transform: function (doc, resultObject, options) {
         delete resultObject._id;
