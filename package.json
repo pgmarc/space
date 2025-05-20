@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx src/main/index.ts",
     "test": "chmod +x run-tests.sh && ./run-tests.sh",
+    "test:ci": "chmod +x run-tests:ci.sh && ./run-tests:ci.sh",
     "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
