@@ -397,6 +397,8 @@ describe('Features API Test Suite', function () {
 
       const response = await request(app).post(`${baseUrl}/features/${userId}/pricing-token`);
 
+      console.log(response);
+
       expect(response.status).toEqual(200);
       expect(response.body.pricingToken).toBeDefined();
 
