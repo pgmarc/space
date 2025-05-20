@@ -46,8 +46,8 @@ jobs:
         uses: supercharge/mongodb-github-action@1.10.0
         with:
           mongodb-version: '7.0.16'
-          mongodb-username: ${{ vars.CI_MONGO_INITDB_ROOT_USERNAME }}
-          mongodb-password: ${{ vars.CI_MONGO_INITDB_ROOT_PASSWORD }}
+          mongodb-username: ${{ secrets.CI_MONGO_INITDB_ROOT_USERNAME }}
+          mongodb-password: ${{ secrets.CI_MONGO_INITDB_ROOT_PASSWORD }}
           mongodb-db: ${{ vars.CI_MONGO_INITDB_DATABASE }}
           mongodb-port: ${{ vars.CI_MONGO_PORT }}
 
