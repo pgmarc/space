@@ -37,6 +37,10 @@ jobs:
           # envkey_ADMIN_PASSWORD: secrets.ADMIN_PASSWORD
           # envkey_USER_PASSWORD: secrets.USER_PASSWORD
           envkey_REDIS_URL: "redis://localhost:6379"
+          envkey_JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+          envkey_JWT_EXPIRATION: "1h"
+          envkey_JWT_SALT: ${{ secrets.CI_JWT_SALT }}
+          
           directory: .
           file_name: .env
           fail_on_empty: false
