@@ -15,6 +15,7 @@ import { isSubscriptionValid } from '../controllers/validation/ContractValidatio
 import { performNovation } from '../utils/contracts/novation';
 import CacheService from './CacheService';
 import { addPeriodToDate, convertKeysToLowercase } from '../utils/helpers';
+import { generateUsageLevels } from '../utils/contracts/helpers';
 
 class ContractService {
   private readonly contractRepository: ContractRepository;
@@ -336,36 +337,13 @@ class ContractService {
         serviceName,
         services[serviceName]
       );
-      usageLevels[serviceName] = {};
-      if (!pricing.usageLimits) {
-        continue;
+
+      const serviceUsageLevels: Record<string, UsageLevel> | undefined = generateUsageLevels(pricing);
+
+      if (serviceUsageLevels) {
+        usageLevels[serviceName] = serviceUsageLevels;
       }
 
-      for (const usageLimit of Object.values(pricing.usageLimits)) {
-        const mustBeTracked = usageLimit.period || usageLimit.trackable;
-
-        if (mustBeTracked) {
-          if (usageLimit.type === 'RENEWABLE') {
-            if (!usageLimit.period) {
-              throw new Error(
-                `Usage limit ${usageLimit.name} must have a period defined, since it is RENEWABLE`
-              );
-            }
-
-            let resetTimeStamp = new Date();
-            resetTimeStamp = addPeriodToDate(resetTimeStamp, usageLimit.period);
-
-            usageLevels[serviceName][usageLimit.name] = {
-              resetTimeStamp: resetTimeStamp,
-              consumed: 0,
-            };
-          } else {
-            usageLevels[serviceName][usageLimit.name] = {
-              consumed: 0,
-            };
-          }
-        }
-      }
     }
     return usageLevels;
   }

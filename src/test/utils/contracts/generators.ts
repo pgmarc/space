@@ -185,7 +185,7 @@ async function _generateSubscriptionAddOns(
 
         const count = faker.number.int({
           min: minQuantity ?? 1,
-          max: maxQuantity ?? 10,
+          max: maxQuantity ?? 1,
           multipleOf: quantityStep ?? 1,
         });
         subscriptionAddOns[serviceName][addOnName] = _isScalableAddon(addOn) ? count : 1;
