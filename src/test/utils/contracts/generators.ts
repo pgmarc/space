@@ -179,12 +179,15 @@ async function _generateSubscriptionAddOns(
       const addOn = pricing.addOns[addOnName];
 
       if (!addOn.availableFor || _addOnAvailableForPlan(addOn.availableFor, planName)) {
-
         const minQuantity = pricing.addOns[addOnName].subscriptionConstraints?.minQuantity;
         const maxQuantity = pricing.addOns[addOnName].subscriptionConstraints?.maxQuantity;
         const quantityStep = pricing.addOns[addOnName].subscriptionConstraints?.quantityStep;
-      
-        const count = faker.number.int({ min: minQuantity ?? 1, max: maxQuantity ?? 10, multipleOf: quantityStep ?? 1 });
+
+        const count = faker.number.int({
+          min: minQuantity ?? 1,
+          max: maxQuantity ?? 10,
+          multipleOf: quantityStep ?? 1,
+        });
         subscriptionAddOns[serviceName][addOnName] = _isScalableAddon(addOn) ? count : 1;
       }
     }
@@ -212,28 +215,87 @@ function _solveAddOnDependenciesAndExclusions(
   subscriptionAddOns: Record<string, number>,
   pricingAddons: Record<string, TestAddOn>
 ): void {
+  const maxIterations = 10;
+  let iterations = 0;
+  let changesMade = true;
+  
+  while (changesMade && iterations < maxIterations) {
+    changesMade = false;
+    iterations++;
+    
+    // Process dependencies
+    changesMade = _processDependencies(subscriptionPlan, subscriptionAddOns, pricingAddons) || changesMade;
+    
+    // Process exclusions
+    changesMade = _processExclusions(subscriptionAddOns, pricingAddons) || changesMade;
+  }
+  
+  // If we've reached max iterations, clean up any unresolved conflicts
+  if (iterations >= maxIterations) {
+    _cleanupUnresolvedConflicts(subscriptionAddOns, pricingAddons);
+  }
+}
+
+function _processDependencies(
+  subscriptionPlan: string,
+  subscriptionAddOns: Record<string, number>,
+  pricingAddons: Record<string, TestAddOn>
+): boolean {
+  let changesMade = false;
+  
   for (const addOnName in subscriptionAddOns) {
     const pricingAddon = pricingAddons[addOnName];
-
-    if (pricingAddon.dependsOn) {
-      for (const dependency of pricingAddon.dependsOn) {
-        if (!subscriptionAddOns[dependency]) {
-          if (pricingAddons[dependency]?.availableFor?.includes(subscriptionPlan)) {
-            subscriptionAddOns[dependency] = 1;
-          } else {
-            delete subscriptionAddOns[addOnName];
-            break;
-          }
+    
+    if (!pricingAddon.dependsOn) continue;
+    
+    for (const dependency of pricingAddon.dependsOn) {
+      if (!subscriptionAddOns[dependency]) {
+        if (pricingAddons[dependency]?.availableFor?.includes(subscriptionPlan)) {
+          subscriptionAddOns[dependency] = 1;
+          changesMade = true;
+        } else {
+          delete subscriptionAddOns[addOnName];
+          changesMade = true;
+          break;
         }
       }
     }
+  }
+  
+  return changesMade;
+}
 
-    if (pricingAddon.excludes) {
-      for (const exclusion of pricingAddon.excludes) {
-        if (subscriptionAddOns[exclusion]) {
-          delete subscriptionAddOns[exclusion];
-        }
+function _processExclusions(
+  subscriptionAddOns: Record<string, number>,
+  pricingAddons: Record<string, TestAddOn>
+): boolean {
+  let changesMade = false;
+  
+  for (const addOnName in subscriptionAddOns) {
+    const pricingAddon = pricingAddons[addOnName];
+    
+    if (!pricingAddon.excludes) continue;
+    
+    for (const exclusion of pricingAddon.excludes) {
+      if (subscriptionAddOns[exclusion]) {
+        delete subscriptionAddOns[exclusion];
+        changesMade = true;
       }
+    }
+  }
+  
+  return changesMade;
+}
+
+function _cleanupUnresolvedConflicts(
+  subscriptionAddOns: Record<string, number>,
+  pricingAddons: Record<string, TestAddOn>
+): void {
+  for (const addOnName in subscriptionAddOns) {
+    const pricingAddon = pricingAddons[addOnName];
+    
+    if (pricingAddon.dependsOn || pricingAddon.excludes) {
+      delete subscriptionAddOns[addOnName];
     }
   }
 }
