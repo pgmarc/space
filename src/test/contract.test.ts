@@ -14,12 +14,21 @@ import { addDays } from 'date-fns';
 import { UsageLevel } from '../main/types/models/Contract';
 import { TestContract } from './types/models/Contract';
 import { testUserId } from './utils/contracts/ContractTestData';
+import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
 
 describe('Contract API Test Suite', function () {
   let app: Server;
+  let adminApiKey: string;
 
   beforeAll(async function () {
     app = await getApp();
+    await getTestAdminUser();
+    adminApiKey = await getTestAdminApiKey();
+  });
+
+  afterAll(async function () {
+    await cleanupAuthResources();
+    await shutdownApp();
   });
 
   describe('GET /contracts', function () {
@@ -31,7 +40,10 @@ describe('Contract API Test Suite', function () {
     });
 
     it('Should return 200 and the contracts', async function () {
-      const response = await request(app).get(`${baseUrl}/contracts`).expect(200);
+      const response = await request(app)
+        .get(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
+        .expect(200);
 
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBeTruthy();
@@ -45,6 +57,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .get(`${baseUrl}/contracts?username=${username}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -60,6 +73,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .get(`${baseUrl}/contracts?firstName=${firstName}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -75,6 +89,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .get(`${baseUrl}/contracts?lastName=${lastName}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -90,6 +105,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .get(`${baseUrl}/contracts?email=${email}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       expect(response.body).toBeDefined();
@@ -109,10 +125,12 @@ describe('Contract API Test Suite', function () {
       const limit = 2;
       const page1Response = await request(app)
         .get(`${baseUrl}/contracts?page=1&limit=${limit}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       const page2Response = await request(app)
         .get(`${baseUrl}/contracts?page=2&limit=${limit}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(page1Response.body).toBeDefined();
@@ -132,6 +150,7 @@ describe('Contract API Test Suite', function () {
       const limit = 3;
       const offsetResponse = await request(app)
         .get(`${baseUrl}/contracts?offset=3&limit=${limit}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(offsetResponse.body).toBeDefined();
@@ -146,6 +165,7 @@ describe('Contract API Test Suite', function () {
     it('Should return 200: Should sort contracts by firstName in ascending order', async function () {
       const response = await request(app)
         .get(`${baseUrl}/contracts?sort=firstName&order=asc`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(response.body).toBeDefined();
@@ -159,6 +179,7 @@ describe('Contract API Test Suite', function () {
     it('Should return 200: Should sort contracts by lastName in descending order', async function () {
       const response = await request(app)
         .get(`${baseUrl}/contracts?sort=lastName&order=desc`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(response.body).toBeDefined();
@@ -172,6 +193,7 @@ describe('Contract API Test Suite', function () {
     it('Should return 200: Should sort contracts by username by default', async function () {
       const response = await request(app)
         .get(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(response.body).toBeDefined();
@@ -185,6 +207,7 @@ describe('Contract API Test Suite', function () {
     it('Should return 200: Should enforce maximum limit value', async function () {
       const response = await request(app)
         .get(`${baseUrl}/contracts?limit=200`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(response.body).toBeDefined();
@@ -206,6 +229,7 @@ describe('Contract API Test Suite', function () {
       
       const response = await request(app)
         .get(`${baseUrl}/contracts?serviceName=${serviceName}`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
       
       expect(response.body).toBeDefined();
@@ -220,7 +244,10 @@ describe('Contract API Test Suite', function () {
   describe('POST /contracts', function () {
     it('Should return 201 and the created contract', async function () {
       const {contract: contractToCreate} = await generateContractAndService(undefined, app);
-      const response = await request(app).post(`${baseUrl}/contracts`).send(contractToCreate);
+      const response = await request(app)
+        .post(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
+        .send(contractToCreate);
 
       expect(response.status).toBe(201);
       expect(response.body).toBeDefined();
@@ -239,7 +266,10 @@ describe('Contract API Test Suite', function () {
 
   describe('GET /contracts/:userId', function () {
     it('Should return 200 and the contract for the given userId', async function () {
-      const response = await request(app).get(`${baseUrl}/contracts/${testUserId}`).expect(200);
+      const response = await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)
+        .expect(200);
 
       const contract: TestContract = response.body;
 
@@ -255,7 +285,10 @@ describe('Contract API Test Suite', function () {
     });
 
     it('Should return 404 if the contract is not found', async function () {
-      const response = await request(app).get(`${baseUrl}/contracts/invalid-user-id`).expect(404);
+      const response = await request(app)
+        .get(`${baseUrl}/contracts/invalid-user-id`)
+        .set('x-api-key', adminApiKey)
+        .expect(404);
 
       expect(response.body).toBeDefined();
       expect(response.body.error).toContain('not found');
@@ -271,6 +304,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(`${baseUrl}/contracts/${newContract.userContact.userId}`)
+        .set('x-api-key', adminApiKey)
         .send(novation)
         .expect(200);
 
@@ -296,10 +330,16 @@ describe('Contract API Test Suite', function () {
     it('Should return 204', async function () {
       const newContract = await createRandomContract(app);
 
-      await request(app).delete(`${baseUrl}/contracts/${newContract.userContact.userId}`).expect(204);
+      await request(app)
+        .delete(`${baseUrl}/contracts/${newContract.userContact.userId}`)
+        .set('x-api-key', adminApiKey)
+        .expect(204);
     });
     it('Should return 404 with invalid userId', async function () {
-      const response = await request(app).delete(`${baseUrl}/contracts/invalid-user-id`).expect(404);
+      const response = await request(app)
+        .delete(`${baseUrl}/contracts/invalid-user-id`)
+        .set('x-api-key', adminApiKey)
+        .expect(404);
 
       expect(response.body).toBeDefined();
       expect(response.body.error.toLowerCase()).toContain('not found');
@@ -318,6 +358,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(`${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels`)
+        .set('x-api-key', adminApiKey)
         .send({
           [serviceKey]: {
             [usageLevelKey]: 5,
@@ -358,6 +399,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(`${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true`)
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       const updatedContract: TestContract = response.body;
@@ -413,6 +455,7 @@ describe('Contract API Test Suite', function () {
         .put(
           `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true&renewableOnly=false`
         )
+        .set('x-api-key', adminApiKey)
         .expect(200);
 
       const updatedContract: TestContract = response.body;
@@ -458,7 +501,8 @@ describe('Contract API Test Suite', function () {
       const response = await request(app)
         .put(
           `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=${sampleUsageLimitKey}`
-        );
+        )
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toBe(200);
         
@@ -486,7 +530,9 @@ describe('Contract API Test Suite', function () {
       await request(app)
         .put(
           `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?reset=true&usageLimit=test`
-        ).expect(400);
+        )
+        .set('x-api-key', adminApiKey)
+        .expect(400);
     });
 
     it('Should return 404: Given invalid usageLimit', async function () {
@@ -496,7 +542,9 @@ describe('Contract API Test Suite', function () {
       await request(app)
         .put(
           `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels?usageLimit=invalid-usage-limit`
-        ).expect(404);
+        )
+        .set('x-api-key', adminApiKey)
+        .expect(404);
     });
 
     it('Should return 422: Given invalid body', async function () {
@@ -507,6 +555,7 @@ describe('Contract API Test Suite', function () {
         .put(
           `${baseUrl}/contracts/${newContract.userContact.userId}/usageLevels`
         )
+        .set('x-api-key', adminApiKey)
         .send({
           test: "invalid object"
         })
@@ -526,6 +575,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(`${baseUrl}/contracts/${newContract.userContact.userId}/userContact`)
+        .set('x-api-key', adminApiKey)
         .send(newUserContactFields)
         .expect(200);
       const updatedContract: TestContract = response.body;
@@ -551,6 +601,7 @@ describe('Contract API Test Suite', function () {
 
       const response = await request(app)
         .put(`${baseUrl}/contracts/${newContract.userContact.userId}/billingPeriod`)
+        .set('x-api-key', adminApiKey)
         .send(newBillingPeriodFields)
         .expect(200);
       const updatedContract: TestContract = response.body;
@@ -567,14 +618,13 @@ describe('Contract API Test Suite', function () {
       const servicesBefore = await getAllContracts(app);
       expect(servicesBefore.length).toBeGreaterThan(0);
 
-      await request(app).delete(`${baseUrl}/contracts`).expect(204);
+      await request(app)
+        .delete(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
+        .expect(204);
 
       const servicesAfter = await getAllContracts(app);
       expect(servicesAfter.length).toBe(0);
     });
-  });
-
-  afterAll(async function () {
-    await shutdownApp();
   });
 });

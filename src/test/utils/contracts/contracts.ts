@@ -4,13 +4,16 @@ import { baseUrl, getApp, useApp } from '../testApp';
 import request from 'supertest';
 import { generateContract, generateContractAndService } from './generators';
 import { TestContract } from '../../types/models/Contract';
+import { getTestAdminApiKey } from '../auth';
 
 async function getAllContracts(app?: any): Promise<any[]> {
   
   const copyApp = await useApp(app);
+  const apiKey = await getTestAdminApiKey();
   
   const response = await request(copyApp)
-    .get(`${baseUrl}/contracts`);
+    .get(`${baseUrl}/contracts`)
+    .set('x-api-key', apiKey);
 
   if (response.status !== 200) {
     throw new Error(`Failed to fetch contracts. Status: ${response.status}. Body: ${response.body}`);
@@ -22,9 +25,11 @@ async function getAllContracts(app?: any): Promise<any[]> {
 async function getContractByUserId(userId: string, app?: any): Promise<TestContract> {
   
   const copyApp = await useApp(app);
+  const apiKey = await getTestAdminApiKey();
   
   const response = await request(copyApp)
     .get(`${baseUrl}/contracts/${userId}`)
+    .set('x-api-key', apiKey)
     .expect(200);
 
   return response.body;
@@ -41,30 +46,34 @@ async function getRandomContract(app?: any): Promise<any[]> {
 
 async function createRandomContract(app?: any): Promise<TestContract> {
   const copyApp = await useApp(app);
+  const apiKey = await getTestAdminApiKey();
   
   const {contract} = await generateContractAndService(undefined, copyApp);
   
   const response = await request(copyApp)
     .post(`${baseUrl}/contracts`)
+    .set('x-api-key', apiKey)
     .send(contract);
   
   if (response.status !== 201) {
     throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
   }
-
+  
   return response.body;
 }
 
 async function createRandomContracts(amount: number, app?: any): Promise<TestContract[]> {
   const copyApp = await useApp(app);
-
+  const apiKey = await getTestAdminApiKey();
+  
   const createdContracts: TestContract[] = [];
   
   const {contract, services} = await generateContractAndService(undefined, copyApp);
   
   let response = await request(copyApp)
-  .post(`${baseUrl}/contracts`)
-  .send(contract);
+    .post(`${baseUrl}/contracts`)
+    .set('x-api-key', apiKey)
+    .send(contract);
 
   if (response.status !== 201) {
     throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
@@ -77,6 +86,7 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
     
     response = await request(copyApp)
       .post(`${baseUrl}/contracts`)
+      .set('x-api-key', apiKey)
       .send(generatedContract);
 
     if (response.status !== 201) {
@@ -91,7 +101,8 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
 
 async function createRandomContractsForService(serviceName: string, pricingVersion: string, amount: number, app?: any): Promise<TestContract[]> {
   const copyApp = await useApp(app);
-
+  const apiKey = await getTestAdminApiKey();
+  
   const createdContracts: TestContract[] = [];
 
   for (let i = 0; i < amount - 1; i++) {
@@ -99,6 +110,7 @@ async function createRandomContractsForService(serviceName: string, pricingVersi
     
     const response = await request(copyApp)
       .post(`${baseUrl}/contracts`)
+      .set('x-api-key', apiKey)
       .send(generatedContract);
 
     if (response.status !== 201) {
@@ -113,9 +125,11 @@ async function createRandomContractsForService(serviceName: string, pricingVersi
 
 async function incrementUsageLevel(userId: string, serviceName: string, usageLimitName: string, app?: any): Promise<TestContract> {
   const copyApp = await useApp(app);
+  const apiKey = await getTestAdminApiKey();
   
   const response = await request(copyApp)
     .put(`${baseUrl}/contracts/${userId}/usageLevels`)
+    .set('x-api-key', apiKey)
     .send({
       [serviceName]: {
         [usageLimitName]: 5
@@ -128,6 +142,7 @@ async function incrementUsageLevel(userId: string, serviceName: string, usageLim
 
 async function incrementAllUsageLevel(userId: string, usageLevels: Record<string, Record<string, UsageLevel>>, app?: any): Promise<TestContract> {
   const copyApp = await useApp(app);
+  const apiKey = await getTestAdminApiKey();
   
   const updatedUsageLevels = Object.keys(usageLevels).reduce((acc, serviceName) => {
     acc[serviceName] = Object.keys(usageLevels[serviceName]).reduce((innerAcc, usageLimitName) => {
@@ -139,6 +154,7 @@ async function incrementAllUsageLevel(userId: string, usageLevels: Record<string
 
   const response = await request(copyApp)
     .put(`${baseUrl}/contracts/${userId}/usageLevels`)
+    .set('x-api-key', apiKey)
     .send(updatedUsageLevels)
     .expect(200);
 
