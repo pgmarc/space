@@ -89,6 +89,28 @@ async function createRandomContracts(amount: number, app?: any): Promise<TestCon
   return createdContracts;
 }
 
+async function createRandomContractsForService(serviceName: string, pricingVersion: string, amount: number, app?: any): Promise<TestContract[]> {
+  const copyApp = await useApp(app);
+
+  const createdContracts: TestContract[] = [];
+
+  for (let i = 0; i < amount - 1; i++) {
+    const generatedContract = await generateContract({ [serviceName]: pricingVersion }, undefined, copyApp);
+    
+    const response = await request(copyApp)
+      .post(`${baseUrl}/contracts`)
+      .send(generatedContract);
+
+    if (response.status !== 201) {
+      throw new Error(`Failed to create contract. Body: ${JSON.stringify(response.body)}`);
+    }
+
+    createdContracts.push(response.body);
+  }
+
+  return createdContracts;
+}
+
 async function incrementUsageLevel(userId: string, serviceName: string, usageLimitName: string, app?: any): Promise<TestContract> {
   const copyApp = await useApp(app);
   
@@ -123,4 +145,4 @@ async function incrementAllUsageLevel(userId: string, usageLevels: Record<string
   return response.body;
 }
 
-export { createRandomContracts, getContractByUserId, getAllContracts, getRandomContract, createRandomContract, incrementAllUsageLevel, incrementUsageLevel };
+export { createRandomContracts, getContractByUserId, getAllContracts, getRandomContract, createRandomContract, createRandomContractsForService, incrementAllUsageLevel, incrementUsageLevel };

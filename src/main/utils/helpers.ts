@@ -46,23 +46,23 @@ function addPeriodToDate(currentDate: Date, period: LeanPeriod): Date {
   
   let result: Date;
   
-  switch (period.unit) {
-    case 'SEC':
+  switch (period.unit.toLowerCase()) {
+    case 'sec':
       result = addSeconds(currentDate, period.value);
       break;
-    case 'MIN':
+    case 'min':
       result = addMinutes(currentDate, period.value);
       break;
-    case 'HOUR':
+    case 'hour':
       result = addHours(currentDate, period.value);
       break;
-    case 'DAY':
+    case 'day':
       result = addDays(currentDate, period.value);
       break;
-    case 'MONTH':
+    case 'month':
       result = addMonths(currentDate, period.value);
       break;
-    case 'YEAR':
+    case 'year':
       result = addYears(currentDate, period.value);
       break;
     default:

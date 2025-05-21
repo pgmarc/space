@@ -239,18 +239,27 @@ async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   const selectedPricings: Record<string, LeanPricing> = {};
   const serviceService: ServiceService = container.resolve('serviceService');
 
-  for (const serviceName in subscription.contractedServices) {
-    const pricingVersion = subscription.contractedServices[serviceName];
-    // TODO: Enhance this retrieval so that it can be done in parallel
-    try {
-      const pricing = await serviceService.showPricing(serviceName, pricingVersion);
-      selectedPricings[serviceName] = pricing;
-    } catch (error) {
-      throw new Error(
-        `Pricing version ${pricingVersion} for service ${serviceName} not found`
-      );
+  // Create an array of promises to fetch all pricing data in parallel
+  const pricingPromises = Object.entries(subscription.contractedServices).map(
+    async ([serviceName, pricingVersion]) => {
+      try {
+        const pricing = await serviceService.showPricing(serviceName, pricingVersion);
+        return { serviceName, pricing };
+      } catch (error) {
+        throw new Error(
+          `Pricing version ${pricingVersion} for service ${serviceName} not found`
+        );
+      }
     }
-  }
+  );
+  
+  // Wait for all promises to resolve
+  const results = await Promise.all(pricingPromises);
+  
+  // Populate the selectedPricings object with the results
+  results.forEach(({ serviceName, pricing }) => {
+    selectedPricings[serviceName] = pricing;
+  });
 
   const serviceNames = Array.from(
     new Set([
@@ -260,8 +269,6 @@ async function isSubscriptionValid(subscription: Subscription): Promise<void> {
   );
 
   for (const serviceName of serviceNames) {
-    const selectedPlan: string | undefined = subscription.subscriptionPlans[serviceName];
-    const selectedAddOns = subscription.subscriptionAddOns[serviceName];
     const pricing = selectedPricings[serviceName];
 
     if (!pricing) {
@@ -270,20 +277,31 @@ async function isSubscriptionValid(subscription: Subscription): Promise<void> {
       );
     }
 
-    if (!selectedPlan && !selectedAddOns) {
-      throw new Error(
-        `Service ${serviceName} must have either a plan or add-ons selected`
-      );
-    }
-
-    if (selectedPlan && !(pricing.plans || {})[selectedPlan]) {
-      throw new Error(
-        `Plan ${selectedPlan} for service ${serviceName} not found`
-      );
-    }
-
-    _validateAddOns(selectedAddOns, selectedPlan, pricing);
+    isSubscriptionValidInPricing(serviceName, subscription, pricing)
   }
+}
+
+function isSubscriptionValidInPricing(
+  serviceName: string,
+  subscription: Subscription,
+  pricing: LeanPricing
+): void {  
+  const selectedPlan: string | undefined = subscription.subscriptionPlans[serviceName];
+  const selectedAddOns = subscription.subscriptionAddOns[serviceName];
+
+  if (!selectedPlan && !selectedAddOns) {
+    throw new Error(
+      `Service ${serviceName} must have either a plan or add-ons selected`
+    );
+  }
+
+  if (selectedPlan && !(pricing.plans || {})[selectedPlan]) {
+    throw new Error(
+      `Plan ${selectedPlan} for service ${serviceName} not found`
+    );
+  }
+
+  _validateAddOns(selectedAddOns, selectedPlan, pricing);
 }
 
 function _validateAddOns(
@@ -309,7 +327,7 @@ function _validateAddOnAvailability(
   pricing: LeanPricing
 ): void {
   if (
-    selectedPlan &&
+    selectedPlan && pricing.addOns![addOnName] &&
     !(pricing.addOns![addOnName].availableFor ?? Object.keys(pricing.plans!))?.includes(selectedPlan)
   ) {
     throw new Error(
@@ -366,4 +384,4 @@ function _validateAddOnQuantity(
   }
 }
 
-export { create, novate, incrementUsageLevels, novateUserContact, novateBillingPeriod, isSubscriptionValid };
+export { create, novate, incrementUsageLevels, novateUserContact, novateBillingPeriod, isSubscriptionValid, isSubscriptionValidInPricing };

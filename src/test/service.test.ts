@@ -12,7 +12,14 @@ import { zoomPricingPath } from './utils/services/ServiceTestData';
 import { retrievePricingFromPath } from 'pricing4ts/server';
 import { ExpectedPricingType } from '../main/types/models/Pricing';
 import { TestContract } from './types/models/Contract';
-import { createRandomContract } from './utils/contracts/contracts';
+import {
+  createRandomContract,
+  createRandomContracts,
+  createRandomContractsForService,
+  getAllContracts,
+} from './utils/contracts/contracts';
+import { LeanContract } from '../main/types/models/Contract';
+import { isSubscriptionValid } from '../main/controllers/validation/ContractValidation';
 
 const withCommonDescribe = (name: string, fn: () => void) => {
   describe(name, () => {
@@ -46,7 +53,9 @@ describe('Services API Test Suite', function () {
   withCommonDescribe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
       const pricingFilePath = await getRandomPricingFile('zoom');
-      const response = await request(app).post(`${baseUrl}/services`).attach('pricing', pricingFilePath);
+      const response = await request(app)
+        .post(`${baseUrl}/services`)
+        .attach('pricing', pricingFilePath);
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
@@ -131,10 +140,16 @@ describe('Services API Test Suite', function () {
       const responseAfter = await request(app).get(`${baseUrl}/services/${serviceName}`);
       expect(responseAfter.status).toEqual(404);
 
-      const contractsAfter = await request(app).get(`${baseUrl}/contracts?serviceName=${serviceName}`);
+      const contractsAfter = await request(app).get(
+        `${baseUrl}/contracts?serviceName=${serviceName}`
+      );
       expect(contractsAfter.status).toEqual(200);
       expect(Array.isArray(contractsAfter.body)).toBe(true);
-      expect(contractsAfter.body.every((c: TestContract) => new Date() > c.billingPeriod.endDate && !c.billingPeriod.autoRenew)).toBeTruthy();
+      expect(
+        contractsAfter.body.every(
+          (c: TestContract) => new Date() > c.billingPeriod.endDate && !c.billingPeriod.autoRenew
+        )
+      ).toBeTruthy();
     });
   });
 
@@ -273,7 +288,9 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 404 due to service not found', async function () {
-      const response = await request(app).get(`${baseUrl}/services/unexistent-service/pricings/2024`);
+      const response = await request(app).get(
+        `${baseUrl}/services/unexistent-service/pricings/2024`
+      );
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
     });
@@ -309,9 +326,14 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
       ).toBeFalsy();
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}`
-      );
+      const responseUpdate = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
       expect(
@@ -333,9 +355,16 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
       ).toBeFalsy();
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
-      );
+      const responseUpdate = await request(app)
+        .put(
+          `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
+        )
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
       expect(
@@ -347,9 +376,14 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Changing visibility using "active"', async function () {
-      const responseBefore = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}`
-      );
+      const responseBefore = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
       expect(
@@ -372,6 +406,54 @@ describe('Services API Test Suite', function () {
       ).toBeFalsy();
     });
 
+    it('Should return 200 and novate all contracts: Changing visibility using "archived"', async function () {
+      await createRandomContractsForService(testService, versionToArchive, 5, app);
+
+      const responseUpdate = await request(app)
+        .put(
+          `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
+        )
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
+      expect(responseUpdate.status).toEqual(200);
+      expect(responseUpdate.body.activePricings).toBeDefined();
+      expect(
+        Object.keys(responseUpdate.body.activePricings).includes(versionToArchive)
+      ).toBeFalsy();
+      expect(
+        Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)
+      ).toBeTruthy();
+
+      const reponseContractsAfter = await request(app).get(
+        `${baseUrl}/contracts?serviceName=${testService}`
+      );
+
+      expect(reponseContractsAfter.status).toEqual(200);
+      expect(Array.isArray(reponseContractsAfter.body)).toBe(true);
+
+      for (const contract of reponseContractsAfter.body) {
+        expect(contract.contractedServices[testService.toLowerCase()]).toBeDefined();
+        expect(contract.contractedServices[testService.toLowerCase()]).not.toEqual(
+          versionToArchive
+        );
+
+        // Alternative approach with try/catch
+        try {
+          await isSubscriptionValid({
+            contractedServices: contract.contractedServices,
+            subscriptionPlans: contract.subscriptionPlans,
+            subscriptionAddOns: contract.subscriptionAddOns,
+          });
+        } catch (error) {
+          expect.fail(`Contract subscription validation failed: ${(error as Error).message}`);
+        }
+      }
+    }, {timeout: 10000});
+
     it('Should return 400: Changing visibility using "invalidValue"', async function () {
       const responseUpdate = await request(app).put(
         `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=invalidValue`
@@ -383,7 +465,15 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 400: Changing visibility to archived when is the last activePricing', async function () {
-      await request(app).put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`);
+      await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        })
+        .expect(200);
 
       const lastVersionToArchive = '2023';
 
@@ -434,7 +524,6 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 400: Given last active pricing', async function () {
-
       const newService = await createRandomService();
       const lastActivePricing = Object.keys(newService.activePricings)[0];
 

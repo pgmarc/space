@@ -2,6 +2,8 @@ import container from '../config/container.js';
 import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
+import { Subscription } from '../types/models/Contract.js';
+import { FallBackSubscription } from '../../test/types/models/Contract.js';
 
 class ServiceController {
   private readonly serviceService: ServiceService;
@@ -156,6 +158,7 @@ class ServiceController {
       const serviceName = req.params.serviceName;
       const pricingVersion = req.params.pricingVersion;
       const newAvailability = req.query.availability ?? "archived";
+      const fallBackSubscription: FallBackSubscription = req.body ?? {};
 
       if (!newAvailability) {
         res.status(400).send({ error: 'No availability provided' });
@@ -167,7 +170,8 @@ class ServiceController {
         const service = await this.serviceService.updatePricingAvailability(
           serviceName,
           pricingVersion,
-          newAvailability
+          newAvailability,
+          fallBackSubscription
         );
 
         res.json(service);
@@ -177,6 +181,8 @@ class ServiceController {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('last active pricing')) {
+        res.status(400).send({ error: err.message });
+      }else if (err.message.toLowerCase().includes('invalid')){
         res.status(400).send({ error: err.message });
       }else {
         res.status(500).send({ error: err.message });

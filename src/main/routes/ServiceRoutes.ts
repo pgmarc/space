@@ -2,7 +2,7 @@ import express from 'express';
 
 import ServiceController from '../controllers/ServiceController';
 import * as ServiceValidator from '../controllers/validation/ServiceValidation';
-import { isLoggedIn } from '../middlewares/AuthMiddleware';
+import * as PricingValidator from '../controllers/validation/PricingValidation';
 import { handlePricingUpload } from '../middlewares/FileHandlerMiddleware';
 import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
 
@@ -32,7 +32,7 @@ const loadFileRoutes = function (app: express.Application) {
   app
     .route(baseUrl + '/services/:serviceName/pricings/:pricingVersion')
     .get(serviceController.showPricing)
-    .put(serviceController.updatePricingAvailability)
+    .put(PricingValidator.updateAvailability, handleValidation, serviceController.updatePricingAvailability)
     .delete(serviceController.destroyPricing);
 };
 

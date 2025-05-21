@@ -10,10 +10,13 @@ import fs from 'fs';
 import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
 import { LeanService } from '../types/models/Service';
-import { ExpectedPricingType } from '../types/models/Pricing';
-import { LeanContract } from '../types/models/Contract';
+import { ExpectedPricingType, LeanPricing } from '../types/models/Pricing';
+import { LeanContract, Subscription } from '../types/models/Contract';
 import ContractRepository from '../repositories/mongoose/ContractRepository';
 import { performNovation } from '../utils/contracts/novation';
+import { FallBackSubscription } from '../../test/types/models/Contract';
+import { isSubscriptionValid, isSubscriptionValidInPricing } from '../controllers/validation/ContractValidation';
+import { generateUsageLevels } from '../utils/contracts/helpers';
 // import CacheService from "./CacheService";
 
 class ServiceService {
@@ -273,7 +276,8 @@ class ServiceService {
   async updatePricingAvailability(
     serviceName: string,
     pricingVersion: string,
-    newAvailability: 'active' | 'archived'
+    newAvailability: 'active' | 'archived',
+    fallBackSubscription: FallBackSubscription
   ) {
     const service = await this.serviceRepository.findByName(serviceName);
 
@@ -281,6 +285,7 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
+    // If newAvailability is the same as the current one, return the service
     if (
       (newAvailability === 'active' && service.activePricings[pricingVersion]) ||
       (newAvailability === 'archived' && service.archivedPricings[pricingVersion])
@@ -296,6 +301,12 @@ class ServiceService {
       throw new Error(`You cannot archive the last active pricing for service ${serviceName}`);
     }
 
+    if (newAvailability === 'archived' && Object.keys(fallBackSubscription).length === 0) {
+      throw new Error(
+        `Invalid request: Archiving pricing version ${pricingVersion} of service ${serviceName} cannot be completed. To proceed, you must provide a fallback subscription in the request body. All active contracts will be novated to this new version upon archiving.`
+      );
+    }
+
     const pricingLocator =
       service.activePricings[pricingVersion] ?? service.archivedPricings[pricingVersion];
 
@@ -304,8 +315,6 @@ class ServiceService {
     }
 
     let updatedService;
-
-    // TODO: Novate all contracts to the latest version
 
     if (newAvailability === 'active') {
       updatedService = await this.serviceRepository.update(service.name, {
@@ -317,6 +326,12 @@ class ServiceService {
         [`activePricings.${pricingVersion}`]: undefined,
         [`archivedPricings.${pricingVersion}`]: pricingLocator,
       });
+
+      await this._novateContractsToLatestVersion(
+        service.name.toLowerCase(),
+        pricingVersion,
+        fallBackSubscription
+      );
     }
 
     return updatedService;
@@ -376,6 +391,85 @@ class ServiceService {
     return result;
   }
 
+  async _novateContractsToLatestVersion(
+    serviceName: string,
+    pricingVersion: string,
+    fallBackSubscription: FallBackSubscription
+  ): Promise<void> {
+    const serviceContracts: LeanContract[] = await this.contractRepository.findAll({
+      serviceName: serviceName,
+    });
+
+    if (Object.keys(fallBackSubscription).length === 0) {
+      throw new Error(
+        `No fallback subscription provided for service ${serviceName}. Novation to new version cannot be performed to affected contracts`
+      );
+    }
+
+    const pricingVersionContracts: LeanContract[] = serviceContracts.filter(
+      contract => contract.contractedServices[serviceName] === pricingVersion
+    );
+
+    if (pricingVersionContracts.length === 0) {
+      return;
+    }
+
+    const serviceLatestPricing = await this._getLatestActivePricing(serviceName);
+    
+    if (!serviceLatestPricing) {
+      throw new Error(`No active pricing found for service ${serviceName}`);
+    }
+
+    const serviceUsageLevels = generateUsageLevels(serviceLatestPricing);
+
+    if (serviceLatestPricing !== null) {
+      pricingVersionContracts.forEach(contract => {
+        contract.contractedServices[serviceName] = serviceLatestPricing.version;
+        contract.subscriptionPlans[serviceName] = fallBackSubscription.subscriptionPlan;
+        contract.subscriptionAddOns[serviceName] = fallBackSubscription.subscriptionAddOns;
+
+        try{
+          isSubscriptionValidInPricing(serviceName,{
+            contractedServices: contract.contractedServices,
+            subscriptionPlans: contract.subscriptionPlans,
+            subscriptionAddOns: contract.subscriptionAddOns,
+          }, serviceLatestPricing);
+        }catch (err) {
+          throw new Error(
+            `The configuration provided to novate affected contracts is not valid for version ${serviceLatestPricing.version} of service ${serviceName}. Error: ${err}`
+          );
+        }
+
+        if (serviceUsageLevels){
+          contract.usageLevels[serviceName] = serviceUsageLevels;
+        }else{
+          delete contract.usageLevels[serviceName];
+        }
+      });
+
+      const resultNovations = await this.contractRepository.bulkUpdate(pricingVersionContracts);
+
+      if (!resultNovations) {
+        throw new Error(`Failed to novate contracts for service ${serviceName}`);
+      }
+    }
+  }
+
+  async _getLatestActivePricing(serviceName: string): Promise<LeanPricing | null> {
+    const pricings = await this.indexPricings(serviceName, 'active');
+
+    const sortedPricings = pricings.sort((a, b) => {
+      // Sort by createdAt date (descending - newest first)
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      return 0;
+    });
+
+    return sortedPricings.length > 0 ? sortedPricings[0] : null;
+  }
+
   async _getPricingFromUrl(url: string) {
     const isLocalUrl = url.startsWith('public/');
     return parsePricingToSpacePricingObject(
@@ -431,12 +525,14 @@ class ServiceService {
       }
 
       // Check if objects have the same content by comparing their JSON string representation
-      const hasContractChanged = JSON.stringify(contract.contractedServices) !== JSON.stringify(newSubscription.contractedServices);
+      const hasContractChanged =
+        JSON.stringify(contract.contractedServices) !==
+        JSON.stringify(newSubscription.contractedServices);
 
       // If objects are equal, skip this contract
       if (!hasContractChanged) {
         continue;
-      } 
+      }
 
       const newContract = performNovation(contract, newSubscription);
 
