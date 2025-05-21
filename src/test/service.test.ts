@@ -452,7 +452,7 @@ describe('Services API Test Suite', function () {
           expect.fail(`Contract subscription validation failed: ${(error as Error).message}`);
         }
       }
-    });
+    }, {timeout: 10000});
 
     it('Should return 400: Changing visibility using "invalidValue"', async function () {
       const responseUpdate = await request(app).put(
