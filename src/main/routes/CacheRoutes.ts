@@ -6,7 +6,7 @@ import CacheController from '../controllers/CacheController';
 const loadFileRoutes = function (app: express.Application) {
   const cacheController = new CacheController();
 
-  const baseUrl = process.env.BASE_URL_PATH;
+  const baseUrl = process.env.BASE_URL_PATH || '/api';
 
   app
     .route(baseUrl + '/cache/get')
