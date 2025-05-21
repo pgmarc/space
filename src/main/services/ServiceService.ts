@@ -310,8 +310,6 @@ class ServiceService {
 
     let updatedService;
 
-    // TODO: Novate all contracts to the latest version
-
     if (newAvailability === 'active') {
       updatedService = await this.serviceRepository.update(service.name, {
         [`activePricings.${pricingVersion}`]: pricingLocator,

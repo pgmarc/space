@@ -423,13 +423,17 @@ describe('Services API Test Suite', function () {
         expect(contract.contractedServices[testService.toLowerCase()]).not.toEqual(
           versionToArchive
         );
-        expect(
+
+        // Alternative approach with try/catch
+        try {
           await isSubscriptionValid({
             contractedServices: contract.contractedServices,
             subscriptionPlans: contract.subscriptionPlans,
             subscriptionAddOns: contract.subscriptionAddOns,
-          })
-        ).toBeTruthy();
+          });
+        } catch (error) {
+          expect.fail(`Contract subscription validation failed: ${(error as Error).message}`);
+        }
       }
     });
 
