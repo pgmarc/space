@@ -1,11 +1,24 @@
-import { check } from 'express-validator';
+import { body, check } from 'express-validator';
+
+// Define a condition to check if the body exists and is non-empty
+const bodyExists = () => body().custom((value, { req }) => {
+  return req.body && Object.keys(req.body).length > 0;
+});
 
 const updateAvailability = [
+  body()
+    .if(bodyExists())
+    .isObject()
+    .withMessage('The body must be an object'),
+
   check('subscriptionPlan')
+    .if(bodyExists())
     .exists({checkNull: true})
     .isString()
     .withMessage('The subscriptionPlan field must be a string'),
+  
   check('subscriptionAddOns')
+    .if(bodyExists())
     .exists({checkNull: true})
     .isObject()
     .withMessage('The subscriptionAddOns field must be an object')

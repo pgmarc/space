@@ -301,6 +301,12 @@ class ServiceService {
       throw new Error(`You cannot archive the last active pricing for service ${serviceName}`);
     }
 
+    if (newAvailability === 'archived' && Object.keys(fallBackSubscription).length === 0) {
+      throw new Error(
+        `Invalid request: Archiving pricing version ${pricingVersion} of service ${serviceName} cannot be completed. To proceed, you must provide a fallback subscription in the request body. All active contracts will be novated to this new version upon archiving.`
+      );
+    }
+
     const pricingLocator =
       service.activePricings[pricingVersion] ?? service.archivedPricings[pricingVersion];
 

@@ -326,9 +326,14 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
       ).toBeFalsy();
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}`
-      );
+      const responseUpdate = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
       expect(
@@ -350,9 +355,16 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
       ).toBeFalsy();
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
-      );
+      const responseUpdate = await request(app)
+        .put(
+          `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
+        )
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
       expect(
@@ -364,9 +376,14 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Changing visibility using "active"', async function () {
-      const responseBefore = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}`
-      );
+      const responseBefore = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        });
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
       expect(
@@ -448,7 +465,15 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 400: Changing visibility to archived when is the last activePricing', async function () {
-      await request(app).put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`);
+      await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .send({
+          subscriptionPlan: 'PRO',
+          subscriptionAddOns: {
+            largeMeetings: 1,
+          },
+        })
+        .expect(200);
 
       const lastVersionToArchive = '2023';
 
