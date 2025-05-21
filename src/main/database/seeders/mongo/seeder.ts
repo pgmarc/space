@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 
 // import fs from 'fs'
 import { getMongoDBConnectionURI } from '../../../config/mongoose';
+import { seedDefaultAdmin } from '../common/userSeeder';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,8 @@ const collections = seeder.readCollectionsFromPath(path.resolve(__dirname));
 export const seedDatabase = async () => {
   try {
     await seeder.import(collections);
+    // Crear un usuario administrador por defecto
+    await seedDefaultAdmin();
     console.log('==== Mongo seeding successfull ====');
   } catch (err) {
     console.error(`Seeding error: ${err}`);

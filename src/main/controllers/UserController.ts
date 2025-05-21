@@ -1,134 +1,139 @@
+// filepath: /Users/alex/Desktop/Doctorado/space-api/src/main/controllers/UserController.ts
 import container from '../config/container.js';
 import UserService from '../services/UserService.js';
+import { USER_ROLES } from '../types/models/User.js';
 
 class UserController {
   private userService: UserService;
 
   constructor() {
     this.userService = container.resolve('userService');
-    this.loginAdmin = this.loginAdmin.bind(this);
-    this.loginUser = this.loginUser.bind(this);
-    this.loginByToken = this.loginByToken.bind(this);
-    this.show = this.show.bind(this);
-    this.registerUser = this.registerUser.bind(this);
-    this.registerAdmin = this.registerAdmin.bind(this);
-    this.destroy = this.destroy.bind(this);
+    this.create = this.create.bind(this);
+    this.authenticate = this.authenticate.bind(this);
+    this.getAll = this.getAll.bind(this);
+    this.getByUsername = this.getByUsername.bind(this);
     this.update = this.update.bind(this);
-    this.updateToken = this.updateToken.bind(this);
+    this.destroy = this.destroy.bind(this);
+    this.regenerateApiKey = this.regenerateApiKey.bind(this);
+    this.changeRole = this.changeRole.bind(this);
   }
 
-  async registerUser(req: any, res: any) {
-    this._register(req, res, 'user');
-  }
-
-  async registerAdmin(req: any, res: any) {
-    this._register(req, res, 'admin');
-  }
-
-  async _register(req: any, res: any, userType: 'user' | 'admin') {
+  async create(req: any, res: any) {
     try {
-      let registeredUser;
-      if (userType === 'admin') {
-        registeredUser = await this.userService.registerAdmin(req.body);
-      } else if (userType === 'user') {
-        registeredUser = await this.userService.registerUser(req.body);
-      }
-      res.status(201).json(registeredUser);
+      const user = await this.userService.create(req.body, req.user);
+      res.status(201).json(user);
     } catch (err: any) {
-      if (err.name.includes('ValidationError') || err.code === 11000) {
-        res.status(422).send({error: err.message});
+      if (err.name?.includes('ValidationError') || err.code === 11000) {
+        res.status(422).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('permissions')) {
+        res.status(403).send({ error: err.message });
+      } else if (
+        err.message.toLowerCase().includes('already') ||
+        err.message.toLowerCase().includes('not found')
+      ) {
+        res.status(404).send({ error: err.message });
       } else {
-        res.status(500).send({error: err.message});
+        res.status(500).send({ error: err.message });
       }
     }
   }
 
-  async loginByToken(req: any, res: any) {
+  async authenticate(req: any, res: any) {
     try {
-      this.userService
-        .loginByToken(req.body.token)
-        .then(user => {
-          res.json({
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-            email: user.email,
-            avatar: user.avatar,
-            token: user.token,
-            tokenExpiration: user.tokenExpiration,
-          });
-        })
-        .catch(err => {
-          res.status(401).send({ error: err.message });
-        });
+      const { username, password } = req.body;
+      const userApiKey = await this.userService.authenticate(username, password);
+      res.json({ apiKey: userApiKey });
     } catch (err: any) {
-      return res.status(401).send({ error: err.message });
+      res.status(401).send({ error: err.message });
     }
   }
 
-  async loginAdmin(req: any, res: any) {
+  async getAll(req: any, res: any) {
     try {
-      const user = await this.userService.loginAdmin(req.body.loginField, req.body.password);
-      res.json({ token: user!.token });
+      const users = await this.userService.getAllUsers();
+      res.json(users);
     } catch (err: any) {
-      return res.status(401).send({ error: err.message });
+      res.status(500).send({ error: err.message });
     }
   }
 
-  async loginUser(req: any, res: any) {
+  async getByUsername(req: any, res: any) {
     try {
-      const user = await this.userService.loginUser(req.body.loginField, req.body.password);
-      res.json({
-        id: user!.id,
-        firstName: user!.firstName,
-        lastName: user!.lastName,
-        username: user!.username,
-        email: user!.email,
-        avatar: user!.avatar,
-        token: user!.token,
-        tokenExpiration: user!.tokenExpiration,
-      });
-    } catch (err: any) {
-      return res.status(401).send({ error: err.message });
-    }
-  }
-
-  async show(req: any, res: any) {
-    // Only returns PUBLIC information of users
-    try {
-      const user = await this.userService.show(req.params.userId);
+      const user = await this.userService.findByUsername(req.params.username);
       res.json(user);
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      res.status(404).send({ error: err.message });
     }
   }
 
   async update(req: any, res: any) {
     try {
-      const user = await this.userService.update((req as any).user.id, req.body);
+      const user = await this.userService.update(req.params.username, req.body);
       res.json(user);
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      if (err.name?.includes('ValidationError') || err.code === 11000) {
+        res.status(422).send({ error: err.message });
+      } else if (
+        err.message.toLowerCase().includes('already') ||
+        err.message.toLowerCase().includes('not found')
+      ) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 
-  async updateToken(req: any, res: any) {
+  async regenerateApiKey(req: any, res: any) {
     try {
-      const token = await this.userService.updateToken((req as any).user.id);
-      res.json(token);
+      const newApiKey = await this.userService.regenerateApiKey(req.params.username);
+      res.json({ apiKey: newApiKey });
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      if (
+        err.message.toLowerCase().includes('already') ||
+        err.message.toLowerCase().includes('not found')
+      ) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
+    }
+  }
+
+  async changeRole(req: any, res: any) {
+    try {
+      const { role } = req.body;
+      if (!USER_ROLES.includes(role)) {
+        return res.status(400).send({ error: 'Rol no válido' });
+      }
+
+      const user = await this.userService.changeRole(req.params.username, role);
+      res.json(user);
+    } catch (err: any) {
+      if (
+        err.message.toLowerCase().includes('already') ||
+        err.message.toLowerCase().includes('not found')
+      ) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 
   async destroy(req: any, res: any) {
     try {
-      const result = await this.userService.destroy((req as any).user.id);
-      const message = result ? 'Successfully deleted.' : 'Could not delete user.';
-      res.json(message);
+      await this.userService.destroy(req.params.username);
+      res.status(204).send();
     } catch (err: any) {
-      res.status(500).send({error: err.message});
+      if (
+        err.message.toLowerCase().includes('already') ||
+        err.message.toLowerCase().includes('not found')
+      ) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: err.message });
+      }
     }
   }
 }
