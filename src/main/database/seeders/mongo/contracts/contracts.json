@@ -9,15 +9,15 @@
       "phone": "+1234567890"
     },
     "billingPeriod": {
-      "startDate": "2025-05-01T00:00:00.000Z",
-      "endDate": "2025-06-01T00:00:00.000Z",
+      "startDate": {"$date": "2025-05-01T00:00:00.000Z"},
+      "endDate": {"$date": "2025-06-01T00:00:00.000Z"},
       "autoRenew": true,
       "renewalDays": 30
     },
     "usageLevels": {
       "zoom": {
         "totalAttendeesPerMonth": {
-          "resetTimeStamp": "2025-05-01T00:00:00.000Z",
+          "resetTimeStamp": {"$date": "2025-05-01T00:00:00.000Z"},
           "consumed": 650
         },
         "maxCloudRecordingSize": {
@@ -40,8 +40,8 @@
     },
     "history": [
       {
-        "startDate": "2025-04-01T00:00:00.000Z",
-        "endDate": "2025-05-01T00:00:00.000Z",
+        "startDate": {"$date": "2025-04-01T00:00:00.000Z"},
+        "endDate": {"$date": "2025-05-01T00:00:00.000Z"},
         "contractedServices": {
           "zoom": "2023"
         },
@@ -66,19 +66,21 @@
       "phone": "+1987654321"
     },
     "billingPeriod": {
-      "startDate": "2025-05-01T00:00:00.000Z",
-      "endDate": "2025-06-01T00:00:00.000Z",
+      "startDate": {"$date": "2025-05-01T00:00:00.000Z"},
+      "endDate": {"$date": "2025-06-01T00:00:00.000Z"},
       "autoRenew": true,
       "renewalDays": 30
     },
     "usageLevels": {
-      "totalAttendeesPerMonth": {
-        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
-        "consumed": 120
-      },
-      "maxCloudRecordingSize": {
-        "resetTimeStamp": "2025-05-01T00:00:00.000Z",
-        "consumed": 5
+      "zoom": {
+        "totalAttendeesPerMonth": {
+          "resetTimeStamp": {"$date": "2025-05-01T00:00:00.000Z"},
+          "consumed": 120
+        },
+        "maxCloudRecordingSize": {
+          "resetTimeStamp": {"$date": "2025-05-01T00:00:00.000Z"},
+          "consumed": 5
+        }
       }
     },
     "contractedServices": {
@@ -95,8 +97,8 @@
     },
     "history": [
       {
-        "startDate": "2025-04-01T00:00:00.000Z",
-        "endDate": "2025-05-01T00:00:00.000Z",
+        "startDate": {"$date": "2025-04-01T00:00:00.000Z"},
+        "endDate": {"$date": "2025-05-01T00:00:00.000Z"},
         "contractedServices": {
           "zoom": "2024"
         },
@@ -117,19 +119,21 @@
       "phone": "+34911222333"
     },
     "billingPeriod": {
-      "startDate": "2025-05-01T00:00:00.000Z",
-      "endDate": "2026-05-01T00:00:00.000Z",
+      "startDate": {"$date": "2025-05-01T00:00:00.000Z"},
+      "endDate": {"$date": "2026-05-01T00:00:00.000Z"},
       "autoRenew": true,
       "renewalDays": 360
     },
     "usageLevels": {
-      "totalAttendeesPerMonth": {
-        "resetTimeStamp": "2025-07-31T00:00:00.000Z",
-        "consumed": 3200
-      },
-      "maxCloudRecordingSize": {
-        "resetTimeStamp": "2025-07-31T00:00:00.000Z",
-        "consumed": 120
+      "zoom": {
+        "totalAttendeesPerMonth": {
+          "resetTimeStamp": {"$date": "2025-07-31T00:00:00.000Z"},
+          "consumed": 3200
+        },
+        "maxCloudRecordingSize": {
+          "resetTimeStamp": {"$date": "2025-07-31T00:00:00.000Z"},
+          "consumed": 120
+        }
       }
     },
     "contractedServices": {
@@ -147,8 +151,8 @@
     },
     "history": [
       {
-        "startDate": "2025-03-01T00:00:00.000Z",
-        "endDate": "2025-05-01T00:00:00.000Z",
+        "startDate": {"$date": "2025-03-01T00:00:00.000Z"},
+        "endDate": {"$date": "2025-05-01T00:00:00.000Z"},
         "contractedServices": {
           "zoom": "2024"
         },
