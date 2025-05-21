@@ -1,4 +1,3 @@
-// filepath: /Users/alex/Desktop/Doctorado/space-api/src/test/user.test.ts
 import request from 'supertest';
 import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
@@ -52,9 +51,9 @@ describe('User API Test Suite', function () {
       expect(response.body.apiKey).toBeDefined();
       expect(response.body.apiKey).not.toBe(oldApiKey);
 
-      // Actualizar la API Key para futuras pruebas
+      // Update the API Key for future tests
       adminApiKey = response.body.apiKey;
-      // Actualizar el usuario en la base de datos
+      // Update the user in the database
       const updatedUser = (await request(app).get(`${baseUrl}/users/${adminUser.username}`).set('x-api-key', adminApiKey)).body;
       adminUser = updatedUser;
     });
@@ -99,7 +98,6 @@ describe('User API Test Suite', function () {
     });
 
     it('Should get a user by username', async function () {
-      // Primero crear un usuario de prueba
       testUser = await createTestUser(USER_ROLES[USER_ROLES.length - 1]);
 
       const response = await request(app)
@@ -111,11 +109,10 @@ describe('User API Test Suite', function () {
     });
 
     it('Should update a user', async function () {
-      // Primero crear un usuario de prueba
       testUser = await createTestUser('MANAGER');
 
       const updatedData = {
-        username: `updated_${Date.now()}`, // Usar timestamp para evitar conflictos
+        username: `updated_${Date.now()}`, // Use timestamp to ensure uniqueness
       };
 
       const response = await request(app)
@@ -126,12 +123,12 @@ describe('User API Test Suite', function () {
       expect(response.status).toBe(200);
       expect(response.body.username).toBe(updatedData.username);
 
-      // Actualizar el usuario de prueba
+      // Update the test user
       testUser = response.body;
     });
 
     it("Should change a user's role", async function () {
-      // Primero crear un usuario de prueba
+      // First create a test user
       testUser = await createTestUser(USER_ROLES[USER_ROLES.length - 1]);
 
       const newRole = 'MANAGER';
@@ -144,12 +141,12 @@ describe('User API Test Suite', function () {
       expect(response.body.username).toBe(testUser.username);
       expect(response.body.role).toBe(newRole);
 
-      // Actualizar el usuario de prueba
+      // Update the test user
       testUser = response.body;
     });
 
     it('Should delete a user', async function () {
-      // Primero crear un usuario de prueba
+      // First create a test user
       testUser = await createTestUser(USER_ROLES[USER_ROLES.length - 1]);
 
       const response = await request(app)
@@ -158,14 +155,14 @@ describe('User API Test Suite', function () {
 
       expect(response.status).toBe(204);
 
-      // Intentar obtener el usuario eliminado
+      // Try to get the deleted user
       const getResponse = await request(app)
         .get(`${baseUrl}/users/${testUser.username}`)
         .set('x-api-key', adminApiKey);
 
       expect(getResponse.status).toBe(404);
 
-      // Para evitar el cleanup doble
+      // To avoid double cleanup
       testUser = null;
     });
   });
@@ -175,13 +172,13 @@ describe('User API Test Suite', function () {
     let managerUser: any;
 
     beforeEach(async function () {
-      // Crear usuarios con diferentes roles
+      // Create users with different roles
       evaluatorUser = await createTestUser('EVALUATOR');
       managerUser = await createTestUser('MANAGER');
     });
 
     afterEach(async function () {
-      // Limpiar usuarios creados
+      // Clean up created users
       if (evaluatorUser?.username) await deleteTestUser(evaluatorUser.username);
       if (managerUser?.username) await deleteTestUser(managerUser.username);
     });

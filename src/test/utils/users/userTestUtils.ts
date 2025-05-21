@@ -1,11 +1,10 @@
-// filepath: /Users/alex/Desktop/Doctorado/space-api/src/test/utils/users/userTestUtils.ts
 import request from 'supertest';
 import { baseUrl } from '../testApp';
 import { Server } from 'http';
 import UserMongoose from '../../../main/repositories/mongoose/models/UserMongoose';
 import { Role, USER_ROLES } from '../../../main/types/models/User';
 
-// Crear un usuario de prueba directamente en la base de datos
+// Create a test user directly in the database
 export const createTestUser = async (role: Role = USER_ROLES[USER_ROLES.length - 1]): Promise<any> => {
   const userData = {
     username: `test_user_${Date.now()}`,
@@ -13,14 +12,14 @@ export const createTestUser = async (role: Role = USER_ROLES[USER_ROLES.length -
     role
   };
 
-  // Crear usuario directamente en la base de datos
+  // Create user directly in the database
   const user = new UserMongoose(userData);
   await user.save();
   
   return user.toObject();
 };
 
-// Generar una nueva API Key para un usuario
+// Generate a new API Key for a user
 export const regenerateApiKey = async (app: Server, userId: string, apiKey: string): Promise<string> => {
   const response = await request(app)
     .post(`${baseUrl}/users/${userId}/api-key`)
@@ -29,7 +28,7 @@ export const regenerateApiKey = async (app: Server, userId: string, apiKey: stri
   return response.body.apiKey;
 };
 
-// Cambiar el rol de un usuario
+// Change the role of a user
 export const changeUserRole = async (app: Server, userId: string, newRole: Role, apiKey: string): Promise<any> => {
   const response = await request(app)
     .put(`${baseUrl}/users/${userId}/role`)
@@ -39,7 +38,7 @@ export const changeUserRole = async (app: Server, userId: string, newRole: Role,
   return response.body;
 };
 
-// Eliminar un usuario de prueba directamente de la base de datos
+// Delete a test user directly from the database
 export const deleteTestUser = async (userId: string): Promise<void> => {
   await UserMongoose.deleteOne({ username: userId });
 };

@@ -112,10 +112,6 @@ class ContractRepository extends RepositoryBase {
       throw new Error('No contracts were updated or inserted');
     }
 
-    if (result.modifiedCount > 0) {
-      console.log(`${result.modifiedCount} of ${contracts.length} contracts were updated`);
-    }
-
     return true;
   }
 

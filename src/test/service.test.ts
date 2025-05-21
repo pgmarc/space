@@ -27,13 +27,13 @@ describe('Services API Test Suite', function () {
 
   beforeAll(async function () {
     app = await getApp();
-    // Obtener usuario administrador y API Key para las pruebas
+    // Get admin user and api key for testing
     await getTestAdminUser();
     adminApiKey = await getTestAdminApiKey();
   });
 
   afterAll(async function () {
-    // Limpiar recursos de autenticación
+    // Cleanup authentication resources
     await cleanupAuthResources();
     await shutdownApp();
   });

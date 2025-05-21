@@ -341,7 +341,6 @@ describe('Features API Test Suite', function () {
       });
     });
 
-    // Modificamos la sección de la prueba con el límite de visitas
     it('Should return 200 and visits as false since its limit has been reached', async function () {
       const testUserId = uuidv4();
       await createTestContract(testUserId);

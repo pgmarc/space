@@ -1,13 +1,12 @@
-// filepath: /Users/alex/Desktop/Doctorado/space-api/src/main/middlewares/AuthMiddleware.ts
 import { NextFunction } from 'express';
 import container from '../config/container';
 import { RestOperation, Role, ROLE_PERMISSIONS, USER_ROLES } from '../types/models/User';
 
-// Middleware para verificar API Key
+// Middleware to verify API Key
 const authenticateApiKey = async (req: any, res: any, next: NextFunction) => {
   const userService = container.resolve('userService');
   
-  // Obtener la API Key del header
+  // Get the API Key from the header
   const apiKey = req.headers['x-api-key'];
   if (!apiKey) {
     return res.status(401).send({ error: 'API Key not found. Please ensure to add an API Key as value of the "x-api-key" header.' });
@@ -22,11 +21,11 @@ const authenticateApiKey = async (req: any, res: any, next: NextFunction) => {
   }
 };
 
-// Middleware para verificar rol y permisos
+// Middleware to verify role and permissions
 const hasPermission = (req: any, res: any, next: NextFunction) => {
   try {
     if (!req.user) {
-      return res.status(403).send({ error: 'Usuario no autenticado' });
+      return res.status(403).send({ error: 'User not authenticated' });
     }
 
     const roleId: Role = req.user.role ?? USER_ROLES[USER_ROLES.length - 1];

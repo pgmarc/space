@@ -1,40 +1,40 @@
 import UserMongoose from '../../../repositories/mongoose/models/UserMongoose';
 
 /**
- * Crea un usuario administrador por defecto si no existe
+ * Creates a default admin user if it does not exist
  */
 export const seedDefaultAdmin = async () => {
   try {
-    // Comprobar si ya existe un admin
+    // Check if an admin already exists
     const existingAdmin = await UserMongoose.findOne({ role: 'ADMIN' });
     if (existingAdmin) {
-      console.log('Ya existe un usuario administrador, omitiendo inicialización');
+      console.log('An admin user already exists, skipping initialization');
       return;
     }
 
     const adminUsername = process.env.ADMIN_USER ?? 'admin';
     const adminPassword = process.env.ADMIN_PASSWORD ?? 'space4all';
 
-    // Crear usuario administrador por defecto
+    // Create default admin user
     const admin = new UserMongoose({
       username: adminUsername,
-      password: adminPassword, // Se encriptará automáticamente por el hook pre-save
+      password: adminPassword, // It will be automatically encrypted by the pre-save hook
       role: 'ADMIN'
     });
 
-    // Guardar admin
+    // Save admin
     await admin.save();
     
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Usuario administrador creado con éxito:');
-      console.log(`Username: ${adminUsername}`);
-      console.log(`Password: ${adminPassword}`);
-      console.log(`API Key: ${admin.apiKey}`);
+      console.log('Admin user successfully created:');
+      console.log(`\tUsername: ${adminUsername}`);
+      console.log(`\tPassword: ${adminPassword}`);
+      console.log(`\tAPI Key: ${admin.apiKey}`);
     }
     
     return admin;
   } catch (error) {
-    console.error('Error al crear el usuario administrador:', error);
+    console.error('Error creating the admin user:', error);
     throw error;
   }
 };

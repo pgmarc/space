@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction, Router } from 'express';
 import { authenticateApiKey, hasPermission } from './AuthMiddleware';
 
-// Rutas públicas que no requieren autenticación
+// Public routes that won't require authentication
 const PUBLIC_ROUTES = [
   '/users/authenticate'
 ];
 
 /**
- * Middleware que aplica autenticación y verificación de permisos a todas las rutas
- * excepto las que se especifican como públicas
+ * Middleware that applies authentication and permission verification to all routes
+ * except those specified as public
  */
 export const apiKeyAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const baseUrl = process.env.BASE_URL_PATH || '/api';
   
-  // Verificar si la ruta actual es pública (no requiere autenticación)
+  // Check if the current route is public (doesn't require authentication)
   const path = req.path.replace(baseUrl, '');
   const isPublicRoute = PUBLIC_ROUTES.some(route => path.startsWith(route));
   
@@ -21,7 +21,7 @@ export const apiKeyAuthMiddleware = (req: Request, res: Response, next: NextFunc
     return next();
   }
   
-  // Aplicar autenticación y verificación de permisos
+  // Apply authentication and permission verification
   authenticateApiKey(req, res, (err?: any) => {
     if (err) return next(err);
     hasPermission(req, res, next);

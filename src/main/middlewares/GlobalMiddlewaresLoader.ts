@@ -15,8 +15,8 @@ const loadGlobalMiddlewares = (app: express.Application) => {
   app.use(express.json({limit: '2mb'}));
   app.use(express.urlencoded({limit: '2mb', extended: true}));
   
-  // Aplicar middleware de autenticación con API Key a todas las rutas
-  // excepto las definidas como públicas
+  // Apply API Key authentication middleware to all routes
+  // except those defined as public
   app.use(apiKeyAuthMiddleware);
 };
 

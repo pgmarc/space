@@ -2,7 +2,7 @@ export interface TestPricing {
   id?: string;
   version: string;
   currency: string;
-  createdAt: string; // o Date si no haces `JSON.stringify`
+  createdAt: string;
   features: Record<string, TestFeature>;
   usageLimits?: Record<string, TestUsageLimit>;
   plans?: Record<string, TestPlan>;

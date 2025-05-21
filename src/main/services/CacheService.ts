@@ -41,7 +41,7 @@ class CacheService {
       throw new Error('Redis client not initialized');
     }
 
-    // Obtener todas las claves (nota: usar con precaución en BD grandes)
+    // Retrieve all keys (note: use with caution on large databases)
     const allKeys = await this.redisClient.keys(keyLocationPattern);
 
     return allKeys;

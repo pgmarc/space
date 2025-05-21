@@ -3,12 +3,12 @@ import { Server } from 'http';
 import request from 'supertest';
 import { baseUrl } from './testApp';
 
-// Usuario administrador para pruebas
+// Admin user for testing
 let testAdminUser: any = null;
 
 /**
- * Obtiene un usuario administrador para usar en las pruebas.
- * Crea uno nuevo si no existe.
+ * Retrieves an admin user for testing purposes.
+ * Creates a new one if it does not exist.
  */
 export const getTestAdminUser = async (): Promise<any> => {
   if (!testAdminUser) {
@@ -18,7 +18,7 @@ export const getTestAdminUser = async (): Promise<any> => {
 };
 
 /**
- * Obtiene la API Key de un usuario administrador para usar en las pruebas.
+ * Retrieves the API Key of an admin user for use in tests.
  */
 export const getTestAdminApiKey = async (): Promise<string> => {
   const admin = await getTestAdminUser();
@@ -26,8 +26,8 @@ export const getTestAdminApiKey = async (): Promise<string> => {
 };
 
 /**
- * Añade el header de API Key a una petición de supertest.
- * Útil para incluir en todas las peticiones de prueba.
+ * Adds the API Key header to a supertest request.
+ * Useful for including in all test requests.
  */
 export const withApiKey = async (request: request.Test): Promise<request.Test> => {
   const apiKey = await getTestAdminApiKey();
@@ -35,7 +35,7 @@ export const withApiKey = async (request: request.Test): Promise<request.Test> =
 };
 
 /**
- * Realiza una petición GET con la API Key de administrador.
+ * Performs a GET request with the admin API Key.
  */
 export const authenticatedGet = async (app: Server, path: string): Promise<request.Response> => {
   const apiKey = await getTestAdminApiKey();
@@ -45,7 +45,7 @@ export const authenticatedGet = async (app: Server, path: string): Promise<reque
 };
 
 /**
- * Realiza una petición POST con la API Key de administrador.
+ * Performs a POST request with the admin API Key.
  */
 export const authenticatedPost = async (app: Server, path: string, body?: any): Promise<request.Response> => {
   const apiKey = await getTestAdminApiKey();
@@ -60,7 +60,7 @@ export const authenticatedPost = async (app: Server, path: string, body?: any): 
 };
 
 /**
- * Limpia los recursos de autenticación después de las pruebas.
+ * Cleans up authentication resources after tests.
  */
 export const cleanupAuthResources = async (): Promise<void> => {
   if (testAdminUser?.username) {

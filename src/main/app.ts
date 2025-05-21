@@ -10,10 +10,10 @@ import { seedDatabase } from "./database/seeders/mongo/seeder";
 import loadGlobalMiddlewares from "./middlewares/GlobalMiddlewaresLoader";
 import routes from "./routes/index";
 
-const green = "\x1b[32m"; // Color verde
-const blue = "\x1b[36m"; // Color azul
-const reset = "\x1b[0m"; // Resetear el estilo al final de la línea
-const bold = "\x1b[1m"; // Negrita
+const green = "\x1b[32m";
+const blue = "\x1b[36m";
+const reset = "\x1b[0m";
+const bold = "\x1b[1m";
 
 const initializeApp = async () => {
   dotenv.config();

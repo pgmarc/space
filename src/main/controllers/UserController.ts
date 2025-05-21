@@ -1,4 +1,3 @@
-// filepath: /Users/alex/Desktop/Doctorado/space-api/src/main/controllers/UserController.ts
 import container from '../config/container.js';
 import UserService from '../services/UserService.js';
 import { USER_ROLES } from '../types/models/User.js';

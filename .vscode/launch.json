@@ -1,5 +1,4 @@
 {
-  // Configuración de launch.json para ejecutar y depurar pruebas con pnpm
   "version": "0.2.0",
   "configurations": [
     {

@@ -16,7 +16,7 @@ const planSchema = new Schema(
       of: Schema.Types.Mixed, // boolean or number
     },
   },
-  { _id: false } // Si quieres que el plan embebido no tenga _id (opcional según contexto)
+  { _id: false } // To not create an _id field for each plan
 );
 
 export default planSchema;

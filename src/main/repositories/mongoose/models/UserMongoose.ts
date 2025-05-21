@@ -1,4 +1,3 @@
-// filepath: /Users/alex/Desktop/Doctorado/space-api/src/main/repositories/mongoose/models/UserMongoose.ts
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Schema } from 'mongoose';
 import { generateApiKey, hashPassword } from '../../../utils/users/helpers';
@@ -46,13 +45,13 @@ userSchema.methods.verifyPassword = async function(password: string) {
 userSchema.pre('save', async function(next) {
   const user = this;
   
-  // Si la contraseña no ha cambiado, seguimos
+  // If the password hasn't changed, we continue
   if (!user.isModified('password')) return next();
 
   try {
     user.password = await hashPassword(user.password);
     
-    // Si no tiene API Key, la generamos
+    // If there's no API Key, we generate one
     if (!user.apiKey) {
       user.apiKey = generateApiKey();
     }

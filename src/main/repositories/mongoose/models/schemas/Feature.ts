@@ -18,7 +18,7 @@ const featureSchema = new Schema(
     render: { type: String, enum: ["AUTO", "ENABLED", "DISABLED"], required: true, default: "AUTO" },
     tag: { type: String }
   },
-  { _id: false } // importante: no quieres _id en cada feature si son embebidos
+  { _id: false } // To not create an _id field for each feature
 );
 
 export default featureSchema;
