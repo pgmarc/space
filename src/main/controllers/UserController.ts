@@ -67,12 +67,14 @@ class UserController {
 
   async update(req: any, res: any) {
     try {
-      const user = await this.userService.update(req.params.username, req.body);
+      const user = await this.userService.update(req.params.username, req.body, req.user);
       res.json(user);
     } catch (err: any) {
       if (err.name?.includes('ValidationError') || err.code === 11000) {
         res.status(422).send({ error: err.message });
-      } else if (
+      } else if (err.message.toLowerCase().includes('permissions')) {
+        res.status(403).send({ error: err.message });
+      }else if (
         err.message.toLowerCase().includes('already') ||
         err.message.toLowerCase().includes('not found')
       ) {
@@ -93,7 +95,9 @@ class UserController {
         err.message.toLowerCase().includes('not found')
       ) {
         res.status(404).send({ error: err.message });
-      } else {
+      } else if (err.message.toLowerCase().includes('permissions')) {
+        res.status(403).send({ error: err.message });
+      }else {
         res.status(500).send({ error: err.message });
       }
     }
@@ -106,10 +110,12 @@ class UserController {
         return res.status(400).send({ error: 'Rol no válido' });
       }
 
-      const user = await this.userService.changeRole(req.params.username, role);
+      const user = await this.userService.changeRole(req.params.username, role, req.user);
       res.json(user);
     } catch (err: any) {
-      if (
+      if (err.message.toLowerCase().includes('permissions')) {
+        res.status(403).send({ error: err.message });
+      }else if (
         err.message.toLowerCase().includes('already') ||
         err.message.toLowerCase().includes('not found')
       ) {

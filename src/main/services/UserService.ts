@@ -45,10 +45,19 @@ class UserService {
     return this.userRepository.create(userData);
   }
 
-  async update(username: string, userData: any) {
+  async update(username: string, userData: any, creatorData: LeanUser) {
+    
+    if (creatorData.role !== 'ADMIN' && userData.role === 'ADMIN') {
+      throw new Error('Not enough permissions: Only admins can change roles to admin.');
+    }
+    
     const user = await this.userRepository.findByUsername(username);
     if (!user) {
       throw new Error('User not found');
+    }
+    
+    if (creatorData.role !== 'ADMIN' && user.role === 'ADMIN') {
+      throw new Error('Not enough permissions: Only admins can update admin users.');
     }
 
     if (userData.username){
@@ -73,10 +82,19 @@ class UserService {
     return newApiKey;
   }
 
-  async changeRole(username: string, role: Role) {
+  async changeRole(username: string, role: Role, creatorData: LeanUser) {
+    
+    if (creatorData.role !== 'ADMIN' && role === 'ADMIN') {
+      throw new Error('Not enough permissions: Only admins can assign the role ADMIN.');
+    }
+    
     const user = await this.userRepository.findByUsername(username);
     if (!user) {
       throw new Error('User not found');
+    }
+
+    if (creatorData.role !== 'ADMIN' && user.role === 'ADMIN') {
+      throw new Error('Not enough permissions: Only admins can update admin users.');
     }
 
     return this.userRepository.changeRole(username, role);

@@ -89,6 +89,24 @@ describe('User API Test Suite', function () {
       testUser = response.body;
     });
 
+    it('Should NOT create admin user', async function () {
+      const creatorData = await createTestUser('MANAGER');
+      
+      const userData = {
+        username: `test_user_${Date.now()}`,
+        password: 'password123',
+        role: USER_ROLES[0],
+      };
+
+      const response = await request(app)
+        .post(`${baseUrl}/users`)
+        .set('x-api-key', creatorData.apiKey)
+        .send(userData);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe("Not enough permissions: Only admins can create other admins.");
+    });
+
     it('Should get all users', async function () {
       const response = await request(app).get(`${baseUrl}/users`).set('x-api-key', adminApiKey);
 
@@ -127,6 +145,40 @@ describe('User API Test Suite', function () {
       testUser = response.body;
     });
 
+    it('Should NOT update user to admin', async function () {
+      const creatorData = await createTestUser('MANAGER');
+      const testAdmin = await createTestUser('ADMIN');
+      
+      const userData = {
+        role: USER_ROLES[0],
+      };
+
+      const response = await request(app)
+        .put(`${baseUrl}/users/${testAdmin.username}`)
+        .set('x-api-key', creatorData.apiKey)
+        .send(userData);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe("Not enough permissions: Only admins can change roles to admin.");
+    });
+
+    it('Should NOT update user to admin', async function () {
+      const creatorData = await createTestUser('MANAGER');
+      const testAdmin = await createTestUser('ADMIN');
+      
+      const userData = {
+        username: `updated_${Date.now()}`,
+      };
+
+      const response = await request(app)
+        .put(`${baseUrl}/users/${testAdmin.username}`)
+        .set('x-api-key', creatorData.apiKey)
+        .send(userData);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe("Not enough permissions: Only admins can update admin users.");
+    });
+
     it("Should change a user's role", async function () {
       // First create a test user
       testUser = await createTestUser(USER_ROLES[USER_ROLES.length - 1]);
@@ -143,6 +195,36 @@ describe('User API Test Suite', function () {
 
       // Update the test user
       testUser = response.body;
+    });
+
+    it("Should NOT change an admin's role", async function () {
+      const creatorData = await createTestUser('MANAGER');
+      const adminUser = await createTestUser(USER_ROLES[0]);
+
+      const newRole = 'MANAGER';
+
+      const response = await request(app)
+        .put(`${baseUrl}/users/${adminUser.username}/role`)
+        .set('x-api-key', creatorData.apiKey)
+        .send({ role: newRole });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe("Not enough permissions: Only admins can update admin users.");
+    });
+
+    it("Should NOT change a user's role to ADMIN", async function () {
+      const creatorData = await createTestUser('MANAGER');
+      const evaluatorUser = await createTestUser(USER_ROLES[USER_ROLES.length - 1]);
+
+      const newRole = 'ADMIN';
+
+      const response = await request(app)
+        .put(`${baseUrl}/users/${evaluatorUser.username}/role`)
+        .set('x-api-key', creatorData.apiKey)
+        .send({ role: newRole });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe("Not enough permissions: Only admins can assign the role ADMIN.");
     });
 
     it('Should delete a user', async function () {
