@@ -1,6 +1,11 @@
 import {createClient} from "redis";
 
 const initRedis: any = async () => {
+  
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL environment variable is not defined. It is not possible to init the Redis client.");
+  }
+  
   const redisClient = createClient({
     url: process.env.REDIS_URL,
   });

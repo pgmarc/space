@@ -25,7 +25,7 @@ export const seedDefaultAdmin = async () => {
     // Save admin
     await admin.save();
     
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.ENVIRONMENT !== 'production') {
       console.log('Admin user successfully created:');
       console.log(`\tUsername: ${adminUsername}`);
       console.log(`\tPassword: ${adminPassword}`);

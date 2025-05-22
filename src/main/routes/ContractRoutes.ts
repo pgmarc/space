@@ -7,7 +7,7 @@ import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
 const loadFileRoutes = function (app: express.Application) {
   const contractController = new ContractController();
 
-  const baseUrl = process.env.BASE_URL_PATH || '/api';
+  const baseUrl = process.env.BASE_URL_PATH || '/api/v1';
 
   app
     .route(baseUrl + '/contracts')

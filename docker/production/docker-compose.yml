@@ -1,23 +1,32 @@
-version: '3'
-
 services:
   mongodb:
       image: mongo:7.0.16
-      ports:
-        - "27017:27017"
       env_file:
-        - ../../.env.production
+        - ../../.env
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: 4dm1n
+        MONGO_INITDB_DATABASE: space_db
       volumes:
         - 'space-mongodb:/data/db'
-        - '../../api/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
+        - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
       networks:
         - space-network
+      # healthcheck:
+      #   test: [ "CMD", "mongo", "--username", "${MONGO_INITDB_ROOT_USERNAME:-root}", "--password", "${MONGO_INITDB_ROOT_PASSWORD:-4dm1n}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')" ]
+      #   interval: 5s
+      #   timeout: 5s
+      #   retries: 3
+      #   start_period: 5s
   redis:
     image: redis:7.4.2
-    ports:
-      - "6379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: always
     volumes:
       - 'redis_data:/data'
     networks:
@@ -26,12 +35,16 @@ services:
     restart: always
     container_name: space-server
     build:
-        context: ../../src/main
+        context: ../../
         dockerfile: ./docker/production/Dockerfile
     ports:
-      - 8080:8080
+      - 5403:3000
     env_file:
-      - ../../.env.production
+      - ../../.env
+    environment:
+      ENVIRONMENT: production
+      MONGO_URI: mongodb://testUsername:testPass@mongodb:27017/space_db
+      REDIS_URL: redis://redis:6379
     volumes:
       - 'space-statics:/usr/src/server/public'
     depends_on:
@@ -42,6 +55,12 @@ services:
       - redis
     networks:
       - space-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/healthcheck"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 volumes:
   space-mongodb:
     driver: local

@@ -36,7 +36,7 @@ const hasPermission = (req: any, res: any, next: NextFunction) => {
     }
 
     const method: string = req.method;
-    const module = req.path.split('/api/')[1].split('/')[0];
+    const module = req.path.split(`${process.env.BASE_URL_PATH ?? "/api/v1"}`)[1].split('/')[1];
 
     if (role.allowAll){
       return next();

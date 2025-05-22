@@ -3,7 +3,8 @@ import { authenticateApiKey, hasPermission } from './AuthMiddleware';
 
 // Public routes that won't require authentication
 const PUBLIC_ROUTES = [
-  '/users/authenticate'
+  '/users/authenticate',
+  '/healthcheck'
 ];
 
 /**
@@ -11,7 +12,7 @@ const PUBLIC_ROUTES = [
  * except those specified as public
  */
 export const apiKeyAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const baseUrl = process.env.BASE_URL_PATH || '/api';
+  const baseUrl = process.env.BASE_URL_PATH || '/api/v1';
   
   // Check if the current route is public (doesn't require authentication)
   const path = req.path.replace(baseUrl, '');

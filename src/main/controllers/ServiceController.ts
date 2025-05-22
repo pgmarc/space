@@ -2,8 +2,7 @@ import container from '../config/container.js';
 import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
-import { Subscription } from '../types/models/Contract.js';
-import { FallBackSubscription } from '../../test/types/models/Contract.js';
+import { FallBackSubscription } from '../types/models/Contract.js';
 
 class ServiceController {
   private readonly serviceService: ServiceService;

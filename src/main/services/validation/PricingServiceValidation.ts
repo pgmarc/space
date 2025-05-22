@@ -1,4 +1,4 @@
-import { ExpectedPricingType } from "../../utils/pricing-yaml2json";
+import { ExpectedPricingType } from "../../types/models/Pricing";
 
 function validatePricingData(pricingData: ExpectedPricingType): string[] {
   const errors: string[] = [];

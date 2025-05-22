@@ -7,6 +7,10 @@ services:
         - "27017:27017"
       env_file:
         - ../../.env
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: 4dm1n
+        MONGO_INITDB_DATABASE: space_db
       volumes:
         - 'dev-space-mongodb:/data/db'
         - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
