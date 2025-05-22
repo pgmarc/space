@@ -3,7 +3,8 @@ import { authenticateApiKey, hasPermission } from './AuthMiddleware';
 
 // Public routes that won't require authentication
 const PUBLIC_ROUTES = [
-  '/users/authenticate'
+  '/users/authenticate',
+  '/healthcheck'
 ];
 
 /**

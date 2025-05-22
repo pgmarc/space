@@ -1,21 +1,32 @@
-version: '3'
-
 services:
   mongodb:
       image: mongo:7.0.16
+      env_file:
+        - ../../.env
       environment:
-        MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-testUser}
-        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-testPassword}
-        MONGO_INITDB_DATABASE: ${DATABASE_NAME:-space_db}
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: 4dm1n
+        MONGO_INITDB_DATABASE: space_db
       volumes:
         - 'space-mongodb:/data/db'
         - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
       networks:
         - space-network
+      # healthcheck:
+      #   test: [ "CMD", "mongo", "--username", "${MONGO_INITDB_ROOT_USERNAME:-root}", "--password", "${MONGO_INITDB_ROOT_PASSWORD:-4dm1n}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')" ]
+      #   interval: 5s
+      #   timeout: 5s
+      #   retries: 3
+      #   start_period: 5s
   redis:
     image: redis:7.4.2
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: always
     volumes:
       - 'redis_data:/data'
     networks:
@@ -27,22 +38,13 @@ services:
         context: ../../
         dockerfile: ./docker/production/Dockerfile
     ports:
-      - ${SERVER_PORT:-3000}:${SERVER_PORT:-3000}
+      - 5403:3000
     env_file:
       - ../../.env
     environment:
       NODE_ENV: production
-      SERVER_PORT: ${SERVER_PORT:-3000}
-      BASE_URL_PATH: ${BASE_URL_PATH}
-      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-testUser}
-      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-testPassword}
-      MONGO_URI: mongodb://${DATABASE_USERNAME:-testUser}:${DATABASE_PASSWORD:-testUser}@mongodb:27017/${DATABASE_NAME:-space_db}
+      MONGO_URI: mongodb://testUsername:testPass@mongodb:27017/space_db
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_SALT: ${JWT_SALT}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      ADMIN_USER: ${ADMIN_USER:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-space4all}
     volumes:
       - 'space-statics:/usr/src/server/public'
     depends_on:
@@ -53,6 +55,12 @@ services:
       - redis
     networks:
       - space-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/healthcheck"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 volumes:
   space-mongodb:
     driver: local

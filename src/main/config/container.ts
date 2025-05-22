@@ -45,6 +45,6 @@ function initContainer(databaseType: string): AwilixContainer {
 }
 
 let container: AwilixContainer | null = null;
-if (!container) { container = initContainer(process.env.DATABASE_TECHNOLOGY ?? ""); }
+if (!container) { container = initContainer(process.env.DATABASE_TECHNOLOGY ?? "mongoDB"); }
 
 export default container as AwilixContainer;

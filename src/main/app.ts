@@ -9,6 +9,7 @@ import { initRedis } from "./config/redis";
 import { seedDatabase } from "./database/seeders/mongo/seeder";
 import loadGlobalMiddlewares from "./middlewares/GlobalMiddlewaresLoader";
 import routes from "./routes/index";
+import { seedDefaultAdmin } from "./database/seeders/common/userSeeder";
 
 const green = "\x1b[32m";
 const blue = "\x1b[36m";
@@ -32,7 +33,7 @@ const initializeServer = async (): Promise<{
   app: Application;
 }> => {
   const app: Application = await initializeApp();
-  const port = process.env.SERVER_PORT || 3000; 
+  const port = 3000; 
 
   // Using a promise to ensure the server is started before returning it
   const server: Server = await new Promise((resolve, reject) => {
@@ -45,7 +46,7 @@ const initializeServer = async (): Promise<{
   const addressInfo: AddressInfo = server.address() as AddressInfo;
 
   console.log(
-    `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost:${bold}${addressInfo.port}/${reset}`
+    `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost${addressInfo.port !== 80 ? `:${bold}${addressInfo.port}${reset}/` : "/"}`
   );
 
   return { server, app };
@@ -59,6 +60,8 @@ const initializeDatabase = async () => {
         connection = await initMongoose();
         if (process.env.ENVIRONMENT === "development") {
           await seedDatabase();
+        }else{
+          await seedDefaultAdmin();
         }
         break;
       default:

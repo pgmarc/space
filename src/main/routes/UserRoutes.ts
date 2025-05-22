@@ -4,7 +4,7 @@ import UserController from '../controllers/UserController';
 import * as UserValidation from '../controllers/validation/UserValidation';
 import { handleValidation } from '../middlewares/ValidationHandlingMiddleware';
 
-const loadUserRoutes = function (app: express.Application) {
+const loadFileRoutes = function (app: express.Application) {
   const userController = new UserController();
   
   const baseUrl = process.env.BASE_URL_PATH || '/api/v1';
@@ -43,4 +43,4 @@ const loadUserRoutes = function (app: express.Application) {
     );
 };
 
-export default loadUserRoutes;
+export default loadFileRoutes;

@@ -15,16 +15,16 @@ COPY ./pnpm-lock.yaml .
 RUN pnpm install 
 
 # Copy the rest of the application source code to the container
-COPY ./src/main .
+RUN mkdir src
+COPY ./src/main ./src
 
 # Copy tsconfig.json to the container
-COPY ./tsconfig.build.json .
+COPY ./tsconfig.json .
 
 # Build your application
-RUN pnpm run build --project tsconfig.build.json
-RUN pnpx tsc-alias -p tsconfig.build.json
+RUN pnpm run build --project tsconfig.json
+# Arregla los imports relativos en la salida ESM usando tsc-alias
+RUN pnpx tsc-alias --project="./tsconfig.json" --resolve-full-paths
 
-EXPOSE ${SERVER_PORT:-8080}
-
-# Specify the command to start your React app
+# Specify the command to start the server
 CMD [ "node", "dist/index.js"]

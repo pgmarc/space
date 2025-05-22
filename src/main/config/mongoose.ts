@@ -18,24 +18,9 @@ dotenv.config();
 // };
 
 const getMongoDBConnectionURI = () => {
-  const databaseName = process.env.DATABASE_NAME;
-  
-  if (!databaseName && !process.env.MONGO_URI) {
-    throw new Error('You need to provide a database name through the DATABASE_NAME environment variable');
-  }
-
-  const databaseUsername = process.env.DATABASE_USERNAME;
-
-  if (!databaseUsername && !process.env.MONGO_URI) {
-    throw new Error('You need to provide a database username through the DATABASE_USERNAME environment variable');
-  }
-
-  const databasePassword = process.env.DATABASE_PASSWORD;
-
-  if (!databasePassword && !process.env.MONGO_URI) {
-    throw new Error('You need to provide a database password through the DATABASE_PASSWORD environment variable');
-  }
-
+  const databaseName = process.env.DATABASE_NAME ?? "space_db";
+  const databaseUsername = process.env.DATABASE_USERNAME ?? "mongoUser";
+  const databasePassword = process.env.DATABASE_PASSWORD ?? "mongoPassword";
   const dbCredentials =
     databaseUsername && databasePassword ? databaseUsername + ':' + databasePassword + '@' : '';
 
