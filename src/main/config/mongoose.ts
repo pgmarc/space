@@ -24,7 +24,10 @@ const getMongoDBConnectionURI = () => {
   const dbCredentials =
     databaseUsername && databasePassword ? databaseUsername + ':' + databasePassword + '@' : '';
 
-  return process.env.MONGO_URI || `mongodb://${dbCredentials}localhost:27017/${databaseName}`;
+    
+  const wholeUri = process.env.MONGO_URI || `mongodb://${dbCredentials}localhost:27017/${databaseName}?authSource=${databaseName}`;
+
+  return wholeUri;
 }
 
 const initMongoose = () => {

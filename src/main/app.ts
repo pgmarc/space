@@ -49,6 +49,15 @@ const initializeServer = async (): Promise<{
     `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost${addressInfo.port !== 80 ? `:${bold}${addressInfo.port}${reset}/` : "/"}`
   );
 
+  if (["development", "testing"].includes(process.env.ENVIRONMENT ?? "")) {
+    console.log(`${green}➜${reset}  ${bold}Loaded Routes:${reset}`);
+    app._router.stack
+      .filter((layer: any) => layer.route)
+      .forEach((layer: any) => {
+        console.log(`  ${blue}${layer.route.path}${reset}`);
+      });
+  }
+
   return { server, app };
 };
 
@@ -58,7 +67,7 @@ const initializeDatabase = async () => {
     switch (process.env.DATABASE_TECHNOLOGY ?? "mongoDB") {
       case "mongoDB":
         connection = await initMongoose();
-        if (process.env.ENVIRONMENT === "development") {
+        if (["development", "testing"].includes(process.env.ENVIRONMENT ?? "")) {
           await seedDatabase();
         }else{
           await seedDefaultAdmin();
@@ -75,7 +84,7 @@ const initializeDatabase = async () => {
 
 const disconnectDatabase = async () => {
   try {
-    switch (process.env.DATABASE_TECHNOLOGY) {
+    switch (process.env.DATABASE_TECHNOLOGY ?? "mongoDB") {
       case "mongoDB":
         await disconnectMongoose();
         break;
