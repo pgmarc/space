@@ -22,7 +22,7 @@ export const createTestUser = async (role: Role = USER_ROLES[USER_ROLES.length -
 // Generate a new API Key for a user
 export const regenerateApiKey = async (app: Server, userId: string, apiKey: string): Promise<string> => {
   const response = await request(app)
-    .post(`${baseUrl}/users/${userId}/api-key`)
+    .put(`${baseUrl}/users/${userId}/api-key`)
     .set('x-api-key', apiKey);
   
   return response.body.apiKey;

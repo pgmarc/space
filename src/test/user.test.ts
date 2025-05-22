@@ -44,7 +44,7 @@ describe('User API Test Suite', function () {
     it('Should regenerate an API Key for a user', async function () {
       const oldApiKey = adminUser.apiKey;
       const response = await request(app)
-        .post(`${baseUrl}/users/${adminUser.username}/api-key`)
+        .put(`${baseUrl}/users/${adminUser.username}/api-key`)
         .set('x-api-key', oldApiKey);
 
       expect(response.status).toBe(200);

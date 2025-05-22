@@ -32,7 +32,7 @@ const loadUserRoutes = function (app: express.Application) {
 
   app
     .route(`${baseUrl}/users/:username/api-key`)
-    .post(userController.regenerateApiKey);
+    .put(userController.regenerateApiKey);
 
   app
     .route(`${baseUrl}/users/:username/role`)
