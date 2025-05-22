@@ -21,8 +21,3 @@ export interface TestContract {
   subscriptionAddOns: Record<string, Record<string, number>>;
   history: ContractHistoryEntry[];
 }
-
-export interface FallBackSubscription {
-  subscriptionPlan: string;
-  subscriptionAddOns: Record<string, number>;
-}

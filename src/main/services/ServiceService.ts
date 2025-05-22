@@ -11,11 +11,10 @@ import PricingRepository from '../repositories/mongoose/PricingRepository';
 import { validatePricingData } from './validation/PricingServiceValidation';
 import { LeanService } from '../types/models/Service';
 import { ExpectedPricingType, LeanPricing } from '../types/models/Pricing';
-import { LeanContract, Subscription } from '../types/models/Contract';
+import { FallBackSubscription, LeanContract } from '../types/models/Contract';
 import ContractRepository from '../repositories/mongoose/ContractRepository';
 import { performNovation } from '../utils/contracts/novation';
-import { FallBackSubscription } from '../../test/types/models/Contract';
-import { isSubscriptionValid, isSubscriptionValidInPricing } from '../controllers/validation/ContractValidation';
+import { isSubscriptionValidInPricing } from '../controllers/validation/ContractValidation';
 import { generateUsageLevels } from '../utils/contracts/helpers';
 // import CacheService from "./CacheService";
 
