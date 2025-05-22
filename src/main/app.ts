@@ -54,7 +54,7 @@ const initializeServer = async (): Promise<{
 const initializeDatabase = async () => {
   let connection;
   try {
-    switch (process.env.DATABASE_TECHNOLOGY) {
+    switch (process.env.DATABASE_TECHNOLOGY ?? "mongoDB") {
       case "mongoDB":
         connection = await initMongoose();
         if (process.env.ENVIRONMENT === "development") {

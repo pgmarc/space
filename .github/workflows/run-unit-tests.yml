@@ -26,10 +26,9 @@ jobs:
           envkey_MONGO_PROTOCOL: "mongodb"
           envkey_MONGO_HOST: "localhost"
           envkey_MONGO_PORT: ${{ vars.CI_MONGO_PORT }}
-          envkey_MONGO_INITDB_DATABASE: ${{ vars.CI_MONGO_INITDB_DATABASE }}
           envkey_DATABASE_NAME: ${{ vars.CI_MONGO_INITDB_DATABASE }}
           envkey_SERVER_PORT: "8080"
-          envkey_BASE_URL_PATH: "/api"
+          envkey_BASE_URL_PATH: "/api/v1"
           # envkey_ADMIN_PASSWORD: secrets.ADMIN_PASSWORD
           # envkey_USER_PASSWORD: secrets.USER_PASSWORD
           envkey_REDIS_URL: "redis://localhost:6379"

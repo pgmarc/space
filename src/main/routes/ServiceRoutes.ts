@@ -10,7 +10,7 @@ const loadFileRoutes = function (app: express.Application) {
   const serviceController = new ServiceController();
   const upload = handlePricingUpload(['pricing'], './public/static/pricings/uploaded');
 
-  const baseUrl = process.env.BASE_URL_PATH || '/api';
+  const baseUrl = process.env.BASE_URL_PATH || '/api/v1';
 
   app
     .route(baseUrl + '/services')
