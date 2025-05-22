@@ -1,66 +1,88 @@
+import { toPlainObject } from '../../utils/mongoose';
 import RepositoryBase from '../RepositoryBase';
 import UserMongoose from './models/UserMongoose';
+import { LeanUser, Role } from '../../types/models/User';
+import { generateApiKey } from '../../utils/users/helpers';
 
 class UserRepository extends RepositoryBase {
-  async findById (id: string, ...args: any) {
+  async findByUsername(username: string) {
     try {
-      const user = await UserMongoose.findById(id, { password: 0 });
-      return user!.toObject({ getters: true, virtuals: true, versionKey: false });
+      const user = await UserMongoose.findOne({ username });
+
+      if (!user) return null;
+
+      return toPlainObject<LeanUser>(user.toJSON());
     } catch (err) {
       return null;
     }
   }
 
-  async create (businessEntity: any, ...args: any) {
-    const user = await (new UserMongoose(businessEntity)).save();
-    const userObject = await UserMongoose.findById(user.id, { avatar: 0 });
+  async authenticate(username: string, password: string) {
+    const user = await UserMongoose.findOne({ username });
+
+    if (!user) return null;
+
+    const isPasswordValid = await user.verifyPassword(password);
+
+    if (!isPasswordValid) return null;
+
+    return toPlainObject<LeanUser>(user.toJSON()).apiKey;
+  }
+
+  async findByApiKey(apiKey: string) {
+    const user = await UserMongoose.findOne({ apiKey: apiKey });
+
+    if (!user) return null;
+
+    return toPlainObject<LeanUser>(user.toObject());
+  }
+
+  async create(userData: any) {
+    const user = await new UserMongoose(userData).save();
+    const userObject = await this.findByUsername(user.username);
 
     return userObject;
   }
 
-  async update (id: string, businessEntity: any, ...args: any) {
-    return UserMongoose.findOneAndUpdate({ _id: id }, businessEntity, { new: true, exclude: ['password'] });
+  async update(username: string, userData: any) {
+    const updatedUser = await UserMongoose.findOneAndUpdate({ username: username }, userData, {
+      new: true,
+      projection: { password: 0 },
+    })
+
+    if (!updatedUser) {
+      throw new Error('User not found');
+    }
+    
+    return toPlainObject<LeanUser>(updatedUser.toJSON());
   }
 
-  async updateToken (id: string, tokenDTO: {token: string, tokenExpiration: Date}, ...args: any) {
-    return this.update(id, tokenDTO, args);
+  async regenerateApiKey(username: string) {
+    const updatedUser = await UserMongoose.findOneAndUpdate(
+      { username: username },
+      { apiKey: generateApiKey() },
+      { new: true, projection: { password: 0 } }
+    );
+
+    return toPlainObject<LeanUser>(updatedUser?.toJSON()).apiKey;
   }
 
-  async destroy (id: string, ...args: any) {
-    const result = await UserMongoose.deleteOne({ _id: id });
+  async destroy(username: string) {
+    const result = await UserMongoose.deleteOne({ username: username });
     return result?.deletedCount === 1;
   }
 
-  async save (entity: any) {
-    return UserMongoose.findByIdAndUpdate(entity.id, entity, { upsert: true, new: true });
+  async findAll() {
+    try {
+      const users = await UserMongoose.find({}, { password: 0 });
+      return users.map(user => user.toObject({ getters: true, virtuals: true, versionKey: false }));
+    } catch (err) {
+      return [];
+    }
   }
 
-  async findAdminByEmail (email: string) {
-    return this._findByEmailAndUserType(email, 'admin');
-  }
-
-  async findUserByEmail (email: string) {
-    return this._findByEmailAndUserType(email, 'user');
-  }
-
-  async findAdminByUsername (username: string) {
-    return this._findByUsernameAndUserType(username, 'admin');
-  }
-
-  async findUserByUsername (username: string) {
-    return this._findByUsernameAndUserType(username, 'user');
-  }
-
-  async findByToken (token: string) {
-    return UserMongoose.findOne({ token });
-  }
-
-  async _findByEmailAndUserType (email: string, userType: "user" | "admin") {
-    return UserMongoose.findOne({ email, userType }, { id: 1, password: 1});
-  }
-
-  async _findByUsernameAndUserType (username: string, userType: "user" | "admin") {
-    return UserMongoose.findOne({ username, userType }, { id: 1, password: 1});
+  async changeRole(username: string, role: Role) {
+    return this.update(username, { role });
   }
 }
 

@@ -14,35 +14,35 @@ import { ExpectedPricingType } from '../main/types/models/Pricing';
 import { TestContract } from './types/models/Contract';
 import {
   createRandomContract,
-  createRandomContracts,
   createRandomContractsForService,
-  getAllContracts,
 } from './utils/contracts/contracts';
-import { LeanContract } from '../main/types/models/Contract';
 import { isSubscriptionValid } from '../main/controllers/validation/ContractValidation';
-
-const withCommonDescribe = (name: string, fn: () => void) => {
-  describe(name, () => {
-    fn();
-    afterAll(async () => {
-      // Disabled for now, but configured to be used in the future if needed
-      // await resetDatabase();
-    });
-  });
-};
+import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
 
 describe('Services API Test Suite', function () {
   let app: Server;
+  let adminApiKey: string;
 
   const testService = 'Zoom';
 
   beforeAll(async function () {
     app = await getApp();
+    // Get admin user and api key for testing
+    await getTestAdminUser();
+    adminApiKey = await getTestAdminApiKey();
   });
 
-  withCommonDescribe('GET /services', function () {
+  afterAll(async function () {
+    // Cleanup authentication resources
+    await cleanupAuthResources();
+    await shutdownApp();
+  });
+
+  describe('GET /services', function () {
     it('Should return 200 and the services', async function () {
-      const response = await request(app).get(`${baseUrl}/services`);
+      const response = await request(app)
+        .get(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBe(true);
@@ -50,11 +50,12 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('POST /services', function () {
+  describe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
       const pricingFilePath = await getRandomPricingFile('zoom');
       const response = await request(app)
         .post(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey)
         .attach('pricing', pricingFilePath);
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
@@ -65,10 +66,13 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 201 and the created service: Given url in the request', async function () {
-      const response = await request(app).post(`${baseUrl}/services`).send({
-        pricing:
-          'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml',
-      });
+      const response = await request(app)
+        .post(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey)
+        .send({
+          pricing:
+            'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/notion/2025.yml',
+        });
       expect(response.status).toEqual(201);
       expect(response.body).toBeDefined();
       expect(Object.keys(response.body.activePricings).length).greaterThan(0);
@@ -78,32 +82,39 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('GET /services/{serviceName}', function () {
+  describe('GET /services/{serviceName}', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService.toLowerCase()}`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService.toLowerCase()}`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(false);
       expect(response.body.name.toLowerCase()).toBe('zoom');
     });
 
     it('Should return 200: Given existent service name in upper case', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService.toUpperCase()}`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService.toUpperCase()}`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(false);
       expect(response.body.name.toLowerCase()).toBe(testService.toLowerCase());
     });
 
     it('Should return 404 due to service not found', async function () {
-      const response = await request(app).get(`${baseUrl}/services/unexistent-service`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/unexistent-service`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
     });
   });
 
-  withCommonDescribe('PUT /services/{serviceName}', function () {
+  describe('PUT /services/{serviceName}', function () {
     afterEach(async function () {
       await request(app)
         .put(`${baseUrl}/services/${testService.toLowerCase()}`)
+        .set('x-api-key', adminApiKey)
         .send({ name: testService });
     });
 
@@ -115,6 +126,7 @@ describe('Services API Test Suite', function () {
 
       const responseUpdate = await request(app)
         .put(`${baseUrl}/services/${testService}`)
+        .set('x-api-key', adminApiKey)
         .send({ name: newName });
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body).toBeDefined();
@@ -125,24 +137,30 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('DELETE /services/{serviceName}', function () {
+  describe('DELETE /services/{serviceName}', function () {
     it('Should return 204', async function () {
       const newContract = await createRandomContract();
       const serviceName = Object.keys(newContract.contractedServices)[0];
 
-      const responseBefore = await request(app).get(`${baseUrl}/services/${serviceName}`);
+      const responseBefore = await request(app)
+        .get(`${baseUrl}/services/${serviceName}`)
+        .set('x-api-key', adminApiKey);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.name.toLowerCase()).toBe(serviceName.toLowerCase());
 
-      const responseDelete = await request(app).delete(`${baseUrl}/services/${serviceName}`);
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services/${serviceName}`)
+        .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(204);
 
-      const responseAfter = await request(app).get(`${baseUrl}/services/${serviceName}`);
+      const responseAfter = await request(app)
+        .get(`${baseUrl}/services/${serviceName}`)
+        .set('x-api-key', adminApiKey);
       expect(responseAfter.status).toEqual(404);
 
-      const contractsAfter = await request(app).get(
-        `${baseUrl}/contracts?serviceName=${serviceName}`
-      );
+      const contractsAfter = await request(app)
+        .get(`${baseUrl}/contracts?serviceName=${serviceName}`)
+        .set('x-api-key', adminApiKey);
       expect(contractsAfter.status).toEqual(200);
       expect(Array.isArray(contractsAfter.body)).toBe(true);
       expect(
@@ -153,9 +171,11 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('GET /services/{serviceName}/pricings', function () {
+  describe('GET /services/{serviceName}/pricings', function () {
     it('Should return 200: Given existent service name in lower case', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService}/pricings`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -173,9 +193,9 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Given existent service name in lower case and "archived" in query', async function () {
-      const response = await request(app).get(
-        `${baseUrl}/services/${testService}/pricings?pricingStatus=archived`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings?pricingStatus=archived`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -193,7 +213,9 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Given existent service name in upper case', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService}/pricings`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -205,13 +227,15 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 404 due to service not found', async function () {
-      const response = await request(app).get(`${baseUrl}/services/unexistent-service/pricings`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/unexistent-service/pricings`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
     });
   });
 
-  withCommonDescribe('POST /services/{serviceName}/pricings', function () {
+  describe('POST /services/{serviceName}/pricings', function () {
     const versionToAdd = '2025';
 
     afterEach(async function () {
@@ -228,6 +252,7 @@ describe('Services API Test Suite', function () {
 
       const response = await request(app)
         .post(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey)
         .attach('pricing', newPricingVersion);
       expect(response.status).toEqual(201);
       expect(serviceBefore.activePricings).toBeDefined();
@@ -247,10 +272,13 @@ describe('Services API Test Suite', function () {
 
       const previousActivePricingsAmount = Object.keys(serviceBefore.activePricings).length;
 
-      const response = await request(app).post(`${baseUrl}/services/${testService}/pricings`).send({
-        pricing:
-          'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2025.yml',
-      });
+      const response = await request(app)
+        .post(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey)
+        .send({
+          pricing:
+            'https://sphere.score.us.es/static/collections/63f74bf8eeed64058364b52e/IEEE TSC 2025/zoom/2025.yml',
+        });
 
       expect(response.status).toEqual(201);
       expect(serviceBefore.activePricings).toBeDefined();
@@ -260,9 +288,11 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
+  describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService}/pricings/2024`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
       expect(Object.keys(response.body.features).length).toBeGreaterThan(0);
@@ -275,7 +305,9 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Given existent service name in upper case and pricing version', async function () {
-      const response = await request(app).get(`${baseUrl}/services/${testService}/pricings/2024`);
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
       expect(Object.keys(response.body.features).length).toBeGreaterThan(0);
@@ -288,17 +320,17 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 404 due to service not found', async function () {
-      const response = await request(app).get(
-        `${baseUrl}/services/unexistent-service/pricings/2024`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/services/unexistent-service/pricings/2024`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
     });
 
     it('Should return 404 due to pricing not found', async function () {
-      const response = await request(app).get(
-        `${baseUrl}/services/${testService}/pricings/unexistent-version`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/services/${testService}/pricings/unexistent-version`)
+        .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe(
         `Pricing version unexistent-version not found for service ${testService}`
@@ -306,17 +338,19 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
+  describe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
     const versionToArchive = '2024';
 
     afterEach(async function () {
-      await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=active`
-      );
+      await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=active`)
+        .set('x-api-key', adminApiKey);
     });
 
     it('Should return 200: Changing visibility using default value', async function () {
-      const responseBefore = await request(app).get(`${baseUrl}/services/${testService}`);
+      const responseBefore = await request(app)
+        .get(`${baseUrl}/services/${testService}`)
+        .set('x-api-key', adminApiKey);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
       expect(
@@ -328,6 +362,7 @@ describe('Services API Test Suite', function () {
 
       const responseUpdate = await request(app)
         .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .set('x-api-key', adminApiKey)
         .send({
           subscriptionPlan: 'PRO',
           subscriptionAddOns: {
@@ -345,7 +380,9 @@ describe('Services API Test Suite', function () {
     });
 
     it('Should return 200: Changing visibility using "archived"', async function () {
-      const responseBefore = await request(app).get(`${baseUrl}/services/${testService}`);
+      const responseBefore = await request(app)
+        .get(`${baseUrl}/services/${testService}`)
+        .set('x-api-key', adminApiKey);
       expect(responseBefore.status).toEqual(200);
       expect(responseBefore.body.activePricings).toBeDefined();
       expect(
@@ -356,9 +393,8 @@ describe('Services API Test Suite', function () {
       ).toBeFalsy();
 
       const responseUpdate = await request(app)
-        .put(
-          `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
-        )
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`)
+        .set('x-api-key', adminApiKey)
         .send({
           subscriptionPlan: 'PRO',
           subscriptionAddOns: {
@@ -378,6 +414,7 @@ describe('Services API Test Suite', function () {
     it('Should return 200: Changing visibility using "active"', async function () {
       const responseBefore = await request(app)
         .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .set('x-api-key', adminApiKey)
         .send({
           subscriptionPlan: 'PRO',
           subscriptionAddOns: {
@@ -393,9 +430,9 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.archivedPricings).includes(versionToArchive)
       ).toBeTruthy();
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=active`
-      );
+      const responseUpdate = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=active`)
+        .set('x-api-key', adminApiKey);
       expect(responseUpdate.status).toEqual(200);
       expect(responseUpdate.body.activePricings).toBeDefined();
       expect(
@@ -410,9 +447,8 @@ describe('Services API Test Suite', function () {
       await createRandomContractsForService(testService, versionToArchive, 5, app);
 
       const responseUpdate = await request(app)
-        .put(
-          `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`
-        )
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=archived`)
+        .set('x-api-key', adminApiKey)
         .send({
           subscriptionPlan: 'PRO',
           subscriptionAddOns: {
@@ -428,9 +464,9 @@ describe('Services API Test Suite', function () {
         Object.keys(responseUpdate.body.archivedPricings).includes(versionToArchive)
       ).toBeTruthy();
 
-      const reponseContractsAfter = await request(app).get(
-        `${baseUrl}/contracts?serviceName=${testService}`
-      );
+      const reponseContractsAfter = await request(app)
+        .get(`${baseUrl}/contracts?serviceName=${testService}`)
+        .set('x-api-key', adminApiKey);
 
       expect(reponseContractsAfter.status).toEqual(200);
       expect(Array.isArray(reponseContractsAfter.body)).toBe(true);
@@ -455,9 +491,9 @@ describe('Services API Test Suite', function () {
     }, {timeout: 10000});
 
     it('Should return 400: Changing visibility using "invalidValue"', async function () {
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=invalidValue`
-      );
+      const responseUpdate = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}?availability=invalidValue`)
+        .set('x-api-key', adminApiKey);
       expect(responseUpdate.status).toEqual(400);
       expect(responseUpdate.body.error).toBe(
         'Invalid availability status. Either provide "active" or "archived"'
@@ -467,6 +503,7 @@ describe('Services API Test Suite', function () {
     it('Should return 400: Changing visibility to archived when is the last activePricing', async function () {
       await request(app)
         .put(`${baseUrl}/services/${testService}/pricings/${versionToArchive}`)
+        .set('x-api-key', adminApiKey)
         .send({
           subscriptionPlan: 'PRO',
           subscriptionAddOns: {
@@ -477,9 +514,9 @@ describe('Services API Test Suite', function () {
 
       const lastVersionToArchive = '2023';
 
-      const responseUpdate = await request(app).put(
-        `${baseUrl}/services/${testService}/pricings/${lastVersionToArchive}`
-      );
+      const responseUpdate = await request(app)
+        .put(`${baseUrl}/services/${testService}/pricings/${lastVersionToArchive}`)
+        .set('x-api-key', adminApiKey);
       expect(responseUpdate.status).toEqual(400);
       expect(responseUpdate.body.error).toBe(
         `You cannot archive the last active pricing for service ${testService}`
@@ -487,12 +524,13 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('DELETE /services/{serviceName}/pricings/{pricingVersion}', function () {
+  describe('DELETE /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 204', async function () {
       const versionToDelete = '2025';
 
       const responseBefore = await request(app)
         .post(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey)
         .attach('pricing', zoomPricingPath);
       expect(responseBefore.status).toEqual(201);
       expect(responseBefore.body.activePricings).toBeDefined();
@@ -500,12 +538,14 @@ describe('Services API Test Suite', function () {
         Object.keys(responseBefore.body.activePricings).includes(versionToDelete)
       ).toBeTruthy();
 
-      const responseDelete = await request(app).delete(
-        `${baseUrl}/services/${testService}/pricings/${versionToDelete}`
-      );
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services/${testService}/pricings/${versionToDelete}`)
+        .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(204);
 
-      const responseAfter = await request(app).get(`${baseUrl}/services/${testService}`);
+      const responseAfter = await request(app)
+        .get(`${baseUrl}/services/${testService}`)
+        .set('x-api-key', adminApiKey);
       expect(responseAfter.status).toEqual(200);
       expect(responseAfter.body.activePricings).toBeDefined();
       expect(Object.keys(responseAfter.body.activePricings).includes(versionToDelete)).toBeFalsy();
@@ -514,9 +554,9 @@ describe('Services API Test Suite', function () {
     it('Should return 404: Given an invalid pricing version', async function () {
       const versionToDelete = 'invalid';
 
-      const responseDelete = await request(app).delete(
-        `${baseUrl}/services/${testService}/pricings/${versionToDelete}`
-      );
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services/${testService}/pricings/${versionToDelete}`)
+        .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(404);
       expect(responseDelete.body.error).toBe(
         `Pricing version invalid not found for service ${testService}`
@@ -527,11 +567,13 @@ describe('Services API Test Suite', function () {
       const newService = await createRandomService();
       const lastActivePricing = Object.keys(newService.activePricings)[0];
 
-      await request(app).delete(`${baseUrl}/services/${newService.name}/pricings/2023`);
+      await request(app)
+        .delete(`${baseUrl}/services/${newService.name}/pricings/2023`)
+        .set('x-api-key', adminApiKey);
 
-      const responseDelete = await request(app).delete(
-        `${baseUrl}/services/${newService.name}/pricings/${lastActivePricing}`
-      );
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services/${newService.name}/pricings/${lastActivePricing}`)
+        .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(400);
       expect(responseDelete.body.error).toBe(
         `You cannot delete the last active pricing for service ${newService.name}`
@@ -539,29 +581,31 @@ describe('Services API Test Suite', function () {
     });
   });
 
-  withCommonDescribe('DELETE /services', function () {
+  describe('DELETE /services', function () {
     it('Should return 200', async function () {
       // Checks if there are services to delete
-      const responseIndexBeforeDelete = await request(app).get(`${baseUrl}/services`);
+      const responseIndexBeforeDelete = await request(app)
+        .get(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey);
 
       expect(responseIndexBeforeDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexBeforeDelete.body)).toBe(true);
       expect(responseIndexBeforeDelete.body.length).greaterThan(0);
 
       // Deletes all services
-      const responseDelete = await request(app).delete(`${baseUrl}/services`);
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(200);
 
       // Checks if there are no services after delete
-      const responseIndexAfterDelete = await request(app).get(`${baseUrl}/services`);
+      const responseIndexAfterDelete = await request(app)
+        .get(`${baseUrl}/services`)
+        .set('x-api-key', adminApiKey);
 
       expect(responseIndexAfterDelete.status).toEqual(200);
       expect(Array.isArray(responseIndexAfterDelete.body)).toBe(true);
       expect(responseIndexAfterDelete.body.length).toBe(0);
     });
-  });
-
-  afterAll(async function () {
-    await shutdownApp();
   });
 });

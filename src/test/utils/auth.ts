@@ -1,36 +1,70 @@
+import { createTestUser, deleteTestUser } from './users/userTestUtils';
+import { Server } from 'http';
 import request from 'supertest';
-import { adminCredentials, userCredentials, generateFakeUser } from './testData';
-import { getApp } from './testApp';
-import User from '../../main/repositories/mongoose/models/UserMongoose';
+import { baseUrl } from './testApp';
 
-let loggedInUser: typeof User, loggedInAdmin: typeof User;
+// Admin user for testing
+let testAdminUser: any = null;
 
-const getNewloggedInAdmin = async () => {
-  const fakeAdmin = await generateFakeUser("admin");
-  const loggedAdmin = await getLoggedInAdmin();
-  await request(await getApp()).post('/api/users/registerAdmin').set('Authorization', `Bearer ${loggedAdmin.token}`).send(fakeAdmin);
-  return (await request(await getApp()).post('/api/users/loginAdmin').send({ email: `${fakeAdmin.email}`, password: `${fakeAdmin.password}` })).body;
+/**
+ * Retrieves an admin user for testing purposes.
+ * Creates a new one if it does not exist.
+ */
+export const getTestAdminUser = async (): Promise<any> => {
+  if (!testAdminUser) {
+    testAdminUser = await createTestUser('ADMIN');
+  }
+  return testAdminUser;
 };
 
-const getLoggedInAdmin = async () => {
-  if (loggedInAdmin) return loggedInAdmin;
-  const response = await request(await getApp()).post('/api/users/loginAdmin').send(adminCredentials);
-  loggedInAdmin = response.body;
-  return loggedInAdmin;
+/**
+ * Retrieves the API Key of an admin user for use in tests.
+ */
+export const getTestAdminApiKey = async (): Promise<string> => {
+  const admin = await getTestAdminUser();
+  return admin.apiKey;
 };
 
-const getLoggedInUser = async () => {
-  if (loggedInUser) return loggedInUser;
-  const response = await request(await getApp()).post('/api/users/login').send(userCredentials);
-  loggedInUser = response.body;
-  return loggedInUser;
+/**
+ * Adds the API Key header to a supertest request.
+ * Useful for including in all test requests.
+ */
+export const withApiKey = async (request: request.Test): Promise<request.Test> => {
+  const apiKey = await getTestAdminApiKey();
+  return request.set('x-api-key', apiKey);
 };
 
-const getNewloggedInUser = async (name: string) => {
-  const fakeUser = await generateFakeUser("user", name);
-  await request(await getApp()).post('/api/users/register').send(fakeUser);
-  const getloggedInUser = (await request(await getApp()).post('/api/users/login').send({ loginField: `${fakeUser.email}`, password: `${fakeUser.password}` })).body;
-  return getloggedInUser;
+/**
+ * Performs a GET request with the admin API Key.
+ */
+export const authenticatedGet = async (app: Server, path: string): Promise<request.Response> => {
+  const apiKey = await getTestAdminApiKey();
+  return request(app)
+    .get(path)
+    .set('x-api-key', apiKey);
 };
 
-export { getLoggedInAdmin, getNewloggedInAdmin, getLoggedInUser, getNewloggedInUser };
+/**
+ * Performs a POST request with the admin API Key.
+ */
+export const authenticatedPost = async (app: Server, path: string, body?: any): Promise<request.Response> => {
+  const apiKey = await getTestAdminApiKey();
+  const req = request(app)
+    .post(path)
+    .set('x-api-key', apiKey);
+  
+  if (body) {
+    return req.send(body);
+  }
+  return req;
+};
+
+/**
+ * Cleans up authentication resources after tests.
+ */
+export const cleanupAuthResources = async (): Promise<void> => {
+  if (testAdminUser?.username) {
+    await deleteTestUser(testAdminUser.username);
+    testAdminUser = null;
+  }
+};

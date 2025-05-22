@@ -9,11 +9,12 @@ import { initRedis } from "./config/redis";
 import { seedDatabase } from "./database/seeders/mongo/seeder";
 import loadGlobalMiddlewares from "./middlewares/GlobalMiddlewaresLoader";
 import routes from "./routes/index";
+import { seedDefaultAdmin } from "./database/seeders/common/userSeeder";
 
-const green = "\x1b[32m"; // Color verde
-const blue = "\x1b[36m"; // Color azul
-const reset = "\x1b[0m"; // Resetear el estilo al final de la línea
-const bold = "\x1b[1m"; // Negrita
+const green = "\x1b[32m";
+const blue = "\x1b[36m";
+const reset = "\x1b[0m";
+const bold = "\x1b[1m";
 
 const initializeApp = async () => {
   dotenv.config();
@@ -32,7 +33,7 @@ const initializeServer = async (): Promise<{
   app: Application;
 }> => {
   const app: Application = await initializeApp();
-  const port = process.env.SERVER_PORT || 3000; 
+  const port = 3000; 
 
   // Using a promise to ensure the server is started before returning it
   const server: Server = await new Promise((resolve, reject) => {
@@ -45,8 +46,17 @@ const initializeServer = async (): Promise<{
   const addressInfo: AddressInfo = server.address() as AddressInfo;
 
   console.log(
-    `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost:${bold}${addressInfo.port}/${reset}`
+    `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost${addressInfo.port !== 80 ? `:${bold}${addressInfo.port}${reset}/` : "/"}`
   );
+
+  if (["development", "testing"].includes(process.env.ENVIRONMENT ?? "")) {
+    console.log(`${green}➜${reset}  ${bold}Loaded Routes:${reset}`);
+    app._router.stack
+      .filter((layer: any) => layer.route)
+      .forEach((layer: any) => {
+        console.log(`  ${blue}${layer.route.path}${reset}`);
+      });
+  }
 
   return { server, app };
 };
@@ -54,11 +64,13 @@ const initializeServer = async (): Promise<{
 const initializeDatabase = async () => {
   let connection;
   try {
-    switch (process.env.DATABASE_TECHNOLOGY) {
+    switch (process.env.DATABASE_TECHNOLOGY ?? "mongoDB") {
       case "mongoDB":
         connection = await initMongoose();
-        if (process.env.ENVIRONMENT === "development") {
+        if (["development", "testing"].includes(process.env.ENVIRONMENT ?? "")) {
           await seedDatabase();
+        }else{
+          await seedDefaultAdmin();
         }
         break;
       default:
@@ -72,7 +84,7 @@ const initializeDatabase = async () => {
 
 const disconnectDatabase = async () => {
   try {
-    switch (process.env.DATABASE_TECHNOLOGY) {
+    switch (process.env.DATABASE_TECHNOLOGY ?? "mongoDB") {
       case "mongoDB":
         await disconnectMongoose();
         break;

@@ -2,11 +2,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     test: {
-      include: ['**/*.test.ts'], // Incluye solo archivos de prueba
-      globals: true, // Habilita la API global de Vitest
-      environment: 'node', // Usa el entorno Node.js
+      include: ['**/*.test.ts'], // Only include test files
+      globals: true, // Enbale vitest's globals API
+      environment: 'node', // Use node.js environment
       typecheck: {
-        tsconfig: 'tsconfig.json', // Asegura que Vitest utilice el tsconfig específico
+        tsconfig: 'tsconfig.json', // Ensure that vitest uses the correct tsconfig file
       },
     },
   });

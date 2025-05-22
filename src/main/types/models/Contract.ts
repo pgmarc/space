@@ -76,3 +76,8 @@ export interface UsageLevelsResetQuery {
   renewableOnly: boolean;
   usageLimit?: string;
 }
+
+export interface FallBackSubscription {
+  subscriptionPlan: string;
+  subscriptionAddOns: Record<string, number>;
+}

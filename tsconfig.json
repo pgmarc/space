@@ -30,7 +30,6 @@
     "sourceMap": true,                      // Generates source maps for debugging
 
     /* Compatibility */
-    // "allowImportingTsExtensions": true,     // Allows importing TypeScript files with extensions
     "forceConsistentCasingInFileNames": true, // Ensures consistent file name casing
 
     /* Module Detection */

@@ -30,9 +30,9 @@ const addOnSchema = new Schema(
     private: { type: Boolean, default: false },
     price: { type: Schema.Types.Mixed, required: true }, // number or string
     
-    availableFor: [{ type: String }], // Lista de nombres de planes
-    dependsOn: [{ type: String }],     // Lista de nombres de otros addons
-    excludes: [{ type: String }],      // Lista de nombres de addons excluidos
+    availableFor: [{ type: String }], // List of plan names
+    dependsOn: [{ type: String }],     // List of names of addons that this addon depends on
+    excludes: [{ type: String }],      // List of names of addons that this addon excludes
     
     features: {
       type: Map,
@@ -50,7 +50,7 @@ const addOnSchema = new Schema(
       type: subscriptionConstraintSchema,
     },
   },
-  { _id: false } // Opcional, depende de si quieres que cada AddOn embebido tenga _id o no
+  { _id: false } // To not create an _id field for each addOn
 );
 
 export default addOnSchema;

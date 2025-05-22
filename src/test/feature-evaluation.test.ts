@@ -9,6 +9,7 @@ import { addMonths, subDays, subMilliseconds } from 'date-fns';
 import { jwtVerify } from 'jose';
 import { encryptJWTSecret } from '../main/utils/jwt';
 import { LeanContract } from '../main/types/models/Contract';
+import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
 
 function isActivePricing(pricingVersion: string, service: LeanService): boolean {
   return Object.keys(service.activePricings).some(
@@ -66,9 +67,17 @@ const DETAILED_EVALUATION_EXPECTED_RESULT = {
 
 describe('Features API Test Suite', function () {
   let app: Server;
+  let adminApiKey: string;
 
   beforeAll(async function () {
     app = await getApp();
+    await getTestAdminUser();
+    adminApiKey = await getTestAdminApiKey();
+  });
+
+  afterAll(async function () {
+    await cleanupAuthResources();
+    await shutdownApp();
   });
 
   let petclinicService: any;
@@ -100,6 +109,7 @@ describe('Features API Test Suite', function () {
 
     const createContractResponse = await request(app)
       .post(`${baseUrl}/contracts`)
+      .set('x-api-key', adminApiKey)
       .send(contractData);
 
     return createContractResponse.body;
@@ -112,6 +122,7 @@ describe('Features API Test Suite', function () {
       beforeAll(async function () {
         const createServiceResponse = await request(app)
           .post(`${baseUrl}/services`)
+          .set('x-api-key', adminApiKey)
           .attach('pricing', 'src/test/data/pricings/petclinic-2025.yml');
 
         if (createServiceResponse.status === 201) {
@@ -123,7 +134,9 @@ describe('Features API Test Suite', function () {
 
   describe('GET /features', function () {
     it('Should return 200 and the features', async function () {
-      const response = await request(app).get(`${baseUrl}/features?show=all`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?show=all`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -133,7 +146,9 @@ describe('Features API Test Suite', function () {
 
     it('Should filter features by featureName', async function () {
       const featureName = 'meetings';
-      const response = await request(app).get(`${baseUrl}/features?featureName=${featureName}`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?featureName=${featureName}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -145,7 +160,9 @@ describe('Features API Test Suite', function () {
 
     it('Should filter features by serviceName', async function () {
       const serviceName = 'zoom';
-      const response = await request(app).get(`${baseUrl}/features?serviceName=${serviceName}`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?serviceName=${serviceName}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -159,9 +176,9 @@ describe('Features API Test Suite', function () {
 
     it('Should filter features by pricingVersion', async function () {
       const pricingVersion = '2024';
-      const response = await request(app).get(
-        `${baseUrl}/features?pricingVersion=${pricingVersion}`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/features?pricingVersion=${pricingVersion}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -174,7 +191,9 @@ describe('Features API Test Suite', function () {
     it('Should paginate results using page parameter', async function () {
       const page = 1;
       const limit = 5;
-      const response = await request(app).get(`${baseUrl}/features?page=${page}&limit=${limit}`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?page=${page}&limit=${limit}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -185,9 +204,9 @@ describe('Features API Test Suite', function () {
     it('Should paginate results using offset parameter', async function () {
       const offset = 2;
       const limit = 5;
-      const response = await request(app).get(
-        `${baseUrl}/features?offset=${offset}&limit=${limit}`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/features?offset=${offset}&limit=${limit}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -196,7 +215,9 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should sort results by featureName in ascending order', async function () {
-      const response = await request(app).get(`${baseUrl}/features?sort=featureName&order=asc`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?sort=featureName&order=asc`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -210,7 +231,9 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should sort results by serviceName in descending order', async function () {
-      const response = await request(app).get(`${baseUrl}/features?sort=serviceName&order=desc`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?sort=serviceName&order=desc`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -222,8 +245,8 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should show only active features by default', async function () {
-      const response = await request(app).get(`${baseUrl}/features`);
-      const responseServices = await request(app).get(`${baseUrl}/services`);
+      const response = await request(app).get(`${baseUrl}/features`).set('x-api-key', adminApiKey);
+      const responseServices = await request(app).get(`${baseUrl}/services`).set('x-api-key', adminApiKey);
 
       const services = responseServices.body;
 
@@ -240,8 +263,8 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should show only archived features when specified', async function () {
-      const response = await request(app).get(`${baseUrl}/features?show=archived`);
-      const responseServices = await request(app).get(`${baseUrl}/services`);
+      const response = await request(app).get(`${baseUrl}/features?show=archived`).set('x-api-key', adminApiKey);
+      const responseServices = await request(app).get(`${baseUrl}/services`).set('x-api-key', adminApiKey);
 
       const services = responseServices.body;
 
@@ -261,9 +284,9 @@ describe('Features API Test Suite', function () {
       const limit = 5;
       const sort = 'featureName';
 
-      const response = await request(app).get(
-        `${baseUrl}/features?serviceName=${serviceName}&limit=${limit}&sort=${sort}`
-      );
+      const response = await request(app)
+        .get(`${baseUrl}/features?serviceName=${serviceName}&limit=${limit}&sort=${sort}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -283,7 +306,9 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should handle invalid query parameters gracefully', async function () {
-      const response = await request(app).get(`${baseUrl}/features?invalidParam=value`);
+      const response = await request(app)
+        .get(`${baseUrl}/features?invalidParam=value`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toBeDefined();
@@ -295,9 +320,9 @@ describe('Features API Test Suite', function () {
     it('Should return 200 and the evaluation for a user', async function () {
       const newContract = await createTestContract();
 
-      const response = await request(app).post(
-        `${baseUrl}/features/${newContract.userContact.userId}`
-      );
+      const response = await request(app)
+        .post(`${baseUrl}/features/${newContract.userContact.userId}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
@@ -323,13 +348,16 @@ describe('Features API Test Suite', function () {
       // Reach the limit of 9 visits
       await request(app)
         .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .set('x-api-key', adminApiKey)
         .send({
           [petclinicService.name.toLowerCase()]: {
             maxVisits: 9,
           },
         });
 
-      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body['petclinic-visits']).toBeFalsy();
@@ -342,17 +370,22 @@ describe('Features API Test Suite', function () {
       // Expire user subscription
       await request(app)
         .put(`${baseUrl}/contracts/${testUserId}/billingPeriod`)
+        .set('x-api-key', adminApiKey)
         .send({
           endDate: subDays(new Date(), 1),
           autoRenew: true,
         });
 
-      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(Object.keys(response.body).length).toBeGreaterThan(0);
 
-      const userContract = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const userContract = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(new Date(userContract.billingPeriod.endDate).getFullYear()).toBe(
         new Date().getFullYear() + 1
       ); // + 1 year because the test contract is set to renew 1 year
@@ -365,12 +398,15 @@ describe('Features API Test Suite', function () {
       // Expire user subscription
       await request(app)
         .put(`${baseUrl}/contracts/${testUserId}/billingPeriod`)
+        .set('x-api-key', adminApiKey)
         .send({
           endDate: subMilliseconds(new Date(), 1),
           autoRenew: false,
         });
 
-      const response = await request(app).post(`${baseUrl}/features/${testUserId}`);
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(400);
       expect(response.body.error).toEqual(
@@ -381,9 +417,9 @@ describe('Features API Test Suite', function () {
     it('Should return 200 and a detailed evaluation for a user', async function () {
       const newContract = await createTestContract();
 
-      const response = await request(app).post(
-        `${baseUrl}/features/${newContract.userContact.userId}?details=true`
-      );
+      const response = await request(app)
+        .post(`${baseUrl}/features/${newContract.userContact.userId}?details=true`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toEqual(DETAILED_EVALUATION_EXPECTED_RESULT);
@@ -395,7 +431,9 @@ describe('Features API Test Suite', function () {
       const userId = uuidv4();
       const newContract = await createTestContract(userId);
 
-      const response = await request(app).post(`${baseUrl}/features/${userId}/pricing-token`);
+      const response = await request(app)
+        .post(`${baseUrl}/features/${userId}/pricing-token`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body.pricingToken).toBeDefined();
@@ -437,9 +475,9 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should return 200 and the feature evaluation', async function () {
-      const response = await request(app).post(
-        `${baseUrl}/features/${testUserId}/${testFeatureId}`
-      );
+      const response = await request(app)
+        .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .set('x-api-key', adminApiKey);
 
       expect(response.status).toEqual(200);
       expect(response.body).toEqual({
@@ -457,6 +495,7 @@ describe('Features API Test Suite', function () {
     it('Should return 200: Given expected consumption', async function () {
       const response = await request(app)
         .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .set('x-api-key', adminApiKey)
         .send({
           [testUsageLimitId]: 1,
         });
@@ -474,7 +513,9 @@ describe('Features API Test Suite', function () {
         error: null,
       });
 
-      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const contractAfter = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(contractAfter.usageLevels).toBeDefined();
 
       const usageLevelService = testUsageLimitId.split('-')[0];
@@ -489,13 +530,17 @@ describe('Features API Test Suite', function () {
       const serviceName = testUsageLimitId.split('-')[0];
       const usageLevelName = testUsageLimitId.split('-')[1];
 
-      await request(app).put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .set('x-api-key', adminApiKey)
         .send({
           [serviceName]: {
             [usageLevelName]: 4,
           }});
 
-      const contractBefore = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const contractBefore = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(contractBefore.usageLevels).toBeDefined();
       expect(contractBefore.usageLevels[serviceName]).toBeDefined();
       expect(contractBefore.usageLevels[serviceName][usageLevelName]).toBeDefined();
@@ -518,6 +563,7 @@ describe('Features API Test Suite', function () {
 
       const response = await request(app)
         .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .set('x-api-key', adminApiKey)
         .send({
           [testUsageLimitId]: 1,
         });
@@ -534,7 +580,9 @@ describe('Features API Test Suite', function () {
         error: null,
       });
 
-      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const contractAfter = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(contractAfter.usageLevels).toBeDefined();
       expect(contractAfter.usageLevels[serviceName][usageLevelName]).toBeDefined();
       expect(contractAfter.usageLevels[serviceName][usageLevelName].consumed).toEqual(1);
@@ -548,14 +596,18 @@ describe('Features API Test Suite', function () {
       const serviceName = testUsageLimitId.split('-')[0];
       const usageLevelName = testUsageLimitId.split('-')[1];
 
-      await request(app).put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+      await request(app)
+        .put(`${baseUrl}/contracts/${testUserId}/usageLevels`)
+        .set('x-api-key', adminApiKey)
         .send({
           [serviceName]: {
             [usageLevelName]: 4,
             calendarEventsCreationLimit: 10
           }});
 
-      const contractBefore = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const contractBefore = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(contractBefore.usageLevels).toBeDefined();
       expect(contractBefore.usageLevels[serviceName]).toBeDefined();
       expect(contractBefore.usageLevels[serviceName][usageLevelName]).toBeDefined();
@@ -578,6 +630,7 @@ describe('Features API Test Suite', function () {
 
       const response = await request(app)
         .post(`${baseUrl}/features/${testUserId}/${testFeatureId}`)
+        .set('x-api-key', adminApiKey)
         .send({
           [testUsageLimitId]: 1,
         });
@@ -594,7 +647,9 @@ describe('Features API Test Suite', function () {
         error: null,
       });
 
-      const contractAfter = (await request(app).get(`${baseUrl}/contracts/${testUserId}`)).body;
+      const contractAfter = (await request(app)
+        .get(`${baseUrl}/contracts/${testUserId}`)
+        .set('x-api-key', adminApiKey)).body;
       expect(contractAfter.usageLevels).toBeDefined();
       expect(contractAfter.usageLevels[serviceName][usageLevelName]).toBeDefined();
       expect(contractAfter.usageLevels[serviceName][usageLevelName].consumed).toEqual(1);
@@ -604,9 +659,5 @@ describe('Features API Test Suite', function () {
       vi.useRealTimers();
       vi.clearAllMocks();
     });
-  });
-
-  afterAll(async function () {
-    await shutdownApp();
   });
 });

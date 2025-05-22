@@ -1,5 +1,4 @@
 {
-  // Configuración de launch.json para ejecutar y depurar pruebas con pnpm
   "version": "0.2.0",
   "configurations": [
     {
@@ -7,31 +6,51 @@
       "request": "launch",
       "name": "Debug TSX Execution",
       "runtimeExecutable": "pnpx",
-      "args": ["tsx", "--watch", "src/main/index.ts"],
+      "args": [
+        "tsx",
+        "--watch",
+        "src/main/index.ts"
+      ],
       "smartStep": true,
       "console": "integratedTerminal",
       "envFile": "${workspaceRoot}/.env",
       "cwd": "${workspaceRoot}"
-  },
+    },
     {
       "type": "node",
       "request": "launch",
       "name": "Run Tests with pnpm",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["test"],
+      "runtimeArgs": [
+        "test"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Run Tests for Current File with pnpm",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["test", "${file}"],
+      "runtimeArgs": [
+        "test",
+        "${file}"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "Containers: Node.js Launch",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "docker-run: debug",
+      "platform": "node"
     }
   ]
 }

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-// Interfaces para tipado
+// Interfaces for typing
 interface Feature {
   name?: string;
   valueType?: string;
@@ -62,48 +62,47 @@ interface Pricing {
   [key: string]: any;
 }
 
-// Ruta del archivo origen y destino
+// Path for source and destination files
 const inputFilePath = path.resolve(__dirname, '../src/main/database/seeders/mongo/pricings/pricings.json');
 const outputDir = path.resolve(__dirname, 'output');
 const outputFilePath = path.resolve(outputDir, 'transformed_pricings.json');
 
-// Asegurarse de que el directorio output existe
+// Ensure the output directory exists
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Función principal para transformar el JSON
+// Main function to transform the JSON
 function transformPricingJson() {
   try {
-    // Leer el archivo JSON
+    // Read the JSON file
     const data = fs.readFileSync(inputFilePath, 'utf8');
     const pricings: Pricing[] = JSON.parse(data);
     
-    // Procesar cada pricing
+    // Process each pricing
     const transformedPricings = pricings.map(pricing => transformPricing(pricing));
     
-    // Escribir el resultado en un nuevo archivo
+    // Write the transformed data to a new file
     fs.writeFileSync(outputFilePath, JSON.stringify(transformedPricings, null, 2));
     
-    console.log(`Archivo generado exitosamente en: ${outputFilePath}`);
+    console.log(`File succesfully generated in: ${outputFilePath}`);
     
-    // También generar un archivo por servicio
+    // Generate specific files for each service
     transformedPricings.forEach(pricing => {
       const serviceFileName = `${pricing._serviceName}.json`;
       const serviceFilePath = path.resolve(outputDir, serviceFileName);
       fs.writeFileSync(serviceFilePath, JSON.stringify(pricing, null, 2));
-      console.log(`Archivo específico para ${pricing._serviceName} generado en: ${serviceFilePath}`);
+      console.log(`Specific file for ${pricing._serviceName} generated at: ${serviceFilePath}`);
     });
   } catch (error) {
-    console.error('Error al procesar el archivo JSON:', error);
+    console.error('Error processing the JSON file:', error);
   }
 }
 
-// Transformar un objeto pricing
 function transformPricing(pricing: Pricing): Pricing {
   const result = { ...pricing };
   
-  // Transformar features globales
+  // Gobal features transformation
   if (result.features) {
     for (const planName in result.plans){
       const plan = result.plans[planName];
@@ -111,7 +110,7 @@ function transformPricing(pricing: Pricing): Pricing {
     }
   }
   
-  // Transformar usageLimits globales
+  // Gobal usageLimtis transformation
   if (result.usageLimits) {
     for (const planName in result.plans){
       const plan = result.plans[planName];
@@ -119,7 +118,7 @@ function transformPricing(pricing: Pricing): Pricing {
     }
   }
   
-  // Transformar addOns
+  // AddOns transformation
   if (result.addOns) {
     result.addOns = transformAddOns(result.addOns);
   }
@@ -127,38 +126,38 @@ function transformPricing(pricing: Pricing): Pricing {
   return result;
 }
 
-// Transformar features
+// Transform features
 function transformFeatures(features: Record<string, Feature>): Record<string, any> {
   const transformedFeatures: Record<string, any> = {};
   
   for (const [key, feature] of Object.entries(features)) {
-    // Usar el valor o el valor por defecto
+    // Use the value or the default value, and ensure the result is not undefined
     transformedFeatures[key] = feature.value !== undefined ? feature.value : (feature.defaultValue !== undefined ? feature.defaultValue : null);
   }
   
   return transformedFeatures;
 }
 
-// Transformar usageLimits
+// Transform usageLimits
 function transformUsageLimits(usageLimits: Record<string, UsageLimit>): Record<string, any> {
   const transformedUsageLimits: Record<string, any> = {};
   
   for (const [key, limit] of Object.entries(usageLimits)) {
-    // Usar el valor o el valor por defecto
+    // Use the value or the default value
     transformedUsageLimits[key] = limit.value !== undefined ? limit.value : (limit.defaultValue !== undefined ? limit.defaultValue : null);
   }
   
   return transformedUsageLimits;
 }
 
-// Transformar addOns
+// Transform addOns
 function transformAddOns(addOns: Record<string, AddOn>): Record<string, AddOn> {
   const transformedAddOns: Record<string, AddOn> = {};
   
   for (const [key, addOn] of Object.entries(addOns)) {
     const transformedAddOn = { ...addOn };
     
-    // Transformar features de addOns si existen
+    // Transform features of addOns if they exist
     if (transformedAddOn.features) {
       const features: Record<string, any> = {};
       for (const [featureKey, feature] of Object.entries(transformedAddOn.features)) {
@@ -167,7 +166,7 @@ function transformAddOns(addOns: Record<string, AddOn>): Record<string, AddOn> {
       transformedAddOn.features = features;
     }
     
-    // Transformar usageLimits de addOns si existen
+    // Transform usageLimits of addOns if they exist
     if (transformedAddOn.usageLimits) {
       const limits: Record<string, any> = {};
       for (const [limitKey, limit] of Object.entries(transformedAddOn.usageLimits)) {
@@ -176,7 +175,7 @@ function transformAddOns(addOns: Record<string, AddOn>): Record<string, AddOn> {
       transformedAddOn.usageLimits = limits;
     }
     
-    // Transformar usageLimitsExtensions de addOns si existen
+    // Transform usageLimitsExtensions of addOns if they exist
     if (transformedAddOn.usageLimitsExtensions) {
       const extensions: Record<string, any> = {};
       for (const [extKey, ext] of Object.entries(transformedAddOn.usageLimitsExtensions)) {
@@ -191,5 +190,5 @@ function transformAddOns(addOns: Record<string, AddOn>): Record<string, AddOn> {
   return transformedAddOns;
 }
 
-// Ejecutar la función principal
+// Execute the main function
 transformPricingJson();

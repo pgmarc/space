@@ -3,19 +3,32 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
+// const getMongoDBConnectionURI = () => {
+//   const databaseProtocol = process.env.MONGO_PROTOCOL;
+//   const databaseHost = process.env.MONGO_HOST;
+//   const databasePort = process.env.MONGO_PORT ? `:${process.env.MONGO_PORT}` : ':27017';
+//   const databaseUsername = process.env.DATABASE_USERNAME;
+//   const databasePassword = process.env.DATABASE_PASSWORD;
+//   const databaseName = process.env.DATABASE_NAME;
+//   const dbCredentials =
+//     databaseUsername && databasePassword ? databaseUsername + ':' + databasePassword + '@' : '';
+//   const authSource = databaseProtocol === 'mongodb+srv' ? '' : `?authSource=${databaseName}`;
+//   const mongoDbConnectionURI = `${databaseProtocol}://${dbCredentials}${databaseHost}${databasePort}/${databaseName}${authSource}`;
+//   return mongoDbConnectionURI;
+// };
+
 const getMongoDBConnectionURI = () => {
-  const databaseProtocol = process.env.MONGO_PROTOCOL;
-  const databaseHost = process.env.MONGO_HOST;
-  const databasePort = process.env.MONGO_PORT ? `:${process.env.MONGO_PORT}` : '';
-  const databaseUsername = process.env.DATABASE_USERNAME;
-  const databasePassword = process.env.DATABASE_PASSWORD;
-  const databaseName = process.env.DATABASE_NAME;
+  const databaseName = process.env.DATABASE_NAME ?? "space_db";
+  const databaseUsername = process.env.DATABASE_USERNAME ?? "mongoUser";
+  const databasePassword = process.env.DATABASE_PASSWORD ?? "mongoPassword";
   const dbCredentials =
     databaseUsername && databasePassword ? databaseUsername + ':' + databasePassword + '@' : '';
-  const authSource = databaseProtocol === 'mongodb+srv' ? '' : `?authSource=${databaseName}`;
-  const mongoDbConnectionURI = `${databaseProtocol}://${dbCredentials}${databaseHost}${databasePort}/${databaseName}${authSource}`;
-  return mongoDbConnectionURI;
-};
+
+    
+  const wholeUri = process.env.MONGO_URI || `mongodb://${dbCredentials}localhost:27017/${databaseName}?authSource=${databaseName}`;
+
+  return wholeUri;
+}
 
 const initMongoose = () => {
   const mongoDbConnectionURI = getMongoDBConnectionURI();

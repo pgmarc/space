@@ -6,6 +6,7 @@ import { generatePricingFile } from './pricing';
 import { v4 as uuidv4 } from 'uuid';
 import { TestService } from '../../types/models/Service';
 import { TestPricing } from '../../types/models/Pricing';
+import { getTestAdminApiKey } from '../auth';
 
 function getRandomPricingFile(name?: string) {
   return generatePricingFile(name);
@@ -18,7 +19,8 @@ async function getAllServices(app?: any): Promise<TestService[]> {
     appCopy = getApp();
   }
 
-  const services = await request(appCopy).get(`${baseUrl}/services`);
+  const apiKey = await getTestAdminApiKey();
+  const services = await request(appCopy).get(`${baseUrl}/services`).set('x-api-key', apiKey);
 
   return services.body;
 }
@@ -34,9 +36,10 @@ async function getPricingFromService(
     appCopy = getApp();
   }
 
-  const pricing = await request(appCopy).get(
-    `${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`
-  );
+  const apiKey = await getTestAdminApiKey();
+  const pricing = await request(appCopy)
+    .get(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`)
+    .set('x-api-key', apiKey);
 
   return pricing.body;
 }
@@ -48,7 +51,8 @@ async function getRandomService(app?: any): Promise<TestService> {
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).get(`${baseUrl}/services`);
+  const apiKey = await getTestAdminApiKey();
+  const response = await request(appCopy).get(`${baseUrl}/services`).set('x-api-key', apiKey);
 
   if (response.status !== 200) {
     throw new Error(`Failed to get services data: ${response.text}`);
@@ -77,7 +81,10 @@ async function getService(serviceName: string, app?: any): Promise<TestService> 
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).get(`${baseUrl}/services/${serviceName}`);
+  const apiKey = await getTestAdminApiKey();
+  const response = await request(appCopy)
+    .get(`${baseUrl}/services/${serviceName}`)
+    .set('x-api-key', apiKey);
 
   if (response.status !== 200) {
     throw new Error(`Failed to get service data: ${response.text}`);
@@ -128,9 +135,11 @@ async function createService(testService?: string) {
 
   if (fs.existsSync(pricingFilePath)) {
     const app = await getApp();
+    const apiKey = await getTestAdminApiKey();
 
     const response = await request(app)
       .post(`${baseUrl}/services`)
+      .set('x-api-key', apiKey)
       .attach('pricing', pricingFilePath);
 
     if (response.status !== 201) {
@@ -155,9 +164,10 @@ async function createRandomService(app?: any) {
     uuidv4()
   );
 
-
+  const apiKey = await getTestAdminApiKey();
   const response = await request(appCopy)
     .post(`${baseUrl}/services`)
+    .set('x-api-key', apiKey)
     .attach('pricing', pricingFilePath);
 
   if (response.status !== 201) {
@@ -179,9 +189,10 @@ async function deletePricingFromService(
     appCopy = await getApp();
   }
 
-  const response = await request(appCopy).delete(
-    `${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`
-  );
+  const apiKey = await getTestAdminApiKey();
+  const response = await request(appCopy)
+    .delete(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`)
+    .set('x-api-key', apiKey);
 
   if (response.status !== 204 && response.status !== 404) {
     throw new Error(`Failed to delete pricing: ${response.text}`);

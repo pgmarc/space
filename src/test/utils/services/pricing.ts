@@ -27,9 +27,9 @@ export async function generatePricingFile(serviceName?: string, version?: string
     ...pricing,
   };
   const yamlStr = yaml.dump(pricing, {
-    noRefs: true, // evita alias (&/<<)
-    skipInvalid: true, // ignora funciones o símbolos no serializables
-    lineWidth: -1, // no corta líneas
+    noRefs: true, // avoid alias (&/<<)
+    skipInvalid: true, // ignore functions or symbols not serializable
+    lineWidth: -1, // do not cut lines
   });
 
   const filePath = path.resolve(__dirname, `../../data/generated/${uuidv4()}.yaml`);
