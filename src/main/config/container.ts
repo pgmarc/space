@@ -14,6 +14,9 @@ import ServiceService from "../services/ServiceService";
 import UserService from "../services/UserService";
 import ContractService from "../services/ContractService";
 import FeatureEvaluationService from "../services/FeatureEvaluationService";
+import EventService from "../services/EventService";
+
+import EventController from "../controllers/EventController";
 
 dotenv.config();
 
@@ -40,6 +43,8 @@ function initContainer(databaseType: string): AwilixContainer {
     cacheService: asClass(CacheService).singleton(),
     contractService: asClass(ContractService).singleton(),
     featureEvaluationService: asClass(FeatureEvaluationService).singleton(),
+    eventService: asClass(EventService).singleton(),
+    eventController: asClass(EventController).singleton(),
   });
   return container;
 }

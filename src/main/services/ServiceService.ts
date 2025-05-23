@@ -22,12 +22,14 @@ class ServiceService {
   private readonly serviceRepository: ServiceRepository;
   private readonly pricingRepository: PricingRepository;
   private readonly contractRepository: ContractRepository;
+  private readonly eventService;
   // private cacheService: CacheService;
 
   constructor() {
     this.serviceRepository = container.resolve('serviceRepository');
     this.pricingRepository = container.resolve('pricingRepository');
     this.contractRepository = container.resolve('contractRepository');
+    this.eventService = container.resolve('eventService');
     // this.cacheService = container.resolve('cacheService');
   }
 
@@ -198,6 +200,9 @@ class ServiceService {
 
       service = updatedService;
     }
+    
+    // Emitir evento de cambio de pricing
+    this.eventService.emitPricingChange(service.name, uploadedPricing.version);
 
     // Step 4: Link the pricing to the service
     // await this.pricingRepository.addServiceNameToPricing(
@@ -320,11 +325,17 @@ class ServiceService {
         [`activePricings.${pricingVersion}`]: pricingLocator,
         [`archivedPricings.${pricingVersion}`]: undefined,
       });
+      
+      // Emitir evento de cambio de pricing (activación)
+      this.eventService.emitPricingChange(service.name, pricingVersion);
     } else {
       updatedService = await this.serviceRepository.update(service.name, {
         [`activePricings.${pricingVersion}`]: undefined,
         [`archivedPricings.${pricingVersion}`]: pricingLocator,
       });
+      
+      // Emitir evento de cambio de pricing (archivado)
+      this.eventService.emitPricingChange(service.name, pricingVersion);
 
       await this._novateContractsToLatestVersion(
         service.name.toLowerCase(),
@@ -386,6 +397,9 @@ class ServiceService {
       [`activePricings.${pricingVersion}`]: undefined,
       [`archivedPricings.${pricingVersion}`]: undefined,
     });
+
+    // Emitir evento de eliminación de pricing
+    this.eventService.emitPricingChange(service.name, pricingVersion);
 
     return result;
   }
