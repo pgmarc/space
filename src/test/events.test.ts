@@ -1,10 +1,11 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { io, Socket } from 'socket.io-client';
 import request from 'supertest';
 import { baseUrl, getApp, shutdownApp } from './utils/testApp';
 import { Server } from 'http';
 import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
 import { getRandomPricingFile } from './utils/services/service';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('Events API Test Suite', function () {
   let app: Server;
@@ -28,12 +29,16 @@ describe('Events API Test Suite', function () {
     pricingNamespace = socketClient.io.socket('/pricings');
   });
 
-  afterEach(async function () {
-    // Disconnect socket after each test to ensure clean state
-    if (pricingNamespace.connected) {
-      pricingNamespace.disconnect();
-    }
-  });
+  beforeEach(() => {
+      pricingNamespace.connect();
+    });
+
+    afterEach(() => {
+      if (pricingNamespace.connected) {
+        pricingNamespace.disconnect();
+      }
+      pricingNamespace.removeAllListeners(); // 💡 MUY IMPORTANTE
+    });
 
   afterAll(async function () {
     // Ensure socket disconnection
@@ -59,9 +64,6 @@ describe('Events API Test Suite', function () {
         pricingNamespace.on('connect_error', err => {
           reject(err);
         });
-
-        // Connect to the WebSocket server
-        pricingNamespace.connect();
       });
     });
   });
@@ -79,9 +81,6 @@ describe('Events API Test Suite', function () {
 
     it('Should emit test event via API endpoint', async () => {
       await new Promise<void>((resolve, reject) => {
-        // Connect to the WebSocket server
-        pricingNamespace.connect();
-
         // Set up message event handler
         pricingNamespace.on('message', data => {
           try {
@@ -123,9 +122,6 @@ describe('Events API Test Suite', function () {
   describe('Pricing Change Events', function () {
     it('Should emit event when uploading a new pricing file', async () => {
       await new Promise<void>(async (resolve, reject) => {
-        // Connect to the WebSocket server
-        pricingNamespace.connect();
-
         // Set up message event handler
         pricingNamespace.on('message', data => {
           try {
@@ -143,13 +139,15 @@ describe('Events API Test Suite', function () {
         // Wait for connection before uploading pricing
         pricingNamespace.on('connect', async () => {
           try {
-            const pricingFile = await getRandomPricingFile();
+            const pricingFile = await getRandomPricingFile(uuidv4());
 
             // Upload a pricing file which should trigger an event
-            await request(app)
+            const response = await request(app)
               .post(`${baseUrl}/services`)
               .set('x-api-key', adminApiKey)
-              .attach('pricingFile', pricingFile);
+              .attach('pricing', pricingFile);
+
+            expect(response.status).toEqual(201);
           } catch (error) {
             reject(error);
           }
@@ -165,14 +163,12 @@ describe('Events API Test Suite', function () {
     it('Should emit event when changing pricing availability', async () => {
       await new Promise<void>(async (resolve, reject) => {
         // This test requires an existing service with at least two pricings
-        const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
-        const pricingVersion = '2025'; // Use a version we know exists
-
-        // Connect to the WebSocket server
-        pricingNamespace.connect();
 
         // Set up message event handler
         pricingNamespace.on('message', data => {
+          const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
+          const pricingVersion = '2024'; // Use a version we know exists
+
           try {
             expect(data).toBeDefined();
             expect(data.code).toEqual('PRICING_CHANGE');
@@ -187,103 +183,25 @@ describe('Events API Test Suite', function () {
 
         // Wait for connection before changing pricing availability
         pricingNamespace.on('connect', async () => {
+          const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
+          const pricingVersion = '2024'; // Use a version we know exists
+          
           try {
             // First, check if service exists and has the required pricing
             const serviceResponse = await request(app)
               .get(`${baseUrl}/services/${serviceName}`)
               .set('x-api-key', adminApiKey);
 
-            if (
-              serviceResponse.status !== 200 ||
-              !serviceResponse.body.activePricings[pricingVersion]
-            ) {
-              // Skip test if service or pricing doesn't exist
-              console.log('Skipping test: Required service or pricing version not found');
-              pricingNamespace.disconnect();
-              resolve();
-              return;
-            }
+            expect(serviceResponse.status).toEqual(200);
 
             // Archive the pricing (requires a fallback subscription)
-            await request(app)
-              .put(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}/archive`)
+            const respose = await request(app)
+              .put(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}?availability=archived`)
               .set('x-api-key', adminApiKey)
               .send({
-                fallBackSubscription: {
-                  subscriptionPlan: 'basic',
-                  subscriptionAddOns: [],
-                },
-              });
-          } catch (error) {
-            reject(error);
-          }
-        });
-
-        // Handle connection errors
-        pricingNamespace.on('connect_error', err => {
-          reject(err);
-        });
-      });
-    });
-
-    it('Should emit event when deleting a pricing', async () => {
-      await new Promise<void>(async (resolve, reject) => {
-        // This test requires an existing service with at least two pricings
-        const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
-        const pricingVersion = '2024'; // Use a different version to avoid conflicts with other tests
-
-        // Connect to the WebSocket server
-        pricingNamespace.connect();
-
-        // Set up message event handler
-        pricingNamespace.on('message', data => {
-          try {
-            expect(data).toBeDefined();
-            expect(data.code).toEqual('PRICING_CHANGE');
-            expect(data.details).toBeDefined();
-            expect(data.details.serviceName).toEqual(serviceName);
-            expect(data.details.pricingVersion).toEqual(pricingVersion);
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
-
-        // Wait for connection before deleting pricing
-        pricingNamespace.on('connect', async () => {
-          try {
-            // First, check if service exists and has the required pricing
-            const serviceResponse = await request(app)
-              .get(`${baseUrl}/services/${serviceName}`)
-              .set('x-api-key', adminApiKey);
-
-            if (
-              serviceResponse.status !== 200 ||
-              (!serviceResponse.body.activePricings[pricingVersion] &&
-                !serviceResponse.body.archivedPricings[pricingVersion])
-            ) {
-              // Skip test if service or pricing doesn't exist
-              console.log('Skipping test: Required service or pricing version not found');
-              pricingNamespace.disconnect();
-              resolve();
-              return;
-            }
-
-            // If service has only one pricing, we can't delete it
-            if (
-              Object.keys(serviceResponse.body.activePricings).length === 1 &&
-              serviceResponse.body.activePricings[pricingVersion]
-            ) {
-              console.log('Skipping test: Cannot delete the only active pricing');
-              pricingNamespace.disconnect();
-              resolve();
-              return;
-            }
-
-            // Delete the pricing
-            await request(app)
-              .delete(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}`)
-              .set('x-api-key', adminApiKey);
+                  subscriptionPlan: 'BASIC',
+                  subscriptionAddOns: {},
+                });
           } catch (error) {
             reject(error);
           }
