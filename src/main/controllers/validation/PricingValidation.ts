@@ -13,13 +13,13 @@ const updateAvailability = [
 
   check('subscriptionPlan')
     .if(bodyExists())
-    .exists({checkNull: true})
+    .optional()
     .isString()
     .withMessage('The subscriptionPlan field must be a string'),
   
   check('subscriptionAddOns')
     .if(bodyExists())
-    .exists({checkNull: true})
+    .optional()
     .isObject()
     .withMessage('The subscriptionAddOns field must be an object')
     .custom((value, { req }) => {
