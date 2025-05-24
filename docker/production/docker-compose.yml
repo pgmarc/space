@@ -7,6 +7,9 @@ services:
         MONGO_INITDB_ROOT_USERNAME: root
         MONGO_INITDB_ROOT_PASSWORD: 4dm1n
         MONGO_INITDB_DATABASE: space_db
+        DATABASE_NAME: space_db
+        DATABASE_USERNAME: mongoUser
+        DATABASE_PASSWORD: mongoPassword
       volumes:
         - 'space-mongodb:/data/db'
         - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
@@ -43,7 +46,7 @@ services:
       - ../../.env
     environment:
       ENVIRONMENT: production
-      MONGO_URI: mongodb://testUsername:testPass@mongodb:27017/space_db
+      MONGO_URI: mongodb://mongoUser:mongoPassword@mongodb:27017/space_db
       REDIS_URL: redis://redis:6379
     volumes:
       - 'space-statics:/usr/src/server/public'
