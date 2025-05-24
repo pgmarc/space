@@ -1,6 +1,6 @@
 import fs from 'fs';
 import request from 'supertest';
-import { baseUrl, getApp } from '../testApp';
+import { baseUrl, getApp, useApp } from '../testApp';
 import { clockifyPricingPath, githubPricingPath, zoomPricingPath } from './ServiceTestData';
 import { generatePricingFile } from './pricing';
 import { v4 as uuidv4 } from 'uuid';
@@ -178,6 +178,31 @@ async function createRandomService(app?: any) {
   return service;
 }
 
+async function archivePricingFromService(
+  serviceName: string,
+  pricingVersion: string,
+  app?: any
+) {
+  let appCopy = await useApp(app);
+
+  const apiKey = await getTestAdminApiKey();
+  const response = await request(appCopy)
+    .put(`${baseUrl}/services/${serviceName}/pricings/${pricingVersion}?availability=archived`)
+    .set('x-api-key', apiKey)
+    .send({
+      subscriptionPlan: "BASIC"
+    });
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to archive pricing: ${response.text}`);
+  }
+  const pricing = response.body;
+  if (!pricing) {
+    throw new Error(`Pricing not found: ${pricingVersion}`);
+  }
+  return pricing;
+}
+
 async function deletePricingFromService(
   serviceName: string,
   pricingVersion: string,
@@ -207,5 +232,6 @@ export {
   getRandomService,
   createService,
   createRandomService,
+  archivePricingFromService,
   deletePricingFromService,
 };
