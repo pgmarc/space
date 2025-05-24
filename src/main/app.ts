@@ -45,8 +45,14 @@ const initializeServer = async (): Promise<{
 
   const addressInfo: AddressInfo = server.address() as AddressInfo;
 
+  // Inicializar el servicio de eventos con el servidor HTTP
+  container.resolve("eventService").initialize(server);
+
   console.log(
     `  ${green}➜${reset}  ${bold}API:${reset}     ${blue}http://localhost${addressInfo.port !== 80 ? `:${bold}${addressInfo.port}${reset}/` : "/"}`
+  );
+  console.log(
+    `  ${green}➜${reset}  ${bold}WebSockets:${reset} ${blue}ws://localhost${addressInfo.port !== 80 ? `:${bold}${addressInfo.port}${reset}/events/pricings` : "/events/pricings"}`
   );
 
   if (["development", "testing"].includes(process.env.ENVIRONMENT ?? "")) {

@@ -22,12 +22,14 @@ class ServiceService {
   private readonly serviceRepository: ServiceRepository;
   private readonly pricingRepository: PricingRepository;
   private readonly contractRepository: ContractRepository;
+  private readonly eventService;
   // private cacheService: CacheService;
 
   constructor() {
     this.serviceRepository = container.resolve('serviceRepository');
     this.pricingRepository = container.resolve('pricingRepository');
     this.contractRepository = container.resolve('contractRepository');
+    this.eventService = container.resolve('eventService');
     // this.cacheService = container.resolve('cacheService');
   }
 
@@ -199,6 +201,13 @@ class ServiceService {
       service = updatedService;
     }
 
+    if (!service) {
+      throw new Error(`Service ${uploadedPricing.saasName} not saved`);
+    }
+    
+    // Emitir evento de cambio de pricing
+    this.eventService.emitPricingChange(service.name, uploadedPricing.version);
+
     // Step 4: Link the pricing to the service
     // await this.pricingRepository.addServiceNameToPricing(
     //   savedPricing.id!.toString(),
@@ -287,7 +296,7 @@ class ServiceService {
     // If newAvailability is the same as the current one, return the service
     if (
       (newAvailability === 'active' && service.activePricings[pricingVersion]) ||
-      (newAvailability === 'archived' && service.archivedPricings[pricingVersion])
+      (newAvailability === 'archived' && service.archivedPricings && service.archivedPricings[pricingVersion])
     ) {
       return service;
     }
@@ -320,11 +329,23 @@ class ServiceService {
         [`activePricings.${pricingVersion}`]: pricingLocator,
         [`archivedPricings.${pricingVersion}`]: undefined,
       });
+      
+      // Emitir evento de cambio de pricing (activación)
+      this.eventService.emitPricingChange(service.name, pricingVersion);
     } else {
       updatedService = await this.serviceRepository.update(service.name, {
         [`activePricings.${pricingVersion}`]: undefined,
         [`archivedPricings.${pricingVersion}`]: pricingLocator,
       });
+      
+      // Emitir evento de cambio de pricing (archivado)
+      this.eventService.emitPricingChange(service.name, pricingVersion);
+
+      if (fallBackSubscription && fallBackSubscription.subscriptionPlan === undefined && fallBackSubscription.subscriptionAddOns === undefined) {
+        throw new Error(
+          `Invalid request: In order to novate contracts to the latest version, the provided fallback subscription must contain at least a subscriptionPlan (if the pricing has plans), and optionally a subset of add-ons. If the pricing do not have plans, the set of add-ons is mandatory.`
+        );
+      }
 
       await this._novateContractsToLatestVersion(
         service.name.toLowerCase(),
@@ -364,18 +385,16 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
-    if (
-      Object.keys(service.activePricings).length === 1 &&
-      service.activePricings[pricingVersion]
-    ) {
-      throw new Error(`You cannot delete the last active pricing for service ${serviceName}`);
+    if (service.activePricings[pricingVersion]) {
+      throw new Error(
+        `Forbidden: You cannot delete an active pricing version ${pricingVersion} for service ${serviceName}. Please archive it first.`
+      );
     }
 
-    const pricingLocator =
-      service.activePricings[pricingVersion] || service.archivedPricings[pricingVersion];
+    const pricingLocator = service.archivedPricings[pricingVersion];
 
     if (!pricingLocator) {
-      throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
+      throw new Error(`Invalid request: Pricing archived version ${pricingVersion} not found for service ${serviceName}`);
     }
 
     if (pricingLocator.id) {
