@@ -230,10 +230,12 @@ class ServiceController {
         res.status(404).send({ error: 'Pricing not found' });
       }
     }catch (err: any) {
-      if (err.message.toLowerCase().includes('not found')) {
+      if (err.message.toLowerCase().includes('not found') || err.message.toLowerCase().includes('invalid')) {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('last active pricing')) {
         res.status(400).send({ error: err.message });
+      }else if (err.message.toLowerCase().includes('forbidden')) {
+        res.status(403).send({ error: err.message });
       }else {
         res.status(500).send({ error: err.message });
       }
