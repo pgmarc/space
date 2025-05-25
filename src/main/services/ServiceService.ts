@@ -96,18 +96,20 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
+    resetEscapeVersionInService(service);
+
     return service;
   }
 
   async showPricing(serviceName: string, pricingVersion: string) {
     const service = await this.serviceRepository.findByName(serviceName);
-
+    const formattedPricingVersion = escapeVersion(pricingVersion);
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
 
     const pricingLocator =
-      service.activePricings[pricingVersion] || service.archivedPricings[pricingVersion];
+      service.activePricings[formattedPricingVersion] || service.archivedPricings[formattedPricingVersion];
 
     if (!pricingLocator) {
       throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
@@ -384,10 +386,15 @@ class ServiceService {
 
       await this._novateContractsToLatestVersion(
         service.name.toLowerCase(),
-        pricingVersion,
+        escapeVersion(pricingVersion),
         fallBackSubscription
       );
     }
+
+    if (updatedService) {
+      resetEscapeVersionInService(updatedService);
+    }
+
 
     return updatedService;
   }

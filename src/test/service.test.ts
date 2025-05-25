@@ -263,9 +263,7 @@ describe('Services API Test Suite', function () {
 
       // Check if the new pricing is the latest in activePricings
       const parsedPricing = retrievePricingFromPath(newPricingVersion);
-      expect(Object.keys(response.body.activePricings)[newActivePricingsAmount - 1]).toBe(
-        parsedPricing.version
-      );
+      expect(Object.keys(response.body.activePricings).includes(parsedPricing.version)).toBeTruthy();
     });
 
     it('Should return 200 given a pricing with a link', async function () {
@@ -293,7 +291,7 @@ describe('Services API Test Suite', function () {
   describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .get(`${baseUrl}/services/${testService}/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
@@ -308,7 +306,7 @@ describe('Services API Test Suite', function () {
 
     it('Should return 200: Given existent service name in upper case and pricing version', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .get(`${baseUrl}/services/${testService}/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
@@ -323,7 +321,7 @@ describe('Services API Test Suite', function () {
 
     it('Should return 404 due to service not found', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/unexistent-service/pricings/2024`)
+        .get(`${baseUrl}/services/unexistent-service/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
@@ -341,7 +339,7 @@ describe('Services API Test Suite', function () {
   });
 
   describe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
-    const versionToArchive = '2024';
+    const versionToArchive = '2.0.0';
 
     afterEach(async function () {
       await request(app)

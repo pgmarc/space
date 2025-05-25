@@ -3,6 +3,7 @@ import ServiceService from '../services/ServiceService';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 import { FallBackSubscription } from '../types/models/Contract.js';
+import { resetEscapePricingVersion } from '../utils/services/helpers.js';
 
 class ServiceController {
   private readonly serviceService: ServiceService;
@@ -48,6 +49,10 @@ class ServiceController {
 
       const pricings = await this.serviceService.indexPricings(serviceName, pricingStatus);
 
+      for (const pricing of pricings) {
+        resetEscapePricingVersion(pricing);
+      }
+
       return res.json(pricings);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
@@ -79,6 +84,8 @@ class ServiceController {
       const pricingVersion = req.params.pricingVersion;
 
       const pricing = await this.serviceService.showPricing(serviceName, pricingVersion);
+
+      resetEscapePricingVersion(pricing);
 
       return res.json(pricing);
     } catch (err: any) {

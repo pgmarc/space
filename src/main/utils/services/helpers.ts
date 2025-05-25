@@ -1,11 +1,12 @@
+import { LeanPricing } from '../../types/models/Pricing';
 import { LeanService } from '../../types/models/Service';
-import { escapeVersion } from '../helpers';
+import { resetEscapeVersion } from '../helpers';
 
 function resetEscapeVersionInService(service: LeanService): void {
   for (const version in service.activePricings) {
-    const formattedVersion = escapeVersion(version);
+    const formattedVersion = resetEscapeVersion(version);
 
-    if (formattedVersion !== version) {
+    if (formattedVersion !== version && service.activePricings[version]) {
       service.activePricings[formattedVersion] = {
         ...service.activePricings[version],
       };
@@ -16,9 +17,9 @@ function resetEscapeVersionInService(service: LeanService): void {
   }
 
   for (const version in service.archivedPricings) {
-    const formattedVersion = escapeVersion(version);
+    const formattedVersion = resetEscapeVersion(version);
 
-    if (formattedVersion !== version) {
+    if (formattedVersion !== version && service.archivedPricings[version]) {
       service.archivedPricings[formattedVersion] = {
         ...service.archivedPricings[version],
       };
@@ -28,4 +29,8 @@ function resetEscapeVersionInService(service: LeanService): void {
   }
 }
 
-export { resetEscapeVersionInService };
+function resetEscapePricingVersion(pricing: LeanPricing){
+  pricing.version = resetEscapeVersion(pricing.version);
+}
+
+export { resetEscapeVersionInService, resetEscapePricingVersion };

@@ -26,6 +26,7 @@ import { evaluateAllFeatures, evaluateFeature } from '../utils/feature-evaluatio
 import ContractService from './ContractService';
 import ServiceService from './ServiceService';
 import { generateTokenFromEvalResult } from '../utils/jwt';
+import { escapeVersion } from '../utils/helpers';
 
 class FeatureEvaluationService {
   private readonly serviceService: ServiceService;
@@ -153,7 +154,7 @@ class FeatureEvaluationService {
     const pricingsToReturn: Record<string, LeanPricing> = {};
 
     for (const serviceName in contract.contractedServices) {
-      const pricingVersion = contract.contractedServices[serviceName];
+      const pricingVersion = escapeVersion(contract.contractedServices[serviceName]);
 
       const pricing = await this.serviceService.showPricing(serviceName, pricingVersion);
 
@@ -274,7 +275,7 @@ class FeatureEvaluationService {
         );
       }
 
-      if (show === 'archived' || show === 'all') {
+      if ((show === 'archived' || show === 'all') && service.archivedPricings) {
         pricingsWithIdToCheck = pricingsWithIdToCheck.concat(
           Object.entries(service.archivedPricings)
             .filter(([_, pricing]) => pricing.id)

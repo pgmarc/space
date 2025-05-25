@@ -167,7 +167,7 @@ describe('Events API Test Suite', function () {
         // Set up message event handler
         pricingNamespace.on('message', data => {
           const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
-          const pricingVersion = '2024'; // Use a version we know exists
+          const pricingVersion = '2.0.0'; // Use a version we know exists
 
           try {
             expect(data).toBeDefined();
@@ -184,7 +184,7 @@ describe('Events API Test Suite', function () {
         // Wait for connection before changing pricing availability
         pricingNamespace.on('connect', async () => {
           const serviceName = 'Zoom'; // Assuming Zoom service exists with multiple pricings
-          const pricingVersion = '2024'; // Use a version we know exists
+          const pricingVersion = '2.0.0'; // Use a version we know exists
           
           try {
             // First, check if service exists and has the required pricing
