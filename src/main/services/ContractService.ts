@@ -14,8 +14,8 @@ import { addDays, isAfter } from 'date-fns';
 import { isSubscriptionValid } from '../controllers/validation/ContractValidation';
 import { performNovation } from '../utils/contracts/novation';
 import CacheService from './CacheService';
-import { addPeriodToDate, convertKeysToLowercase } from '../utils/helpers';
-import { generateUsageLevels } from '../utils/contracts/helpers';
+import { addPeriodToDate, convertKeysToLowercase, escapeVersion, resetEscapeVersion } from '../utils/helpers';
+import { generateUsageLevels, resetEscapeContractedServiceVersions } from '../utils/contracts/helpers';
 
 class ContractService {
   private readonly contractRepository: ContractRepository;
@@ -38,6 +38,11 @@ class ContractService {
     }
 
     const contracts: LeanContract[] = await this.contractRepository.findAll(queryParams);
+
+    for (const contract of contracts) {
+      contract.contractedServices = resetEscapeContractedServiceVersions(contract.contractedServices);
+    }
+
     return contracts;
   }
 
@@ -46,6 +51,9 @@ class ContractService {
     if (!contract) {
       throw new Error(`Contract with userId ${userId} not found`);
     }
+
+    contract.contractedServices = resetEscapeContractedServiceVersions(contract.contractedServices);
+
     return contract;
   }
 
@@ -66,7 +74,7 @@ class ContractService {
     }
 
     for (const serviceName in contractData.contractedServices) {
-      const pricingVersion = contractData.contractedServices[serviceName];
+      const pricingVersion = escapeVersion(contractData.contractedServices[serviceName]);
       const service = services.find(
         (s) => s.name.toLowerCase() === serviceName.toLowerCase()
       );
@@ -80,6 +88,8 @@ class ContractService {
           `Invalid contract: Pricing version ${pricingVersion} for service ${serviceName} not found`
         );
       }
+
+      contractData.contractedServices[serviceName] = escapeVersion(pricingVersion); // Ensure the version is stored correctly
     }
     
     const startDate = new Date();
@@ -113,6 +123,9 @@ class ContractService {
     }
 
     const contract = await this.contractRepository.create(contractDataToCreate);
+
+    contract.contractedServices = resetEscapeContractedServiceVersions(contract.contractedServices);
+
     return contract;
   }
 
@@ -129,6 +142,8 @@ class ContractService {
     if (!result) {
       throw new Error(`Failed to update contract for userId ${userId}`);
     }
+
+    result.contractedServices = resetEscapeContractedServiceVersions(result.contractedServices);
 
     return result;
   }
@@ -158,6 +173,8 @@ class ContractService {
       throw new Error(`Failed to update contract for userId ${userId}`);
     }
 
+    result.contractedServices = resetEscapeContractedServiceVersions(result.contractedServices);
+
     return result;
   }
 
@@ -180,6 +197,8 @@ class ContractService {
     if (!result) {
       throw new Error(`Failed to update contract for userId ${userId}`);
     }
+
+    result.contractedServices = resetEscapeContractedServiceVersions(result.contractedServices);
 
     return result;
   }
@@ -207,6 +226,8 @@ class ContractService {
     if (!result) {
       throw new Error(`Failed to update contract for userId ${userId}`);
     }
+
+    result.contractedServices = resetEscapeContractedServiceVersions(result.contractedServices);
 
     return result;
   }
@@ -243,6 +264,8 @@ class ContractService {
     if (!updatedContract) {
       throw new Error(`Failed to update contract for userId ${userId}`);
     }
+
+    updatedContract.contractedServices = resetEscapeContractedServiceVersions(updatedContract.contractedServices);
 
     return updatedContract;
   }

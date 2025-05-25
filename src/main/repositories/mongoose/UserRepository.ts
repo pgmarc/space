@@ -26,7 +26,16 @@ class UserRepository extends RepositoryBase {
 
     if (!isPasswordValid) return null;
 
-    return toPlainObject<LeanUser>(user.toJSON()).apiKey;
+    const apiKey = toPlainObject<LeanUser>(user.toJSON()).apiKey;
+
+    if (!apiKey) {
+      // If the user does not have an API key, we generate one
+      const newApiKey = generateApiKey();
+      await UserMongoose.updateOne({ username }, { apiKey: newApiKey });
+      return newApiKey;
+    }
+
+    return apiKey;
   }
 
   async findByApiKey(apiKey: string) {

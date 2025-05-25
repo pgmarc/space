@@ -4,8 +4,9 @@
       "$oid": "63f74bf8eeed64054274b52d"
     },
     "username": "testAdmin",
-    "password": "$2b$10$INy4CseRKkIgXnEdd/WD8u9U9ujAWzCmtMsMd57BwmG5gAjljJWvm",
-    "role": "ADMIN"
+    "password": "$2b$10$zk1.UGu1tPipj1yJAL0QseWoQiShyBgNnDj6bJG8Y0iPV08uYmg0e",
+    "role": "ADMIN",
+    "apiKey": "9cedd24632167a021667df44a26362dfb778c1566c3d4564e132cb58770d8c67"
   },
   {
     "_id": {

@@ -25,7 +25,7 @@ class ServiceRepository extends RepositoryBase {
       .limit(limit)
       .sort({ name: order === 'asc' ? 1 : -1 });
     
-    return services.map((service) => service.toJSON());
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
   }
 
   async findAllNoQueries(disabled = false): Promise<LeanService[] | null> {

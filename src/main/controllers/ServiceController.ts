@@ -27,6 +27,7 @@ class ServiceController {
       const queryParams = this._transformIndexQueryParams(req.query);
 
       const services = await this.serviceService.index(queryParams);
+
       res.json(services);
     } catch (err: any) {
       res.status(500).send({ error: err.message });
@@ -45,9 +46,9 @@ class ServiceController {
         return;
       }
 
-      const service = await this.serviceService.indexPricings(serviceName, pricingStatus);
+      const pricings = await this.serviceService.indexPricings(serviceName, pricingStatus);
 
-      return res.json(service);
+      return res.json(pricings);
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
@@ -105,7 +106,13 @@ class ServiceController {
       }
       res.status(201).json(service);
     } catch (err: any) {
-      if (err.message.toLowerCase().includes('not found')) {
+      if (
+        err.message.toLowerCase().includes('parsing') ||
+        err.message.toLowerCase().includes('already exists') ||
+        err.message.toLowerCase().includes('invalid')
+      ) {
+        res.status(400).send({ error: err.message });
+      } else if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else {
         res.status(500).send({ error: err.message });
@@ -124,7 +131,11 @@ class ServiceController {
           res.status(400).send({ error: 'No file or URL provided' });
           return;
         }
-        service = await this.serviceService.addPricingToService(serviceName, req.body.pricing, 'url');
+        service = await this.serviceService.addPricingToService(
+          serviceName,
+          req.body.pricing,
+          'url'
+        );
       } else {
         service = await this.serviceService.addPricingToService(serviceName, req.file, 'file');
       }
@@ -153,19 +164,21 @@ class ServiceController {
   }
 
   async updatePricingAvailability(req: any, res: any) {
-    try{
+    try {
       const serviceName = req.params.serviceName;
       const pricingVersion = req.params.pricingVersion;
-      const newAvailability = req.query.availability ?? "archived";
+      const newAvailability = req.query.availability ?? 'archived';
       const fallBackSubscription: FallBackSubscription = req.body ?? {};
 
       if (!newAvailability) {
         res.status(400).send({ error: 'No availability provided' });
         return;
-      }else if (newAvailability !== 'active' && newAvailability !== 'archived') {
-        res.status(400).send({ error: 'Invalid availability status. Either provide "active" or "archived"' });
+      } else if (newAvailability !== 'active' && newAvailability !== 'archived') {
+        res
+          .status(400)
+          .send({ error: 'Invalid availability status. Either provide "active" or "archived"' });
         return;
-      }else{
+      } else {
         const service = await this.serviceService.updatePricingAvailability(
           serviceName,
           pricingVersion,
@@ -175,15 +188,14 @@ class ServiceController {
 
         res.json(service);
       }
-
-    }catch (err: any) {
+    } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('last active pricing')) {
         res.status(400).send({ error: err.message });
-      }else if (err.message.toLowerCase().includes('invalid')){
+      } else if (err.message.toLowerCase().includes('invalid')) {
         res.status(400).send({ error: err.message });
-      }else {
+      } else {
         res.status(500).send({ error: err.message });
       }
     }
@@ -229,14 +241,17 @@ class ServiceController {
       } else {
         res.status(404).send({ error: 'Pricing not found' });
       }
-    }catch (err: any) {
-      if (err.message.toLowerCase().includes('not found') || err.message.toLowerCase().includes('invalid')) {
+    } catch (err: any) {
+      if (
+        err.message.toLowerCase().includes('not found') ||
+        err.message.toLowerCase().includes('invalid')
+      ) {
         res.status(404).send({ error: err.message });
       } else if (err.message.toLowerCase().includes('last active pricing')) {
         res.status(400).send({ error: err.message });
-      }else if (err.message.toLowerCase().includes('forbidden')) {
+      } else if (err.message.toLowerCase().includes('forbidden')) {
         res.status(403).send({ error: err.message });
-      }else {
+      } else {
         res.status(500).send({ error: err.message });
       }
     }

@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import { LeanUser } from '../../types/models/User';
 import bcrypt from 'bcryptjs';
 
 function generateApiKey() {
