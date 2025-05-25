@@ -53,7 +53,7 @@ describe('Services API Test Suite', function () {
 
   describe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const pricingFilePath = await getRandomPricingFile('zoom');
+      const pricingFilePath = await getRandomPricingFile(new Date().getTime().toString());
       const response = await request(app)
         .post(`${baseUrl}/services`)
         .set('x-api-key', adminApiKey)
