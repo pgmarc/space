@@ -178,12 +178,6 @@ class ServiceService {
       }
     }
 
-    const existingService = await this.serviceRepository.findByName(uploadedPricing.saasName);
-
-    if (existingService) {
-      throw new Error(`Service ${uploadedPricing.saasName} already exists`);
-    }
-
     const pricingData: ExpectedPricingType & { _serviceName: string } = {
       _serviceName: uploadedPricing.saasName,
       ...parsePricingToSpacePricingObject(uploadedPricing),
