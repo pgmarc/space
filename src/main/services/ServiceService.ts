@@ -38,6 +38,15 @@ class ServiceService {
     return services;
   }
 
+  async indexByNames(serviceNames: string[]) {
+    if (!Array.isArray(serviceNames) || serviceNames.length === 0) {
+      throw new Error('Invalid request: serviceNames must be a non-empty array');
+    }
+
+    const services = await this.serviceRepository.findByNames(serviceNames);
+    return services;
+  }
+
   async indexPricings(serviceName: string, pricingStatus: string) {
     const service = await this.serviceRepository.findByName(serviceName);
 

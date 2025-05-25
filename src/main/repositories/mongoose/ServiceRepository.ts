@@ -47,6 +47,14 @@ class ServiceRepository extends RepositoryBase {
     return toPlainObject<LeanService>(service.toJSON());
   }
 
+  async findByNames(names: string[], disabled = false): Promise<LeanService[] | null> {
+    const services = await ServiceMongoose.find({ name: { $in: names.map(name => new RegExp(name, 'i')) }, disabled: disabled });
+    if (!services || Array.isArray(services) && services.length === 0) {
+      return null;
+    }
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
+  }
+
   async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[], disabled = false): Promise<LeanPricing[] | null> {
     const pricings = await PricingMongoose.find({ _serviceName: { $regex: serviceName, $options: 'i' }, version: { $in: versionsToRetrieve } });
     if (!pricings || Array.isArray(pricings) && pricings.length === 0) {
