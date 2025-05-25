@@ -6,7 +6,7 @@
     "name": "Zoom",
     "disabled": false,
     "activePricings": {
-      "2024": {
+      "2_0_0": {
         "id": {
           "$oid": "68162ba1a887819d643e6e1f"
         }

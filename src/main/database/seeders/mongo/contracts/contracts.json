@@ -26,7 +26,7 @@
       }
     },
     "contractedServices": {
-      "zoom": "2024"
+      "zoom": "2_0_0"
     },
     "subscriptionPlans": {
       "zoom": "PRO"
@@ -84,7 +84,7 @@
       }
     },
     "contractedServices": {
-      "zoom": "2024"
+      "zoom": "2_0_0"
     },
     "subscriptionPlans": {
       "zoom": "BUSINESS"
@@ -100,7 +100,7 @@
         "startDate": {"$date": "2025-04-01T00:00:00.000Z"},
         "endDate": {"$date": "2025-05-01T00:00:00.000Z"},
         "contractedServices": {
-          "zoom": "2024"
+          "zoom": "2_0_0"
         },
         "subscriptionPlans": {
           "zoom": "BASIC"
@@ -137,7 +137,7 @@
       }
     },
     "contractedServices": {
-      "zoom": "2024"
+      "zoom": "2_0_0"
     },
     "subscriptionPlans": {
       "zoom": "ENTERPRISE"
@@ -154,7 +154,7 @@
         "startDate": {"$date": "2025-03-01T00:00:00.000Z"},
         "endDate": {"$date": "2025-05-01T00:00:00.000Z"},
         "contractedServices": {
-          "zoom": "2024"
+          "zoom": "2_0_0"
         },
         "subscriptionPlans": {
           "zoom": "ENTERPRISE"
