@@ -16,8 +16,8 @@ class EventController {
    * @param serviceName - Nombre del servicio al que pertenece el pricing
    * @param pricingVersion - Versión del pricing que ha cambiado
    */
-  emitPricingChange(serviceName: string, pricingVersion: string): void {
-    this.eventService.emitPricingChange(serviceName, pricingVersion);
+  emitPricingMessage(serviceName: string, pricingVersion: string): void {
+    this.eventService.emitPricingArchivedMessage(serviceName, pricingVersion);
   }
 }
 

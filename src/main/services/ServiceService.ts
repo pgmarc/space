@@ -228,8 +228,8 @@ class ServiceService {
       throw new Error(`Service ${uploadedPricing.saasName} not saved`);
     }
 
-    // Emitir evento de cambio de pricing
-    this.eventService.emitPricingChange(service.name, uploadedPricing.version);
+    // Emit pricing creation event
+    this.eventService.emitPricingCreatedMessage(service.name, uploadedPricing.version);
 
     // Step 4: Link the pricing to the service
     // await this.pricingRepository.addServiceNameToPricing(
@@ -364,7 +364,7 @@ class ServiceService {
       });
 
       // Emitir evento de cambio de pricing (activación)
-      this.eventService.emitPricingChange(service.name, pricingVersion);
+      this.eventService.emitPricingActivedMessage(service.name, pricingVersion);
     } else {
       updatedService = await this.serviceRepository.update(service.name, {
         [`activePricings.${formattedPricingVersion}`]: undefined,
@@ -372,7 +372,7 @@ class ServiceService {
       });
 
       // Emitir evento de cambio de pricing (archivado)
-      this.eventService.emitPricingChange(service.name, pricingVersion);
+      this.eventService.emitPricingArchivedMessage(service.name, pricingVersion);
 
       if (
         fallBackSubscription &&
