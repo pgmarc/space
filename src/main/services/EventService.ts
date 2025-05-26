@@ -91,6 +91,20 @@ class EventService {
       }
     });
   }
+
+  emitServiceDisabledMessage(serviceName: string): void {
+    if (!this.io) {
+      console.error('Websocket server is not initialized');
+      return;
+    }
+
+    this.io.of('/pricings').emit('message', {
+      code: 'SERVICE_DISABLED',
+      details: {
+        serviceName
+      }
+    });
+  }
 }
 
 export default EventService;

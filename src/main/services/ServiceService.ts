@@ -418,6 +418,8 @@ class ServiceService {
 
     const result = await this.serviceRepository.disable(service.name);
 
+    this.eventService.emitServiceDisabledMessage(service.name);
+
     return result;
   }
 
