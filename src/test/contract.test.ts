@@ -262,6 +262,37 @@ describe('Contract API Test Suite', function () {
         addDays(response.body.billingPeriod.startDate, response.body.billingPeriod.renewalDays)
       );
     });
+
+    it('Should return 400 given a contract with unexistent service', async function () {
+      const {contract: contractToCreate} = await generateContractAndService(undefined, app);
+
+      contractToCreate.contractedServices['unexistent-service'] = '1.0.0';
+
+      const response = await request(app)
+        .post(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
+        .send(contractToCreate);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toBeDefined();
+      expect(response.body.error).toBe("Invalid contract: Services not found: unexistent-service");
+    });
+
+    it('Should return 400 given a contract with existent service, but invalid version', async function () {
+      const {contract: contractToCreate} = await generateContractAndService(undefined, app);
+
+      const existingService = Object.keys(contractToCreate.contractedServices)[0];
+      contractToCreate.contractedServices[existingService] = 'invalid-version';
+
+      const response = await request(app)
+        .post(`${baseUrl}/contracts`)
+        .set('x-api-key', adminApiKey)
+        .send(contractToCreate);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toBeDefined();
+      expect(response.body.error).toBe(`Invalid contract: Pricing version invalid-version for service ${existingService} not found`);
+    });
   });
 
   describe('GET /contracts/:userId', function () {

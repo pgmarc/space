@@ -66,6 +66,7 @@ const create = [
 
   check('contractedServices.*')
     .exists()
+    .notEmpty()
     .withMessage('Each value in contractedServices must be a string (service name)')
     .isString()
     .withMessage('Each value in contractedServices must be a string (pricing version)'),

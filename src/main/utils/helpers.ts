@@ -72,4 +72,12 @@ function addPeriodToDate(currentDate: Date, period: LeanPeriod): Date {
   return result;
 }
 
-export { convertKeysToLowercase, addPeriodToDate };
+function escapeVersion(version: string) {
+  return version.replace(/\./g, '_');
+}
+
+function resetEscapeVersion(version: string) {
+  return version.replace(/_/g, '.');
+}
+
+export { convertKeysToLowercase, addPeriodToDate, escapeVersion, resetEscapeVersion };

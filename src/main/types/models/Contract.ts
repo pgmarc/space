@@ -64,7 +64,7 @@ export interface ContractToCreate {
     autoRenew?: boolean;
     renewalDays?: number;
   };
-  contractedServices: Record<string, string>; // service name → pricing path
+  contractedServices: Record<string, string>; // service name → version
   subscriptionPlans: Record<string, string>; // service name → plan name
   subscriptionAddOns: Record<string, Record<string, number>>; // service name → { addOn: count }
 }

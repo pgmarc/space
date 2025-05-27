@@ -175,7 +175,7 @@ describe('Features API Test Suite', function () {
     });
 
     it('Should filter features by pricingVersion', async function () {
-      const pricingVersion = '2024';
+      const pricingVersion = '2.0.0';
       const response = await request(app)
         .get(`${baseUrl}/features?pricingVersion=${pricingVersion}`)
         .set('x-api-key', adminApiKey);

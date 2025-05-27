@@ -25,7 +25,7 @@ class ServiceRepository extends RepositoryBase {
       .limit(limit)
       .sort({ name: order === 'asc' ? 1 : -1 });
     
-    return services.map((service) => service.toJSON());
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
   }
 
   async findAllNoQueries(disabled = false): Promise<LeanService[] | null> {
@@ -45,6 +45,14 @@ class ServiceRepository extends RepositoryBase {
     }
 
     return toPlainObject<LeanService>(service.toJSON());
+  }
+
+  async findByNames(names: string[], disabled = false): Promise<LeanService[] | null> {
+    const services = await ServiceMongoose.find({ name: { $in: names.map(name => new RegExp(name, 'i')) }, disabled: disabled });
+    if (!services || Array.isArray(services) && services.length === 0) {
+      return null;
+    }
+    return services.map((service) => toPlainObject<LeanService>(service.toJSON()));
   }
 
   async findPricingsByServiceName(serviceName: string, versionsToRetrieve: string[], disabled = false): Promise<LeanPricing[] | null> {

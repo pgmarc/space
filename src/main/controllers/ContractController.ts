@@ -59,7 +59,11 @@ class ContractController {
       const contract = await this.contractService.create(contractData);
       res.status(201).json(contract);
     } catch (err: any) {
+      if (err.message.toLowerCase().includes('invalid')) {
+        res.status(400).send({ error: err.message });
+      } else {
       res.status(500).send({ error: err.message });
+      }
     }
   }
 

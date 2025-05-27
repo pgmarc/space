@@ -16,6 +16,9 @@ import ContractRepository from '../repositories/mongoose/ContractRepository';
 import { performNovation } from '../utils/contracts/novation';
 import { isSubscriptionValidInPricing } from '../controllers/validation/ContractValidation';
 import { generateUsageLevels } from '../utils/contracts/helpers';
+import mongoose from 'mongoose';
+import { escapeVersion } from '../utils/helpers';
+import { resetEscapeVersionInService } from '../utils/services/helpers';
 // import CacheService from "./CacheService";
 
 class ServiceService {
@@ -35,6 +38,20 @@ class ServiceService {
 
   async index(queryParams: ServiceQueryFilters) {
     const services = await this.serviceRepository.findAll(queryParams);
+
+    for (const service of services) {
+      resetEscapeVersionInService(service);
+    }
+
+    return services;
+  }
+
+  async indexByNames(serviceNames: string[]) {
+    if (!Array.isArray(serviceNames) || serviceNames.length === 0) {
+      throw new Error('Invalid request: serviceNames must be a non-empty array');
+    }
+
+    const services = await this.serviceRepository.findByNames(serviceNames);
     return services;
   }
 
@@ -79,18 +96,20 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
+    resetEscapeVersionInService(service);
+
     return service;
   }
 
   async showPricing(serviceName: string, pricingVersion: string) {
     const service = await this.serviceRepository.findByName(serviceName);
-
+    const formattedPricingVersion = escapeVersion(pricingVersion);
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
 
     const pricingLocator =
-      service.activePricings[pricingVersion] || service.archivedPricings[pricingVersion];
+      service.activePricings[formattedPricingVersion] || service.archivedPricings[formattedPricingVersion];
 
     if (!pricingLocator) {
       throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
@@ -143,7 +162,7 @@ class ServiceService {
     // Step 1: Parse and validate pricing
 
     const uploadedPricing: Pricing = await this._getPricingFromPath(pricingFile.path);
-
+    const formattedPricingVersion = escapeVersion(uploadedPricing.version);
     // Step 1.1: Load the service if already exists
     if (serviceName) {
       service = await this.serviceRepository.findByName(serviceName);
@@ -152,8 +171,8 @@ class ServiceService {
       }
 
       if (
-        service.activePricings[uploadedPricing.version] ||
-        service.archivedPricings[uploadedPricing.version]
+        (service.activePricings && service.activePricings[formattedPricingVersion]) ||
+        (service.archivedPricings && service.archivedPricings[formattedPricingVersion])
       ) {
         throw new Error(
           `Pricing version ${uploadedPricing.version} already exists for service ${serviceName}`
@@ -184,16 +203,20 @@ class ServiceService {
       const serviceData = {
         name: uploadedPricing.saasName,
         activePricings: {
-          [uploadedPricing.version]: {
+          [formattedPricingVersion]: {
             id: savedPricing.id,
           },
         },
       };
 
-      service = await this.serviceRepository.create(serviceData);
+      try{
+        service = await this.serviceRepository.create(serviceData);
+      }catch (err) {
+        throw new Error(`Service ${uploadedPricing.saasName} not saved: ${(err as Error).message}`);
+      }
     } else {
       const updatedService = await this.serviceRepository.update(service.name, {
-        [`activePricings.${uploadedPricing.version}`]: {
+        [`activePricings.${formattedPricingVersion}`]: {
           id: savedPricing.id,
         },
       });
@@ -204,9 +227,9 @@ class ServiceService {
     if (!service) {
       throw new Error(`Service ${uploadedPricing.saasName} not saved`);
     }
-    
-    // Emitir evento de cambio de pricing
-    this.eventService.emitPricingChange(service.name, uploadedPricing.version);
+
+    // Emit pricing creation event
+    this.eventService.emitPricingCreatedMessage(service.name, uploadedPricing.version);
 
     // Step 4: Link the pricing to the service
     // await this.pricingRepository.addServiceNameToPricing(
@@ -229,17 +252,24 @@ class ServiceService {
 
   async _createFromUrl(pricingUrl: string, serviceName?: string) {
     const uploadedPricing: Pricing = await this._getPricingFromRemoteUrl(pricingUrl);
+    const formattedPricingVersion = escapeVersion(uploadedPricing.version);
 
     if (!serviceName) {
       // Create a new service
       const serviceData = {
         name: uploadedPricing.saasName,
         activePricings: {
-          [uploadedPricing.version]: {
+          [formattedPricingVersion]: {
             url: pricingUrl,
           },
         },
       };
+
+      const existingService = await this.serviceRepository.findByName(uploadedPricing.saasName);
+
+      if (existingService) {
+        throw new Error(`Invalid request: Service ${uploadedPricing.saasName} already exists`);
+      }
 
       const service = await this.serviceRepository.create(serviceData);
       return service;
@@ -251,8 +281,8 @@ class ServiceService {
       }
 
       if (
-        service.activePricings[uploadedPricing.version] ||
-        service.archivedPricings[uploadedPricing.version]
+        service.activePricings[formattedPricingVersion] ||
+        service.archivedPricings[formattedPricingVersion]
       ) {
         throw new Error(
           `Pricing version ${uploadedPricing.version} already exists for service ${serviceName}`
@@ -260,7 +290,7 @@ class ServiceService {
       }
 
       const updatedService = await this.serviceRepository.update(service.name, {
-        [`activePricings.${uploadedPricing.version}`]: {
+        [`activePricings.${formattedPricingVersion}`]: {
           url: pricingUrl,
         },
       });
@@ -288,6 +318,7 @@ class ServiceService {
     fallBackSubscription: FallBackSubscription
   ) {
     const service = await this.serviceRepository.findByName(serviceName);
+    const formattedPricingVersion = escapeVersion(pricingVersion);
 
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
@@ -295,8 +326,10 @@ class ServiceService {
 
     // If newAvailability is the same as the current one, return the service
     if (
-      (newAvailability === 'active' && service.activePricings[pricingVersion]) ||
-      (newAvailability === 'archived' && service.archivedPricings && service.archivedPricings[pricingVersion])
+      (newAvailability === 'active' && service.activePricings[formattedPricingVersion]) ||
+      (newAvailability === 'archived' &&
+        service.archivedPricings &&
+        service.archivedPricings[formattedPricingVersion])
     ) {
       return service;
     }
@@ -304,19 +337,19 @@ class ServiceService {
     if (
       newAvailability === 'archived' &&
       Object.keys(service.activePricings).length === 1 &&
-      service.activePricings[pricingVersion]
+      service.activePricings[formattedPricingVersion]
     ) {
       throw new Error(`You cannot archive the last active pricing for service ${serviceName}`);
     }
 
     if (newAvailability === 'archived' && Object.keys(fallBackSubscription).length === 0) {
       throw new Error(
-        `Invalid request: Archiving pricing version ${pricingVersion} of service ${serviceName} cannot be completed. To proceed, you must provide a fallback subscription in the request body. All active contracts will be novated to this new version upon archiving.`
+        `Invalid request: Archiving pricing version ${formattedPricingVersion} of service ${serviceName} cannot be completed. To proceed, you must provide a fallback subscription in the request body. All active contracts will be novated to this new version upon archiving.`
       );
     }
 
     const pricingLocator =
-      service.activePricings[pricingVersion] ?? service.archivedPricings[pricingVersion];
+      service.activePricings[formattedPricingVersion] ?? service.archivedPricings[formattedPricingVersion];
 
     if (!pricingLocator) {
       throw new Error(`Pricing version ${pricingVersion} not found for service ${serviceName}`);
@@ -326,22 +359,26 @@ class ServiceService {
 
     if (newAvailability === 'active') {
       updatedService = await this.serviceRepository.update(service.name, {
-        [`activePricings.${pricingVersion}`]: pricingLocator,
-        [`archivedPricings.${pricingVersion}`]: undefined,
+        [`activePricings.${formattedPricingVersion}`]: pricingLocator,
+        [`archivedPricings.${formattedPricingVersion}`]: undefined,
       });
-      
+
       // Emitir evento de cambio de pricing (activación)
-      this.eventService.emitPricingChange(service.name, pricingVersion);
+      this.eventService.emitPricingActivedMessage(service.name, pricingVersion);
     } else {
       updatedService = await this.serviceRepository.update(service.name, {
-        [`activePricings.${pricingVersion}`]: undefined,
-        [`archivedPricings.${pricingVersion}`]: pricingLocator,
+        [`activePricings.${formattedPricingVersion}`]: undefined,
+        [`archivedPricings.${formattedPricingVersion}`]: pricingLocator,
       });
-      
-      // Emitir evento de cambio de pricing (archivado)
-      this.eventService.emitPricingChange(service.name, pricingVersion);
 
-      if (fallBackSubscription && fallBackSubscription.subscriptionPlan === undefined && fallBackSubscription.subscriptionAddOns === undefined) {
+      // Emitir evento de cambio de pricing (archivado)
+      this.eventService.emitPricingArchivedMessage(service.name, pricingVersion);
+
+      if (
+        fallBackSubscription &&
+        fallBackSubscription.subscriptionPlan === undefined &&
+        fallBackSubscription.subscriptionAddOns === undefined
+      ) {
         throw new Error(
           `Invalid request: In order to novate contracts to the latest version, the provided fallback subscription must contain at least a subscriptionPlan (if the pricing has plans), and optionally a subset of add-ons. If the pricing do not have plans, the set of add-ons is mandatory.`
         );
@@ -349,10 +386,15 @@ class ServiceService {
 
       await this._novateContractsToLatestVersion(
         service.name.toLowerCase(),
-        pricingVersion,
+        escapeVersion(pricingVersion),
         fallBackSubscription
       );
     }
+
+    if (updatedService) {
+      resetEscapeVersionInService(updatedService);
+    }
+
 
     return updatedService;
   }
@@ -376,6 +418,8 @@ class ServiceService {
 
     const result = await this.serviceRepository.disable(service.name);
 
+    this.eventService.emitServiceDisabledMessage(service.name);
+
     return result;
   }
 
@@ -394,7 +438,9 @@ class ServiceService {
     const pricingLocator = service.archivedPricings[pricingVersion];
 
     if (!pricingLocator) {
-      throw new Error(`Invalid request: Pricing archived version ${pricingVersion} not found for service ${serviceName}`);
+      throw new Error(
+        `Invalid request: Pricing archived version ${pricingVersion} not found for service ${serviceName}`
+      );
     }
 
     if (pricingLocator.id) {
@@ -433,7 +479,7 @@ class ServiceService {
     }
 
     const serviceLatestPricing = await this._getLatestActivePricing(serviceName);
-    
+
     if (!serviceLatestPricing) {
       throw new Error(`No active pricing found for service ${serviceName}`);
     }
@@ -446,21 +492,25 @@ class ServiceService {
         contract.subscriptionPlans[serviceName] = fallBackSubscription.subscriptionPlan;
         contract.subscriptionAddOns[serviceName] = fallBackSubscription.subscriptionAddOns;
 
-        try{
-          isSubscriptionValidInPricing(serviceName,{
-            contractedServices: contract.contractedServices,
-            subscriptionPlans: contract.subscriptionPlans,
-            subscriptionAddOns: contract.subscriptionAddOns,
-          }, serviceLatestPricing);
-        }catch (err) {
+        try {
+          isSubscriptionValidInPricing(
+            serviceName,
+            {
+              contractedServices: contract.contractedServices,
+              subscriptionPlans: contract.subscriptionPlans,
+              subscriptionAddOns: contract.subscriptionAddOns,
+            },
+            serviceLatestPricing
+          );
+        } catch (err) {
           throw new Error(
             `The configuration provided to novate affected contracts is not valid for version ${serviceLatestPricing.version} of service ${serviceName}. Error: ${err}`
           );
         }
 
-        if (serviceUsageLevels){
+        if (serviceUsageLevels) {
           contract.usageLevels[serviceName] = serviceUsageLevels;
-        }else{
+        } else {
           delete contract.usageLevels[serviceName];
         }
       });
@@ -496,8 +546,12 @@ class ServiceService {
   }
 
   async _getPricingFromPath(path: string) {
-    const pricing = retrievePricingFromPath(path);
-    return pricing;
+    try {
+      const pricing = retrievePricingFromPath(path);
+      return pricing;
+    } catch (err) {
+      throw new Error(`Pricing parsing error: ${(err as Error).message}`);
+    }
   }
 
   async _getPricingFromRemoteUrl(url: string) {

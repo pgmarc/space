@@ -1,6 +1,7 @@
 import { Plan as ParsedPlan, Pricing as ParsedPricing, Feature as ParsedFeature, UsageLimit as ParsedUsageLimit, AddOn as ParsedAddOn} from "pricing4ts";
 import { validateLegalKeysInObject } from "../controllers/validation/ServiceValidation";
 import { LeanAddOn, LeanPricingFeature, LeanPlan, LeanUsageLimit, ExpectedPricingType } from "../types/models/Pricing";
+import { escapeVersion } from "./helpers";
 
 export function parsePricingToSpacePricingObject(pricing: ParsedPricing): ExpectedPricingType {
   const json: ExpectedPricingType = {} as ExpectedPricingType;
@@ -10,7 +11,7 @@ export function parsePricingToSpacePricingObject(pricing: ParsedPricing): Expect
   validateLegalKeysInObject(pricing.plans || {}, "plans");
   validateLegalKeysInObject(pricing.addOns || {}, "addOns");
 
-  json.version = pricing.version;
+  json.version = escapeVersion(pricing.version);
   json.currency = pricing.currency;
   json.createdAt = pricing.createdAt;
   json.features = formatPricingFeatures(pricing.features);

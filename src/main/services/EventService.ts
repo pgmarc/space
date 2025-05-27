@@ -43,21 +43,65 @@ class EventService {
   }
 
   /**
-   * Emite un evento de cambio de pricing a todos los clientes conectados.
-   * @param serviceName - Nombre del servicio al que pertenece el pricing
-   * @param pricingVersion - Versión del pricing que ha cambiado
+   * Emits a pricing change event to all connected clients.
+   * @param serviceName - Name of the service to which the pricing belongs
+   * @param pricingVersion - Version of the pricing that has changed
    */
-  emitPricingChange(serviceName: string, pricingVersion: string): void {
+  emitPricingCreatedMessage(serviceName: string, pricingVersion: string): void {
     if (!this.io) {
-      console.error('El servidor de eventos no está inicializado');
+      console.error('Websocket server is not initialized');
       return;
     }
 
     this.io.of('/pricings').emit('message', {
-      code: 'PRICING_CHANGE',
+      code: 'PRICING_CREATED',
       details: {
         serviceName,
         pricingVersion
+      }
+    });
+  }
+
+  emitPricingArchivedMessage(serviceName: string, pricingVersion: string): void {
+    if (!this.io) {
+      console.error('Websocket server is not initialized');
+      return;
+    }
+
+    this.io.of('/pricings').emit('message', {
+      code: 'PRICING_ARCHIVED',
+      details: {
+        serviceName,
+        pricingVersion
+      }
+    });
+  }
+
+  emitPricingActivedMessage(serviceName: string, pricingVersion: string): void {
+    if (!this.io) {
+      console.error('Websocket server is not initialized');
+      return;
+    }
+
+    this.io.of('/pricings').emit('message', {
+      code: 'PRICING_ACTIVED',
+      details: {
+        serviceName,
+        pricingVersion
+      }
+    });
+  }
+
+  emitServiceDisabledMessage(serviceName: string): void {
+    if (!this.io) {
+      console.error('Websocket server is not initialized');
+      return;
+    }
+
+    this.io.of('/pricings').emit('message', {
+      code: 'SERVICE_DISABLED',
+      details: {
+        serviceName
       }
     });
   }

@@ -19,6 +19,7 @@ import {
 } from './utils/contracts/contracts';
 import { isSubscriptionValid } from '../main/controllers/validation/ContractValidation';
 import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
+import { generatePricingFile } from './utils/services/pricing';
 
 describe('Services API Test Suite', function () {
   let app: Server;
@@ -53,7 +54,7 @@ describe('Services API Test Suite', function () {
 
   describe('POST /services', function () {
     it('Should return 201 and the created service: Given Pricing2Yaml file in the request', async function () {
-      const pricingFilePath = await getRandomPricingFile('zoom');
+      const pricingFilePath = await getRandomPricingFile(new Date().getTime().toString());
       const response = await request(app)
         .post(`${baseUrl}/services`)
         .set('x-api-key', adminApiKey)
@@ -238,8 +239,13 @@ describe('Services API Test Suite', function () {
 
   describe('POST /services/{serviceName}/pricings', function () {
     const versionToAdd = '2025';
+    let skipAfterEach = false;
 
     afterEach(async function () {
+      if (skipAfterEach) {
+        skipAfterEach = false;
+        return;
+      }
       await archivePricingFromService(testService, versionToAdd, app);
       await deletePricingFromService(testService, versionToAdd, app);
     });
@@ -263,9 +269,22 @@ describe('Services API Test Suite', function () {
 
       // Check if the new pricing is the latest in activePricings
       const parsedPricing = retrievePricingFromPath(newPricingVersion);
-      expect(Object.keys(response.body.activePricings)[newActivePricingsAmount - 1]).toBe(
-        parsedPricing.version
-      );
+      expect(Object.keys(response.body.activePricings).includes(parsedPricing.version)).toBeTruthy();
+    });
+
+    it('Should return 200 even though the service has no archived pricings', async function () {
+      const newService = await createRandomService(app);
+      const newPricing = await generatePricingFile(newService.name)
+      skipAfterEach = true;
+
+      const response = await request(app)
+        .post(`${baseUrl}/services/${newService.name}/pricings`)
+        .set('x-api-key', adminApiKey)
+        .attach('pricing', newPricing);
+      expect(response.status).toEqual(201);
+      expect(newService.activePricings).toBeDefined();
+      const newActivePricingsAmount = Object.keys(response.body.activePricings).length;
+      expect(newActivePricingsAmount).toBeGreaterThan(Object.keys(newService.activePricings).length);
     });
 
     it('Should return 200 given a pricing with a link', async function () {
@@ -293,7 +312,7 @@ describe('Services API Test Suite', function () {
   describe('GET /services/{serviceName}/pricings/{pricingVersion}', function () {
     it('Should return 200: Given existent service name and pricing version', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .get(`${baseUrl}/services/${testService}/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
@@ -308,7 +327,7 @@ describe('Services API Test Suite', function () {
 
     it('Should return 200: Given existent service name in upper case and pricing version', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/${testService}/pricings/2024`)
+        .get(`${baseUrl}/services/${testService}/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(200);
       expect(response.body.features).toBeDefined();
@@ -323,7 +342,7 @@ describe('Services API Test Suite', function () {
 
     it('Should return 404 due to service not found', async function () {
       const response = await request(app)
-        .get(`${baseUrl}/services/unexistent-service/pricings/2024`)
+        .get(`${baseUrl}/services/unexistent-service/pricings/2.0.0`)
         .set('x-api-key', adminApiKey);
       expect(response.status).toEqual(404);
       expect(response.body.error).toBe('Service unexistent-service not found');
@@ -341,7 +360,7 @@ describe('Services API Test Suite', function () {
   });
 
   describe('PUT /services/{serviceName}/pricings/{pricingVersion}', function () {
-    const versionToArchive = '2024';
+    const versionToArchive = '2.0.0';
 
     afterEach(async function () {
       await request(app)

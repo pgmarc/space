@@ -1,6 +1,6 @@
 import { UsageLevel } from '../../types/models/Contract';
 import { LeanPricing } from '../../types/models/Pricing';
-import { addPeriodToDate } from '../helpers';
+import { addPeriodToDate, escapeVersion, resetEscapeVersion } from '../helpers';
 
 function generateUsageLevels(pricing: LeanPricing): Record<string, UsageLevel> | undefined {
   const serviceUsageLevels: Record<string, UsageLevel> = {};
@@ -37,4 +37,26 @@ function generateUsageLevels(pricing: LeanPricing): Record<string, UsageLevel> |
   return Object.keys(serviceUsageLevels).length === 0 ? undefined : serviceUsageLevels;
 }
 
-export {generateUsageLevels}
+function escapeContractedServiceVersions(contractedServices: Record<string, string>): Record<string, string> {
+  const escapedServices: Record<string, string> = {};
+  
+  for (const [serviceName, version] of Object.entries(contractedServices)) {
+    const escapedVersion = escapeVersion(version);
+    escapedServices[serviceName] = escapedVersion;
+  }
+
+  return escapedServices;
+}
+
+function resetEscapeContractedServiceVersions(escapedServices: Record<string, string>): Record<string, string> {
+  const contractedServices: Record<string, string> = {};
+  
+  for (const [serviceName, escapedVersion] of Object.entries(escapedServices)) {
+    const version = resetEscapeVersion(escapedVersion);
+    contractedServices[serviceName] = version;
+  }
+
+  return contractedServices;
+}
+
+export {generateUsageLevels, escapeContractedServiceVersions, resetEscapeContractedServiceVersions}
