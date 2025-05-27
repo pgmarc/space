@@ -19,6 +19,7 @@ import {
 } from './utils/contracts/contracts';
 import { isSubscriptionValid } from '../main/controllers/validation/ContractValidation';
 import { cleanupAuthResources, getTestAdminApiKey, getTestAdminUser } from './utils/auth';
+import { generatePricingFile } from './utils/services/pricing';
 
 describe('Services API Test Suite', function () {
   let app: Server;
@@ -238,8 +239,13 @@ describe('Services API Test Suite', function () {
 
   describe('POST /services/{serviceName}/pricings', function () {
     const versionToAdd = '2025';
+    let skipAfterEach = false;
 
     afterEach(async function () {
+      if (skipAfterEach) {
+        skipAfterEach = false;
+        return;
+      }
       await archivePricingFromService(testService, versionToAdd, app);
       await deletePricingFromService(testService, versionToAdd, app);
     });
@@ -264,6 +270,21 @@ describe('Services API Test Suite', function () {
       // Check if the new pricing is the latest in activePricings
       const parsedPricing = retrievePricingFromPath(newPricingVersion);
       expect(Object.keys(response.body.activePricings).includes(parsedPricing.version)).toBeTruthy();
+    });
+
+    it('Should return 200 even though the service has no archived pricings', async function () {
+      const newService = await createRandomService(app);
+      const newPricing = await generatePricingFile(newService.name)
+      skipAfterEach = true;
+
+      const response = await request(app)
+        .post(`${baseUrl}/services/${newService.name}/pricings`)
+        .set('x-api-key', adminApiKey)
+        .attach('pricing', newPricing);
+      expect(response.status).toEqual(201);
+      expect(newService.activePricings).toBeDefined();
+      const newActivePricingsAmount = Object.keys(response.body.activePricings).length;
+      expect(newActivePricingsAmount).toBeGreaterThan(Object.keys(newService.activePricings).length);
     });
 
     it('Should return 200 given a pricing with a link', async function () {

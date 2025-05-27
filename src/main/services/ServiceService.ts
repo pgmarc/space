@@ -171,8 +171,8 @@ class ServiceService {
       }
 
       if (
-        service.activePricings[formattedPricingVersion] ||
-        service.archivedPricings[formattedPricingVersion]
+        (service.activePricings && service.activePricings[formattedPricingVersion]) ||
+        (service.archivedPricings && service.archivedPricings[formattedPricingVersion])
       ) {
         throw new Error(
           `Pricing version ${uploadedPricing.version} already exists for service ${serviceName}`
