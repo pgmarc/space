@@ -83,11 +83,17 @@ function mapSubscriptionsToConfigurationsByService(
       );
     }
 
+    if (subscription.plan && pricing.plans && Object.keys(pricing.plans).length > 0 && !pricing.plans[subscription.plan!]) {
+      throw new Error(
+        `Plan ${subscription.plan} not found in pricing for service ${serviceName}, whose pricing do have plans.`
+      );
+    }
+
     const plan = pricing.plans && subscription.plan ? pricing.plans[subscription.plan] : undefined;
     const addOns = pricing.addOns
       ? Object.fromEntries(
           Object.entries(pricing.addOns).filter(
-            ([key]) => subscription.addOns && Object.keys(subscription.addOns).includes(key)
+            ([key]) => subscription.addOns && Object.keys(subscription.addOns).includes(key) && subscription.addOns![key] > 0
           )
         )
       : undefined;
