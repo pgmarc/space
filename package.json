@@ -10,7 +10,7 @@
     "test:server": "cd api && pnpm run test",
     "test": "pnpm run test:server",
     "build": "cd api && pnpm run build",
-    "install": "concurrently \"cd api && pnpm install\"",
+    "install": "concurrently \"cd api && pnpm install\" \"cd frontend && pnpm install\"",
     "prepare": "husky install"
   },
   "keywords": [
