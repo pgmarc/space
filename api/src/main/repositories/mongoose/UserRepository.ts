@@ -17,7 +17,7 @@ class UserRepository extends RepositoryBase {
     }
   }
 
-  async authenticate(username: string, password: string) {
+  async authenticate(username: string, password: string): Promise<LeanUser | null> {
     const user = await UserMongoose.findOne({ username });
 
     if (!user) return null;
@@ -26,16 +26,17 @@ class UserRepository extends RepositoryBase {
 
     if (!isPasswordValid) return null;
 
-    const apiKey = toPlainObject<LeanUser>(user.toJSON()).apiKey;
+    const leanUser = toPlainObject<LeanUser>(user.toJSON());
 
-    if (!apiKey) {
+    if (!leanUser.apiKey) {
       // If the user does not have an API key, we generate one
       const newApiKey = generateApiKey();
       await UserMongoose.updateOne({ username }, { apiKey: newApiKey });
-      return newApiKey;
+      
+      return leanUser;
     }
 
-    return apiKey;
+    return leanUser;
   }
 
   async findByApiKey(apiKey: string) {

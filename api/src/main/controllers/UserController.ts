@@ -40,8 +40,8 @@ class UserController {
   async authenticate(req: any, res: any) {
     try {
       const { username, password } = req.body;
-      const userApiKey = await this.userService.authenticate(username, password);
-      res.json({ apiKey: userApiKey });
+      const user = await this.userService.authenticate(username, password);
+      res.json({username: user.username, apiKey: user.apiKey, role: user.role });
     } catch (err: any) {
       res.status(401).send({ error: err.message });
     }

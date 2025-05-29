@@ -82,9 +82,19 @@ paths:
               schema:
                 type: object
                 properties:
+                  username:
+                    type: string
+                    example: jdoe
                   apiKey:
                     type: string
                     example: 0051e657dd30bc3a07583c20dcadc627211624ae8bf39acf05f08a3fdf2b434c
+                  role:
+                    type: string
+                    enum: 
+                      - ADMIN
+                      - MANAGER
+                      - EVALUATOR
+                    example: ADMIN
         '401':
           description: Invalid credentials
   /users:

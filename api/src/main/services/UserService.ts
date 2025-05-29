@@ -100,14 +100,14 @@ class UserService {
     return this.userRepository.changeRole(username, role);
   }
 
-  async authenticate(username: string, password: string): Promise<string> {
+  async authenticate(username: string, password: string): Promise<LeanUser> {
     // Find user by username
-    const userApiKey = await this.userRepository.authenticate(username, password);
-    if (!userApiKey) {
+    const user = await this.userRepository.authenticate(username, password);
+    if (!user) {
       throw new Error('Invalid credentials');
     }
 
-    return userApiKey;
+    return user;
   }
 
   async getAllUsers() {
