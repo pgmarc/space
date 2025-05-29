@@ -1,6 +1,6 @@
 import container from '../config/container.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
-import FeatureEvaluationService from '../services/FeatureEvaluationService';
+import FeatureEvaluationService from '../services/FeatureEvaluationService.js';
 import { FeatureEvalQueryParams, FeatureEvaluationResult, FeatureIndexQueryParams, SingleFeatureEvalQueryParams } from '../types/models/FeatureEvaluation.js';
 
 class FeatureEvaluationController {

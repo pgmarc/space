@@ -1,5 +1,5 @@
 import container from '../config/container.js';
-import ServiceService from '../services/ServiceService';
+import ServiceService from '../services/ServiceService.js';
 import { ServiceQueryFilters } from '../repositories/mongoose/ServiceRepository.js';
 import { removeOptionalFieldsOfQueryParams } from '../utils/controllerUtils.js';
 import { FallBackSubscription } from '../types/models/Contract.js';

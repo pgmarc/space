@@ -135,13 +135,16 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+#### API ignores ####
+
 # Script outputs
-scripts/output/
+api/scripts/output/
 
 # Static files
-public/static
+api/public/static
 
 # Generated files for testing purposes
-src/test/data/generated/
+api/src/test/data/generated/
 
+#### Global ignores ####
 .DS_Store

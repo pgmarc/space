@@ -35,6 +35,6 @@
     /* Module Detection */
     "moduleDetection": "force",              // Forces proper module detection
   },
-  "include": ["src"],               // Included files
-  "exclude": ["node_modules", "dist"]        // Excludes dependencies and output
+  "include": ["./src"],               // Included files
+  "exclude": ["node_modules", "./dist"]        // Excludes dependencies and output
 }
