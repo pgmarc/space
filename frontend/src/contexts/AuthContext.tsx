@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useState } from "react";
 import axios from "../lib/axios";
 
 export interface UserData {
@@ -9,7 +9,7 @@ export interface UserData {
 
 export interface AuthContextType {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => void;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   user: UserData;
 }
