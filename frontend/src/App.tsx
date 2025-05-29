@@ -1,9 +1,10 @@
-function App() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-4">Welcome to My App</h1>
-    </div>
-  );
-}
+import { AuthProvider } from "./contexts/AuthContext";
+import { SpaceRouter } from "./router/router";
 
-export default App;
+export default function App(){
+  return (
+    <AuthProvider>
+      <SpaceRouter />
+    </AuthProvider>
+  )
+}
