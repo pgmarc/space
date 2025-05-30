@@ -1,20 +1,20 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
 import useAuth from '@/hooks/useAuth';
-import { FiHome, FiUsers, FiDollarSign, FiSettings } from 'react-icons/fi';
+import { FiHome, FiUsers, FiServer, FiSettings } from 'react-icons/fi';
 
 const tabs = [
   { label: 'Overview', path: '/', icon: <FiHome size={22} /> },
   { label: 'Users Management', path: '/users', icon: <FiUsers size={22} /> },
-  { label: 'Pricings Management', path: '/pricings', icon: <FiDollarSign size={22} /> },
+  { label: 'Services Management', path: '/services', icon: <FiServer size={22} /> },
   { label: 'Settings', path: '/settings', icon: <FiSettings size={22} /> },
 ];
 
 function getSelectedTab(pathname: string) {
   if (pathname.startsWith('/users')) return '/users';
-  if (pathname.startsWith('/pricings')) return '/pricings';
+  if (pathname.startsWith('/services')) return '/services';
   if (pathname.startsWith('/settings')) return '/settings';
-  return '/main';
+  return '/';
 }
 
 interface SidebarProps {
