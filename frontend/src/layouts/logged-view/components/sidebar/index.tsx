@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
 import useAuth from '@/hooks/useAuth';
+import { FiHome, FiUsers, FiDollarSign, FiSettings } from 'react-icons/fi';
 
 const tabs = [
-  { label: 'Overview', path: '/' },
-  { label: 'Users Management', path: '/users' },
-  { label: 'Pricings Management', path: '/pricings' },
-  { label: 'Settings', path: '/settings' },
+  { label: 'Overview', path: '/', icon: <FiHome size={22} /> },
+  { label: 'Users Management', path: '/users', icon: <FiUsers size={22} /> },
+  { label: 'Pricings Management', path: '/pricings', icon: <FiDollarSign size={22} /> },
+  { label: 'Settings', path: '/settings', icon: <FiSettings size={22} /> },
 ];
 
 function getSelectedTab(pathname: string) {
@@ -78,7 +79,9 @@ export default function Sidebar({
             whileTap={{ scale: 0.97 }}
             aria-current={selected === tab.path ? 'page' : undefined}
           >
-            <span className="text-lg">{tab.label.split(' ')[0][0]}</span>
+            <span className="text-lg flex items-center justify-center">
+              {tab.icon}
+            </span>
             <AnimatePresence>
               {!collapsed && (
                 <motion.span
