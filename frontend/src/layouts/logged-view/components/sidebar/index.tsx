@@ -44,7 +44,7 @@ export default function Sidebar({
             {collapsed ? '' : `Welcome, ${user?.username ?? 'Anonymous'}`}
           </div>
           <button
-            className="ml-2 p-1 rounded hover:bg-gray-100 transition"
+            className="ml-2 p-1 rounded hover:bg-gray-100 transition cursor-pointer"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -68,7 +68,7 @@ export default function Sidebar({
           <motion.button
             key={tab.path}
             onClick={() => navigate(tab.path)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors cursor-pointer
               ${
                 selected === tab.path
                   ? 'bg-indigo-100 text-indigo-700'
