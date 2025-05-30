@@ -19,11 +19,14 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const isDevelopmentEnvironment: boolean = import.meta.env.VITE_ENVIRONMENT === "development"
+
+  const [isAuthenticated, setIsAuthenticated] = useState(isDevelopmentEnvironment);
   const [user, setUser] = useState<UserData>({
-    username: "",
-    apiKey: "",
-    role: "",
+    username: isDevelopmentEnvironment ? "devUser" : "",
+    apiKey: isDevelopmentEnvironment ? import.meta.env.VITE_SPACE_ADMIN_API_KEY : "",
+    role: isDevelopmentEnvironment ? "ADMIN" : "",
   });
 
   const login = (username: string, password: string) => {

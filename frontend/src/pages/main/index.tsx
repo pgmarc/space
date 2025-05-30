@@ -1,6 +1,7 @@
-import useAuth from "../../hooks/useAuth";
-import LoginPage from "../login";
-import WelcomePage from "../welcome";
+import LoggedLayout from "@/layouts/logged-view";
+import useAuth from "@/hooks/useAuth";
+import LoginPage from "@/pages/login";
+import WelcomePage from "@/pages/welcome";
 
 export default function MainPage() {
   const { isAuthenticated } = useAuth();
@@ -8,7 +9,7 @@ export default function MainPage() {
   // Responsive and improved design: add a light, space-inspired gradient background
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-      {isAuthenticated ? <WelcomePage /> : <LoginPage />}
+      {isAuthenticated ? <LoggedLayout><WelcomePage /></LoggedLayout> : <LoginPage />}
     </div>
   );
 }
