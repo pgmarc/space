@@ -31,7 +31,7 @@ export interface LeanPricingFeature {
   description?: string;
   valueType: "BOOLEAN" | "TEXT" | "NUMERIC";
   defaultValue: string | boolean;
-  value?: string | boolean | undefined;
+  value?: string | boolean;
   type: "INFORMATION" | "INTEGRATION" | "DOMAIN" | "AUTOMATION" | "MANAGEMENT" | "GUARANTEE" | "SUPPORT" | "PAYMENT";
   integrationType?: "API" | "EXTENSION" | "IDENTITY_PROVIDER" | "WEB_SAAS" | "MARKETPLACE" | "EXTERNAL_DEVICE";
   pricingUrls?: string[];
@@ -49,7 +49,7 @@ export interface LeanUsageLimit {
   description?: string;
   valueType: "BOOLEAN" | "NUMERIC";
   defaultValue: number | boolean;
-  value?: number | boolean | undefined;
+  value?: number | boolean;
   type: "RENEWABLE" | "NON_RENEWABLE";
   trackable?: boolean;
   period?: LeanPeriod;

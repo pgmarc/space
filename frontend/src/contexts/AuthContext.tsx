@@ -43,12 +43,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       .then((response) => {
         const user = response.data;
         if (user) {
-          setUser({
-            username: user.username,
-            apiKey: user.apiKey,
-            role: user.role, // This should be replaced with actual roles from the response
-          });
-          setIsAuthenticated(true);
+          if (user.role !== "ADMIN" && user.role !== "MANAGER") {
+            throw new Error("Unauthorized user. You must be ADMIN or MANAGER to configure SPACE.");
+          }else{
+            setUser({
+              username: user.username,
+              apiKey: user.apiKey,
+              role: user.role, // This should be replaced with actual roles from the response
+            });
+            setIsAuthenticated(true);
+          }
         } else {
           throw new Error("Authentication failed");
         }

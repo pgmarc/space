@@ -22,8 +22,11 @@ export default function LoginPage() {
     }
     login(username, password)
       .catch((error) => {
-        setError('Login failed. Please check your credentials and try again.');
-        console.error('Login failed:', error);
+        if (error.message.toLowerCase().includes("unauthorized")) {
+          setError(error.message);
+        }else{
+          setError('Login failed. Please check your credentials and try again.');
+        }
       });
   };
 
