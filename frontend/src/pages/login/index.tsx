@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import SpaceCard from '../../light-background/SpaceCard';
-import LightBackground from '../../light-background';
+import SpaceCard from '../../components/space-card';
+import LightBackground from '../../layouts/background';
 import loginImage from '../../static/images/login-image.webp';
 import useAuth from '../../hooks/useAuth';
 import FormError from '../../components/FormError';
