@@ -9,11 +9,11 @@
       "args": [
         "tsx",
         "--watch",
-        "src/main/index.ts"
+        "api/src/main/index.ts"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
-      "envFile": "${workspaceRoot}/.env",
+      "envFile": "${workspaceRoot}/api/.env",
       "cwd": "${workspaceRoot}"
     },
     {

@@ -9,11 +9,13 @@ interface LoggedLayoutProps {
 export default function LoggedLayout({ children }: LoggedLayoutProps) {
   
   const [collapsed, setCollapsed] = useState(false);
+
+  const paddingClass = collapsed ? 'pl-[64px]' : 'pl-[280px]';
     
     return (
       <LightBackground>
         <div className="flex w-full min-h-screen">
-          <div className={`flex-1 pr-0 md:pl-[${collapsed ? 64 : 280}px] transition-all duration-300`}>
+          <div className={`flex-1 pr-0 ${paddingClass} transition-all duration-300`}>
             {children}
           </div>
           <Sidebar collapsed={collapsed} setCollapsed={setCollapsed}/>
