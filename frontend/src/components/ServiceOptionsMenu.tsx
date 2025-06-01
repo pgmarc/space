@@ -1,15 +1,21 @@
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMoreVertical, FiPlus, FiSlash } from 'react-icons/fi';
+import useAuth from '@/hooks/useAuth';
 
 interface ServiceOptionsMenuProps {
   onAddVersion: () => void;
   onDisableService: () => void;
 }
 
-export default function ServiceOptionsMenu({ onAddVersion, onDisableService }: ServiceOptionsMenuProps) {
+export default function ServiceOptionsMenu({
+  onAddVersion,
+  onDisableService,
+}: ServiceOptionsMenuProps) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
+
+  const { user } = useAuth();
 
   // Cierra el menú si se hace click fuera
   function handleBlur(e: React.FocusEvent) {
@@ -39,16 +45,24 @@ export default function ServiceOptionsMenu({ onAddVersion, onDisableService }: S
           >
             <button
               className="cursor-pointer w-full flex items-center gap-2 px-4 py-3 text-sm text-indigo-700 hover:bg-gray-200 transition font-medium"
-              onClick={() => { setOpen(false); onAddVersion(); }}
+              onClick={() => {
+                setOpen(false);
+                onAddVersion();
+              }}
             >
               <FiPlus className="text-indigo-500" /> Add Version
             </button>
-            <button
-              className="cursor-pointer w-full flex items-center gap-2 px-4 py-3 text-sm text-red-700 hover:bg-gray-200 transition font-medium border-t border-gray-100"
-              onClick={() => { setOpen(false); onDisableService(); }}
-            >
-              <FiSlash className="text-red-500" /> Disable Service
-            </button>
+            {user?.role.toLowerCase() === 'admin' && (
+              <button
+                className="cursor-pointer w-full flex items-center gap-2 px-4 py-3 text-sm text-red-700 hover:bg-gray-200 transition font-medium border-t border-gray-100"
+                onClick={() => {
+                  setOpen(false);
+                  onDisableService();
+                }}
+              >
+                <FiSlash className="text-red-500" /> Disable Service
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
