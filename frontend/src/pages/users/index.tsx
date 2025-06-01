@@ -4,6 +4,7 @@ import { useCustomAlert } from '@/hooks/useCustomAlert';
 import UsersFilters from '@/components/users/UsersFilters';
 import UsersList from '@/components/users/UsersList';
 import { getUsers } from '@/api/users/usersApi';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Tipado para usuario
 interface UserEntry {
@@ -29,14 +30,18 @@ export default function UsersPage() {
   });
   const [page, setPage] = useState(1);
   const [showAlert, alertElement] = useCustomAlert();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refresca usuarios desde el server
+  const refreshUsers = () => setRefreshKey(k => k + 1);
 
   useEffect(() => {
-    // Simulación de getUsers (reemplazar por llamada real)
+    setLoading(true);
     getUsers(user.apiKey)
       .then((data: UserEntry[]) => setUsers(data))
       .catch((e: any) => showAlert(e.message || 'Failed to fetch users', 'danger'))
       .finally(() => setLoading(false));
-  }, [user.apiKey, filters]);
+  }, [user.apiKey, filters, refreshKey]);
 
   // Filtros y ordenación en cliente
   const filteredUsers = useMemo(() => {
@@ -85,6 +90,7 @@ export default function UsersPage() {
         page={page}
         setPage={setPage}
         totalPages={totalPages}
+        onUserChanged={refreshUsers}
       />
     </div>
   );

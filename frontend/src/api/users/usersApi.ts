@@ -15,3 +15,63 @@ export async function getUsers(apiKey: string): Promise<Array<{ username: string
       );
     });
 }
+
+export async function updateUsername(apiKey: string, oldUsername: string, newUsername: string) {
+  return axios
+    .put(
+      `/users/${oldUsername}`,
+      { username: newUsername },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+      }
+    )
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error(
+        'Failed to update username. ' + (error.response?.data?.error || error.message)
+      );
+    });
+}
+
+export async function changeUserRole(apiKey: string, username: string, newRole: 'ADMIN' | 'MANAGER' | 'EVALUATOR') {
+  return axios
+    .put(
+      `/users/${username}/role`,
+      { role: newRole },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+      }
+    )
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error(
+        'Failed to change user role. ' + (error.response?.data?.error || error.message)
+      );
+    });
+}
+
+export async function changeUserPassword(apiKey: string, username: string, newPassword: string) {
+  return axios
+    .put(
+      `/users/${username}`,
+      { password: newPassword },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+      }
+    )
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error(
+        'Failed to change user password. ' + (error.response?.data?.error || error.message)
+      );
+    });
+}

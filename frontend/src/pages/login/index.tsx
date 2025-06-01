@@ -80,7 +80,7 @@ export default function LoginPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            className="mt-2 bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 hover:from-indigo-300 hover:to-purple-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
+            className="cursor-pointer mt-2 bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 hover:from-indigo-300 hover:to-purple-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
             type="submit"
           >
             Log In

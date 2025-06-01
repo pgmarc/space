@@ -12,6 +12,7 @@ export interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   user: UserData;
+  updateUser: (newUser: Partial<UserData>) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,8 +69,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsAuthenticated(false);
   };
 
+  // Allows updating the user from outside (e.g., after editing username or role)
+  const updateUser = (newUser: Partial<UserData>) => {
+    setUser((prev) => ({ ...prev, ...newUser }));
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, user }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, user, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
