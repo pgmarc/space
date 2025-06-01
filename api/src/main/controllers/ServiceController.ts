@@ -151,7 +151,9 @@ class ServiceController {
     } catch (err: any) {
       if (err.message.toLowerCase().includes('not found')) {
         res.status(404).send({ error: err.message });
-      } else {
+      } else if (err.message.toLowerCase().includes('exists')) {
+        res.status(400).send({ error: err.message });
+      }else {
         res.status(500).send({ error: err.message });
       }
     }

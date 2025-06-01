@@ -250,6 +250,8 @@ class ServiceService {
       fs.rmSync(pricingFile.path);
     }
 
+    resetEscapeVersionInService(service);
+
     // Step 6: Return the saved service
     return service;
   }
@@ -298,6 +300,12 @@ class ServiceService {
           url: pricingUrl,
         },
       });
+
+      if (!updatedService) {
+        throw new Error(`Service ${serviceName} not updated with pricing ${uploadedPricing.version}`);
+      }
+
+      resetEscapeVersionInService(updatedService);
 
       return updatedService;
     }
@@ -433,17 +441,19 @@ class ServiceService {
       throw new Error(`Service ${serviceName} not found`);
     }
 
-    if (service.activePricings[pricingVersion]) {
+    const formattedPricingVersion = escapeVersion(pricingVersion);
+
+    if (service.activePricings[formattedPricingVersion]) {
       throw new Error(
         `Forbidden: You cannot delete an active pricing version ${pricingVersion} for service ${serviceName}. Please archive it first.`
       );
     }
 
-    const pricingLocator = service.archivedPricings[pricingVersion];
+    const pricingLocator = service.archivedPricings[formattedPricingVersion];
 
     if (!pricingLocator) {
       throw new Error(
-        `Invalid request: Pricing archived version ${pricingVersion} not found for service ${serviceName}`
+        `Invalid request: No archived version ${pricingVersion} found for service ${serviceName}. Remember that a pricing must be archived before it can be deleted.`
       );
     }
 
@@ -452,8 +462,8 @@ class ServiceService {
     }
 
     const result = await this.serviceRepository.update(service.name, {
-      [`activePricings.${pricingVersion}`]: undefined,
-      [`archivedPricings.${pricingVersion}`]: undefined,
+      [`activePricings.${formattedPricingVersion}`]: undefined,
+      [`archivedPricings.${formattedPricingVersion}`]: undefined,
     });
 
     return result;

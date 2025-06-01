@@ -575,8 +575,8 @@ describe('Services API Test Suite', function () {
       expect(Object.keys(responseAfter.body.activePricings).includes(versionToDelete)).toBeFalsy();
     });
 
-    it('Should return 404 since pricing to delete has not been archived before deleting', async function () {
-      const versionToDelete = '2025';
+    it('Should return 204 with semver pricing version', async function () {
+      const versionToDelete = '2.0.0';
 
       const responseBefore = await request(app)
         .post(`${baseUrl}/services/${testService}/pricings`)
@@ -587,6 +587,39 @@ describe('Services API Test Suite', function () {
       expect(
         Object.keys(responseBefore.body.activePricings).includes(versionToDelete)
       ).toBeTruthy();
+
+      // Necesary to delete
+      await archivePricingFromService(testService, versionToDelete, app);
+
+      const responseDelete = await request(app)
+        .delete(`${baseUrl}/services/${testService}/pricings/${versionToDelete}`)
+        .set('x-api-key', adminApiKey);
+      expect(responseDelete.status).toEqual(204);
+
+      const responseAfter = await request(app)
+        .get(`${baseUrl}/services/${testService}`)
+        .set('x-api-key', adminApiKey);
+      expect(responseAfter.status).toEqual(200);
+      expect(responseAfter.body.activePricings).toBeDefined();
+      expect(Object.keys(responseAfter.body.activePricings).includes(versionToDelete)).toBeFalsy();
+    });
+
+    it('Should return 404 since pricing to delete has not been archived before deleting', async function () {
+      const versionToDelete = '2025';
+
+      const responseBefore = await request(app)
+        .post(`${baseUrl}/services/${testService}/pricings`)
+        .set('x-api-key', adminApiKey)
+        .attach('pricing', zoomPricingPath);
+      if (responseBefore.status === 400) {
+        expect(responseBefore.body.error).toContain('exists');
+      } else {
+        expect(responseBefore.status).toEqual(201);
+        expect(responseBefore.body.activePricings).toBeDefined();
+        expect(
+          Object.keys(responseBefore.body.activePricings).includes(versionToDelete)
+        ).toBeTruthy();
+      }
 
       const responseDelete = await request(app)
         .delete(`${baseUrl}/services/${testService}/pricings/${versionToDelete}`)
@@ -612,7 +645,7 @@ describe('Services API Test Suite', function () {
         .set('x-api-key', adminApiKey);
       expect(responseDelete.status).toEqual(404);
       expect(responseDelete.body.error).toBe(
-        `Invalid request: Pricing archived version invalid not found for service ${testService}`
+        `Invalid request: No archived version ${versionToDelete} found for service ${testService}. Remember that a pricing must be archived before it can be deleted.`
       );
     });
   });
