@@ -1,4 +1,3 @@
-import React from "react";
 import type { ServiceQueryFilters } from "@/types/Services";
 import { FiSearch, FiSliders, FiList, FiChevronDown } from "react-icons/fi";
 import { motion } from "framer-motion";

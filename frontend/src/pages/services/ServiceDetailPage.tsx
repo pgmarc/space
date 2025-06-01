@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { getPricingsFromService } from "@/api/services/servicesApi";
+import { changePricingAvailability, getPricingsFromService } from "@/api/services/servicesApi";
 import useAuth from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { FiZap, FiArchive } from "react-icons/fi";
+import DragDropPricings from "./DragDropPricings";
 import type { Pricing } from "@/types/Services";
+import { useCustomAlert } from '@/utils/useCustomAlert';
 
 export default function ServiceDetailPage() {
   const { name } = useParams<{ name: string }>();
@@ -12,6 +13,8 @@ export default function ServiceDetailPage() {
   const [activePricings, setActivePricings] = useState<Pricing[]>([]);
   const [archivedPricings, setArchivedPricings] = useState<Pricing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirm, setConfirm] = useState<null | { pricing: Pricing; to: "active" | "archived" }>(null);
+  const [showAlert, alertElement] = useCustomAlert();
 
   useEffect(() => {
     let mounted = true;
@@ -29,10 +32,39 @@ export default function ServiceDetailPage() {
     return () => { mounted = false; };
   }, [name, user.apiKey]);
 
+  function handleMove(pricing: Pricing, to: "active" | "archived") {
+    // Solo mostrar confirmación si la disponibilidad realmente cambia
+    const isActive = activePricings.some(p => p.version === pricing.version);
+    const isArchived = archivedPricings.some(p => p.version === pricing.version);
+    if ((to === "archived" && isActive) || (to === "active" && isArchived)) {
+      setConfirm({ pricing, to });
+    }
+  }
+
+  function confirmArchive() {
+    if (!confirm) return;
+    changePricingAvailability(user.apiKey, name!, confirm.pricing.version, confirm.to)
+      .then(() => {
+        if (confirm.to === "archived") {
+          setActivePricings(activePricings.filter(p => p.version !== confirm.pricing.version));
+          setArchivedPricings([...archivedPricings, confirm.pricing]);
+        } else {
+          setArchivedPricings(archivedPricings.filter(p => p.version !== confirm.pricing.version));
+          setActivePricings([...activePricings, confirm.pricing]);
+        }
+      })
+      .catch(async error => {
+        console.log(error.message);
+        await showAlert(error.message);
+      });
+    setConfirm(null);
+  }
+
   return (
     <div className="max-w-2xl mx-auto py-10 px-2 md:px-0">
+      {alertElement}
       <h1 className="text-3xl font-bold text-indigo-800 mb-2">{name}</h1>
-      <p className="text-gray-500 mb-6">All pricing versions for this service.</p>
+      <p className="text-gray-500 mb-6">All pricing versions for this service. Drag & drop to archive a pricing.</p>
       {loading ? (
         <div className="flex flex-col items-center py-20">
           <motion.div
@@ -44,47 +76,47 @@ export default function ServiceDetailPage() {
           <span className="text-indigo-600 font-medium mt-2">Loading pricings...</span>
         </div>
       ) : (
-        <>
-          <PricingSection
-            title="Active pricings"
-            pricings={activePricings}
-            icon={<FiZap size={18} />}
-            color="text-green-500"
-          />
-          <PricingSection
-            title="Archived pricings"
-            pricings={archivedPricings}
-            icon={<FiArchive size={18} />}
-            color="text-gray-400"
-          />
-        </>
+        <DragDropPricings
+          activePricings={activePricings}
+          archivedPricings={archivedPricings}
+          onMove={handleMove}
+        />
       )}
-    </div>
-  );
-}
-
-function PricingSection({ title, pricings, icon, color }: { title: string; pricings: Pricing[]; icon: React.ReactNode; color: string }) {
-  if (!pricings || pricings.length === 0) return null;
-  return (
-    <div className="mb-6">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase text-gray-500 mb-1 mt-2">
-        <span className={color}>{icon}</span>
-        {title}
-      </div>
-      <motion.ul layout className="space-y-2">
-        {pricings.map(pricing => (
-          <motion.li
-            key={pricing.version}
-            layout
-            className="bg-white/80 rounded shadow border border-gray-200 px-4 py-3 flex flex-col md:flex-row md:items-center gap-2"
-          >
-            <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5 text-indigo-700">{pricing.version}</span>
-            <span className="text-xs text-gray-500">{pricing.currency}</span>
-            <span className="text-xs text-gray-400 ml-auto">{new Date(pricing.createdAt).toLocaleDateString()}</span>
-            {/* <a href={'#'} target="_blank" rel="noopener noreferrer" className="underline text-indigo-500 hover:text-indigo-700 text-xs ml-2">View YAML</a> */}
-          </motion.li>
-        ))}
-      </motion.ul>
+      {/* Confirmación personalizada */}
+      {confirm && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center">
+            <h2 className="text-lg font-bold text-gray-800 mb-2">
+              {confirm.to === "archived"
+                ? "Archive pricing version?"
+                : "Activate pricing version?"}
+            </h2>
+            <p className="text-gray-600 mb-4 text-center">
+              You are about to {confirm.to === "archived" ? "archive" : "activate"} the pricing version <span className="font-mono text-indigo-700">{confirm.pricing.version}</span>.<br/>
+              This action will move it to the {confirm.to === "archived" ? "archived" : "active"} section.
+            </p>
+            <div className="flex gap-4 mt-2">
+              <button
+                className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                onClick={confirmArchive}
+              >
+                Yes, {confirm.to === "archived" ? "archive" : "activate"}
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+                onClick={() => setConfirm(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

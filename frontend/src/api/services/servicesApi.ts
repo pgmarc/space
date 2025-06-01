@@ -1,5 +1,6 @@
 import axios from "@/lib/axios";
 import type { Pricing, RetrievedService, Service } from "@/types/Services";
+import { isAfter } from "date-fns";
 
 export async function getServices(apiKey:string, filters: Record<string, boolean | number | string> = {}) {
   return axios.get('/services', {
@@ -29,6 +30,34 @@ export async function getPricingsFromService(apiKey: string, serviceName: string
   }).catch(() => {
     throw new Error(`Failed to retrieve pricings for service ${serviceName}. Please try again later.`);
   });
+}
+
+export async function changePricingAvailability(apiKey: string, serviceName: string, version: string, to: "active" | "archived") {
+  
+  const servicePricings = await getPricingsFromService(apiKey, serviceName, "active");
+  const mostRecentVersion = servicePricings.reduce((max, pricing) => {
+    return isAfter(pricing.createdAt, max.createdAt) ? pricing : max;
+  })
+
+  const fallbackSubscriptionPlan = mostRecentVersion.plans ? Object.keys(mostRecentVersion.plans)[0] : undefined;
+  
+  if (!fallbackSubscriptionPlan && !mostRecentVersion.addOns) {
+    throw new Error(`No subscription plan found for service ${serviceName} version ${version}.`);
+  }
+
+  return axios.put(`/services/${serviceName}/pricings/${version}?availability=${to}`, {
+    subscriptionPlan: fallbackSubscriptionPlan,
+    subscriptionAddOns: !fallbackSubscriptionPlan ? {[Object.keys(mostRecentVersion.addOns!)[0]]: 1} : undefined,
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  }).then(response => {
+    return response.data;
+  }).catch((error) => {
+    throw new Error(`Failed to change availability for pricing version ${version} in service ${serviceName}. Error: ${error.response?.data?.error || error.message}`);
+  })
 }
 
 async function _retrievePricingsFromService(apiKey: string, serviceName: string): Promise<Service> {
