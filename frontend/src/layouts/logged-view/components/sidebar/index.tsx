@@ -5,7 +5,7 @@ import { FiHome, FiUsers, FiServer, FiSettings } from 'react-icons/fi';
 
 const tabs = [
   { label: 'Overview', path: '/', icon: <FiHome size={22} /> },
-  { label: 'Users Management', path: '/users', icon: <FiUsers size={22} /> },
+  { label: 'Access Control', path: '/users', icon: <FiUsers size={22} /> },
   { label: 'Services Management', path: '/services', icon: <FiServer size={22} /> },
   { label: 'Settings', path: '/settings', icon: <FiSettings size={22} /> },
 ];

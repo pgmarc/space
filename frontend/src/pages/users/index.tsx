@@ -1,8 +1,91 @@
+import { useState, useEffect, useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { useCustomAlert } from '@/hooks/useCustomAlert';
+import UsersFilters from '@/components/users/UsersFilters';
+import UsersList from '@/components/users/UsersList';
+import { getUsers } from '@/api/users/usersApi';
+
+// Tipado para usuario
+interface UserEntry {
+  username: string;
+  apiKey: string;
+  role: 'ADMIN' | 'MANAGER' | 'EVALUATOR';
+}
+
 export default function UsersPage() {
+  const { user } = useAuth();
+  const [users, setUsers] = useState<UserEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<{
+    search: string;
+    pageSize: number;
+    sortBy: 'username' | 'role';
+    sortOrder: 'asc' | 'desc';
+  }>({
+    search: '',
+    pageSize: 10,
+    sortBy: 'username',
+    sortOrder: 'asc',
+  });
+  const [page, setPage] = useState(1);
+  const [showAlert, alertElement] = useCustomAlert();
+
+  useEffect(() => {
+    // Simulación de getUsers (reemplazar por llamada real)
+    getUsers(user.apiKey)
+      .then((data: UserEntry[]) => setUsers(data))
+      .catch((e: any) => showAlert(e.message || 'Failed to fetch users', 'danger'))
+      .finally(() => setLoading(false));
+  }, [user.apiKey, filters]);
+
+  // Filtros y ordenación en cliente
+  const filteredUsers = useMemo(() => {
+    let filtered = users;
+    if (filters.search) {
+      filtered = filtered.filter(u =>
+        u.username.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+    filtered = [...filtered].sort((a, b) => {
+      let vA = a[filters.sortBy as 'username' | 'role'];
+      let vB = b[filters.sortBy as 'username' | 'role'];
+      if (typeof vA === 'string' && typeof vB === 'string') {
+        vA = vA.toLowerCase();
+        vB = vB.toLowerCase();
+      }
+      if (vA < vB) return filters.sortOrder === 'asc' ? -1 : 1;
+      if (vA > vB) return filters.sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return filtered;
+  }, [users, filters]);
+
+  // Paginación en cliente
+  const pagedUsers = useMemo(() => {
+    const start = (page - 1) * filters.pageSize;
+    return filteredUsers.slice(start, start + filters.pageSize);
+  }, [filteredUsers, page, filters.pageSize]);
+
+  const totalPages = Math.ceil(filteredUsers.length / filters.pageSize) || 1;
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-gray-800">Users Page</h1>
-      <p className="text-gray-600 mt-4">This is the users page content.</p>
+    <div className="max-w-3xl mx-auto py-10 px-2 md:px-0">
+      <h1 className="text-3xl font-bold text-indigo-800 mb-6">Users</h1>
+      {alertElement}
+      <UsersFilters
+        filters={filters}
+        setFilters={setFilters}
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
+      />
+      <UsersList
+        users={pagedUsers}
+        loading={loading}
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
+      />
     </div>
   );
 }
