@@ -14,7 +14,8 @@
     },
     "username": "testManager",
     "password": "$2b$10$WAMkVAo9.QDHmQWdiiIE8uUrKXTWJbDf6BrifHbOplF.lpubtip.W",
-    "role": "MANAGER"
+    "role": "MANAGER",
+    "apiKey": "c2b9efdd8d1a42e0b5ef6c3a179438a8d42c6f44fe76e3a0ccabe6cd44cf6d12"
   },
   {
     "_id": {
@@ -22,6 +23,7 @@
     },
     "username": "testEvaluator",
     "password": "$2b$10$CyoH9BYobjK3TXZqpWhUL.nEbR65xT3hhFFSkH.s6nAO06c.aCSaC",
-    "role": "EVALUATOR"
+    "role": "EVALUATOR",
+    "apiKey": "1f4a8d537f209b1e8cf0d2a76582f9a7b77eb336ce6f4b5a9e9fae20497cfc4b"
   }
 ]
