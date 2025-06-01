@@ -34,13 +34,19 @@ export default function ServiceDetailPage() {
     return () => { mounted = false; };
   }, [name, user.apiKey]);
 
-  function handleMove(pricing: Pricing, to: "active" | "archived") {
-    // Solo mostrar confirmación si la disponibilidad realmente cambia
-    const isActive = activePricings.some(p => p.version === pricing.version);
-    const isArchived = archivedPricings.some(p => p.version === pricing.version);
-    if ((to === "archived" && isActive) || (to === "active" && isArchived)) {
-      setConfirm({ pricing, to });
+  function handleMove(pricing: Pricing, to: "active" | "archived" | "deleted") {
+    if (to === "deleted") {
+      setActivePricings(activePricings.filter(p => p.version !== pricing.version));
+      setArchivedPricings(archivedPricings.filter(p => p.version !== pricing.version));
+    }else{
+      // Solo mostrar confirmación si la disponibilidad realmente cambia
+      const isActive = activePricings.some(p => p.version === pricing.version);
+      const isArchived = archivedPricings.some(p => p.version === pricing.version);
+      if ((to === "archived" && isActive) || (to === "active" && isArchived)) {
+        setConfirm({ pricing, to });
+      }
     }
+    
   }
 
   function confirmArchive() {

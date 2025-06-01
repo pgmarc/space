@@ -138,6 +138,26 @@ export async function addPricingVersion(apiKey: string, serviceName: string, iPr
     });
 }
 
+export async function deletePricingVersion(apiKey: string, serviceName: string, version: string): Promise<boolean> {
+  return axios
+    .delete(`/services/${serviceName}/pricings/${version}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    })
+    .then((response) => {
+      return response.status === 204;
+    })
+    .catch(error => {
+      throw new Error(
+        `Failed to delete pricing version ${version} for service ${serviceName}. Error: ${
+          error.response?.data?.error || error.message
+        }`
+      );
+    });
+}
+
 async function _retrievePricingsFromService(apiKey: string, serviceName: string): Promise<Service> {
   const [serviceActivePricings, serviceArchivedPricings] = await Promise.all([
     getPricingsFromService(apiKey, serviceName, 'active'),

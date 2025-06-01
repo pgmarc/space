@@ -2,16 +2,26 @@ import type { Pricing } from "@/types/Services";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiZap, FiArchive } from "react-icons/fi";
+import { useCustomConfirm } from '@/hooks/useCustomConfirm';
+import { deletePricingVersion } from "@/api/services/servicesApi";
+import useAuth from "@/hooks/useAuth";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 interface DragDropPricingsProps {
   activePricings: Pricing[];
   archivedPricings: Pricing[];
-  onMove: (pricing: Pricing, to: "active" | "archived", toIndex?: number) => void;
+  onMove: (pricing: Pricing, to: "active" | "archived" | "deleted", toIndex?: number) => void;
 }
 
 export default function DragDropPricings({ activePricings, archivedPricings, onMove }: DragDropPricingsProps) {
   const [dragged, setDragged] = useState<null | { pricing: Pricing; from: "active" | "archived" }>(null);
   const [dropTarget, setDropTarget] = useState<null | { to: "active" | "archived"; index: number }>(null);
+  const [overDelete, setOverDelete] = useState(false);
+  const [showConfirm, confirmElement] = useCustomConfirm();
+  const [showAlert, alertElement] = useCustomAlert();
+
+  const { user } = useAuth();
+  const serviceName = window.location.pathname.split('/').pop() || '';
 
   function handleDragStart(e: React.DragEvent, pricing: Pricing, from: "active" | "archived") {
     setDragged({ pricing, from });
@@ -42,6 +52,26 @@ export default function DragDropPricings({ activePricings, archivedPricings, onM
     }
     setDragged(null);
     setDropTarget(null);
+  }
+
+  // Zona de eliminación
+  function handleDeleteDrop(e: React.DragEvent) {
+    e.preventDefault();
+    if (dragged) {
+      showConfirm(`Are you sure you want to delete version ${dragged.pricing.version}?`, "danger").then(confirmed => {
+        if (confirmed) {
+          deletePricingVersion(user.apiKey, serviceName, dragged.pricing.version).then((isDeleted) => {
+            if (isDeleted){
+              onMove(dragged.pricing, "deleted");
+            }
+          }).catch(error => {
+            showAlert(error.message || "Failed to delete pricing version");
+          })
+        }
+        setDragged(null);
+        setOverDelete(false);
+      });
+    }
   }
 
   function renderList(pricings: Pricing[], type: "active" | "archived") {
@@ -120,7 +150,7 @@ export default function DragDropPricings({ activePricings, archivedPricings, onM
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex flex-col md:flex-row gap-6 relative">
       <div className="flex-1">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase text-gray-500 mb-1 mt-2">
           <span className="text-green-500"><FiZap size={18} /></span> Active pricings
@@ -148,6 +178,26 @@ export default function DragDropPricings({ activePricings, archivedPricings, onM
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Zona de eliminación en la parte inferior */}
+      <AnimatePresence>
+        {dragged && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: 'spring', duration: 0.3 }}
+            className={`fixed left-0 right-0 bottom-0 z-40 flex items-center justify-center h-24 ${overDelete ? 'bg-red-600/90' : 'bg-red-500/80'} text-white font-bold text-lg select-none`}
+            onDragOver={e => { e.preventDefault(); setOverDelete(true); }}
+            onDragEnter={e => { e.preventDefault(); setOverDelete(true); }}
+            onDragLeave={e => { e.preventDefault(); setOverDelete(false); }}
+            onDrop={handleDeleteDrop}
+          >
+            Drop here to <span className="ml-2">delete version</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {confirmElement}
+      {alertElement}
     </div>
   );
 }
