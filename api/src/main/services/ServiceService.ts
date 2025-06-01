@@ -65,6 +65,10 @@ class ServiceService {
     const pricingsToReturn =
       pricingStatus === 'active' ? service.activePricings : service.archivedPricings;
 
+    if (!pricingsToReturn){
+      return [];
+    }
+
     const versionsToRetrieve = Object.keys(pricingsToReturn);
 
     const versionsToRetrieveLocally = versionsToRetrieve.filter(
