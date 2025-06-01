@@ -1,10 +1,13 @@
 import { AuthProvider } from "./contexts/AuthContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 import { SpaceRouter } from "./router/router";
 
 export default function App(){
   return (
     <AuthProvider>
-      <SpaceRouter />
+      <SettingsProvider>
+        <SpaceRouter />
+      </SettingsProvider>
     </AuthProvider>
   )
 }

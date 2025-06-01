@@ -82,21 +82,21 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
         >
           <motion.form
             initial={{ scale: 0.97, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.97, opacity: 0 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full flex flex-col items-center border border-indigo-100"
+            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-10 max-w-md w-full flex flex-col items-center border border-indigo-100 dark:border-gray-800"
             onSubmit={handleSubmit}
           >
-            <h2 className="text-2xl font-bold text-indigo-800 mb-6">Add new user</h2>
+            <h2 className="text-2xl font-bold text-indigo-800 dark:text-white mb-6">Add new user</h2>
             <div className="w-full flex flex-col gap-4">
               {/* Username */}
               <input
-                className="rounded-lg border border-indigo-300 text-indigo-500 placeholder-indigo-300 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                className="rounded-lg border border-indigo-300 dark:border-white text-indigo-500 dark:text-white placeholder-indigo-300 dark:placeholder-gray-400 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white focus:border-indigo-500 dark:bg-gray-800 bg-white transition"
                 placeholder="Username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
@@ -106,14 +106,14 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
               <div className="flex flex-col sm:flex-row gap-4 w-full">
                 <input
                   type="password"
-                  className="rounded-lg border border-indigo-300 text-indigo-500 placeholder-indigo-300 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="rounded-lg border border-indigo-300 dark:border-white text-indigo-500 dark:text-white placeholder-indigo-300 dark:placeholder-gray-400 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white focus:border-indigo-500 dark:bg-gray-800 bg-white transition"
                   placeholder="Password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
                 <input
                   type="password"
-                  className="rounded-lg border border-indigo-300 text-indigo-500 placeholder-indigo-300 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                  className="rounded-lg border border-indigo-300 dark:border-white text-indigo-500 dark:text-white placeholder-indigo-300 dark:placeholder-gray-400 px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white focus:border-indigo-500 dark:bg-gray-800 bg-white transition"
                   placeholder="Repeat password"
                   value={password2}
                   onChange={e => setPassword2(e.target.value)}
@@ -123,7 +123,7 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
               <div className="relative w-full">
                 <button
                   type="button"
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border border-indigo-300 bg-white text-indigo-800 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer ${ROLE_COLORS[role]}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border border-indigo-300 dark:border-white bg-white dark:bg-gray-800 text-indigo-800 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white transition cursor-pointer ${ROLE_COLORS[role]}`}
                   onClick={() => setRoleDropdown(v => !v)}
                   tabIndex={0}
                 >
@@ -137,13 +137,13 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ type: 'spring', duration: 0.18 }}
-                      className="absolute left-0 mt-2 w-full bg-white rounded-xl shadow-lg border z-50 overflow-hidden"
+                      className="absolute left-0 mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg border dark:border-gray-700 z-50 overflow-hidden"
                     >
                       {availableRoles.map(r => (
                         <button
                           key={r}
                           type="button"
-                          className={`w-full text-left px-4 py-2 text-sm font-medium bg-white ${ROLE_COLORS[r]} ${ROLE_BG_HOVER[r]} cursor-pointer transition`}
+                          className={`w-full text-left px-4 py-2 text-sm font-medium bg-white dark:bg-gray-800 text-indigo-800 dark:text-white ${ROLE_COLORS[r]} ${ROLE_BG_HOVER[r]} cursor-pointer transition`}
                           onClick={() => { setRole(r); setRoleDropdown(false); }}
                           onMouseDown={e => e.preventDefault()}
                         >
@@ -168,7 +168,7 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
             <div className="flex gap-2 w-full mt-6">
               <button
                 type="button"
-                className="flex-1 px-4 py-2 rounded bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition cursor-pointer"
+                className="flex-1 px-4 py-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-200 font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition cursor-pointer"
                 onClick={onClose}
                 disabled={loading}
               >Cancel</button>
@@ -176,7 +176,7 @@ export default function AddUserModal({ open, onClose, onUserCreated }: { open: b
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
                 type="submit"
-                className="flex-1 px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition cursor-pointer disabled:opacity-50"
+                className="flex-1 px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-800 transition cursor-pointer disabled:opacity-50"
                 disabled={loading}
               >{loading ? 'Adding...' : 'Add user'}</motion.button>
             </div>

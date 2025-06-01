@@ -124,7 +124,7 @@ export default function ServiceDetailPage() {
       {alertElement}
       {confirmElement}
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-3xl font-bold text-indigo-800">{name}</h1>
+        <h1 className="text-3xl font-bold text-indigo-800 dark:text-gray-100">{name}</h1>
         <ServiceOptionsMenu
           onAddVersion={() => setAddVersionOpen(true)}
           onDisableService={handleDisableService}
@@ -135,7 +135,7 @@ export default function ServiceDetailPage() {
         onClose={handleAddVersionClose}
         serviceName={name ?? ''}
       />
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-500 dark:text-gray-300 mb-6">
         All pricing versions for this service. Drag & drop to archive a pricing.
       </p>
       {loading ? (
@@ -143,10 +143,10 @@ export default function ServiceDetailPage() {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-            className="rounded-full border-4 border-indigo-300 border-t-indigo-600 w-12 h-12 mb-4"
+            className="rounded-full border-4 border-indigo-300 border-t-indigo-600 dark:border-indigo-700 dark:border-t-indigo-400 w-12 h-12 mb-4"
             style={{ borderRightColor: 'transparent' }}
           />
-          <span className="text-indigo-600 font-medium mt-2">Loading pricings...</span>
+          <span className="text-indigo-600 dark:text-indigo-300 font-medium mt-2">Loading pricings...</span>
         </div>
       ) : (
         <DragDropPricings
@@ -161,15 +161,15 @@ export default function ServiceDetailPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
         >
-          <div className="bg-white rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center">
-            <h2 className="text-lg font-bold text-gray-800 mb-2">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-8 max-w-sm w-full flex flex-col items-center border border-gray-100 dark:border-gray-800">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
               {confirm.to === 'archived' ? 'Archive pricing version?' : 'Activate pricing version?'}
             </h2>
-            <p className="text-gray-600 mb-4 text-center">
+            <p className="text-gray-600 dark:text-gray-300 mb-4 text-center">
               You are about to {confirm.to === 'archived' ? 'archive' : 'activate'} the pricing
-              version <span className="font-mono text-indigo-700">{confirm.pricing.version}</span>.
+              version <span className="font-mono text-indigo-700 dark:text-indigo-300">{confirm.pricing.version}</span>.
               {confirm.to === 'archived' && (
                 <>
                   This means that all users whose contracts include this pricing version will be
@@ -184,13 +184,13 @@ export default function ServiceDetailPage() {
             </p>
             <div className="flex gap-4 mt-2">
               <button
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-700 transition"
                 onClick={() => setConfirm(null)}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-800 transition"
                 onClick={confirmArchive}
               >
                 Yes, {confirm.to === 'archived' ? 'archive' : 'activate'}

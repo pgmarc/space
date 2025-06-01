@@ -6,7 +6,7 @@ interface LightBackgroundProps {
 
 export default function LightBackground({ children }: LightBackgroundProps) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
       {/* Animated stars for a subtle, light space effect */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -22,6 +22,7 @@ export default function LightBackground({ children }: LightBackgroundProps) {
               cy={Math.random() * 900}
               r={Math.random() * 1.1 + 0.2}
               fill="#b3bcf5"
+              className="dark:fill-indigo-900"
               opacity={Math.random() * 0.3 + 0.1}
             />
           ))}

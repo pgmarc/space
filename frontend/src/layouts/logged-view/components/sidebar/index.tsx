@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router';
 import useAuth from '@/hooks/useAuth';
-import { FiHome, FiUsers, FiServer, FiSettings } from 'react-icons/fi';
+import { FiHome, FiUsers, FiServer, FiSettings, FiChevronRight } from 'react-icons/fi';
 
 const tabs = [
   { label: 'Overview', path: '/', icon: <FiHome size={22} /> },
@@ -36,65 +36,47 @@ export default function Sidebar({
       initial={{ width: 280 }}
       animate={{ width: collapsed ? 64 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="h-screen bg-white/80 shadow-xl border-l border-gray-200 flex flex-col items-stretch fixed left-0 top-0 z-30"
+      className={
+        `h-screen shadow-xl border-l flex flex-col items-stretch fixed left-0 top-0 z-30 bg-white/80 border-gray-200 ` +
+        `dark:bg-gray-900 dark:border-gray-800`
+      }
       style={{ backdropFilter: 'blur(8px)' }}
     >
       <div className="flex flex-col items-center py-6 px-4">
         <div className="w-full flex items-center justify-between">
-          <div className="text-xs text-gray-500 font-semibold uppercase tracking-widest">
+          <div className="text-xs text-gray-500 font-semibold uppercase tracking-widest dark:text-gray-300">
             {collapsed ? '' : `Welcome, ${user?.username ?? 'Anonymous'}`}
           </div>
           <button
-            className="ml-2 p-1 rounded hover:bg-gray-100 transition cursor-pointer"
+            className="ml-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <motion.span animate={{ rotate: collapsed ? 0 : 180 }} className="inline-block">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="#555"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 18l6-6-6-6"
+                <FiChevronRight
+                size={20}
+                className="text-indigo-500 dark:text-white"
                 />
-              </svg>
             </motion.span>
           </button>
         </div>
         {!collapsed && <div className="w-full border-b border-gray-200 my-4" />}
       </div>
-      <nav className="flex-1 flex flex-col gap-2 px-2">
+      <nav className="flex-1 flex flex-col gap-2 mt-8">
         {tabs.map(tab => (
-          <motion.button
+          <button
             key={tab.path}
+            className={
+              `cursor-pointer flex items-center gap-3 px-5 py-3 rounded-lg font-medium transition-colors duration-200 text-gray-700 hover:bg-indigo-100 dark:text-gray-200 dark:hover:bg-gray-800 ` +
+              (selected === tab.path
+                ? 'bg-indigo-100 dark:bg-gray-800 font-bold' : '')
+            }
             onClick={() => navigate(tab.path)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors cursor-pointer
-              ${
-                selected === tab.path
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }
-              ${collapsed ? 'justify-center px-2' : ''}`}
-            whileTap={{ scale: 0.97 }}
             aria-current={selected === tab.path ? 'page' : undefined}
           >
-            <span className="text-lg flex items-center justify-center">
-              {tab.icon}
-            </span>
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {tab.label}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            {tab.icon}
+            {!collapsed && <span>{tab.label}</span>}
+          </button>
         ))}
       </nav>
       <div className="flex-0 p-4 text-xs text-gray-400 mt-auto text-center">

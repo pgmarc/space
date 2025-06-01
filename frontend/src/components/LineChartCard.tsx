@@ -23,12 +23,12 @@ export default function LineChartCard({ title, labels, data, color = 'indigo', l
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7 }}
-      className="flex flex-col bg-white/90 rounded-2xl shadow-xl p-6 w-full h-full min-h-[260px] border border-gray-100"
+      className="flex flex-col bg-white/90 dark:bg-gray-900/90 rounded-2xl shadow-xl p-6 w-full h-full min-h-[260px] border border-gray-100 dark:border-gray-700"
     >
-      <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">{title}</div>
+      <div className="text-xs text-gray-500 dark:text-gray-300 font-semibold uppercase tracking-wide mb-2">{title}</div>
       <div className="flex-1 flex items-center w-full h-full min-h-[180px]">
         {loading ? (
-          <div className="w-full h-[180px] bg-gray-100 animate-pulse rounded-xl" />
+          <div className="w-full h-[180px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
         ) : (
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData} margin={{ top: 16, right: 16, left: 0, bottom: 8 }}>

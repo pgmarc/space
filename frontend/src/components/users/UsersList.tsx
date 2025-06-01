@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiEdit2, FiCopy, FiKey, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiEdit2, FiCopy, FiKey, FiChevronDown, FiChevronUp, FiCheck } from 'react-icons/fi';
 import useAuth from '@/hooks/useAuth';
 import type { User } from '@/types/User';
 import {
@@ -14,19 +14,19 @@ import { useCustomConfirm } from '@/hooks/useCustomConfirm';
 import ChangePasswordForm from './ChangePasswordForm';
 
 const ROLE_COLORS: Record<string, string> = {
-  ADMIN: 'bg-red-100 text-red-700 border-red-300',
-  MANAGER: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-  EVALUATOR: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+  ADMIN: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700',
+  MANAGER: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700',
+  EVALUATOR: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-900 dark:text-indigo-200 dark:border-indigo-700',
 };
 const ROLE_TEXT_COLORS: Record<string, string> = {
-  ADMIN: 'text-red-700',
-  MANAGER: 'text-yellow-700',
-  EVALUATOR: 'text-indigo-700',
+  ADMIN: 'text-red-700 dark:text-red-200',
+  MANAGER: 'text-yellow-700 dark:text-yellow-200',
+  EVALUATOR: 'text-indigo-700 dark:text-indigo-200',
 };
 const ROLE_BG_HOVER: Record<string, string> = {
-  ADMIN: 'hover:bg-red-100',
-  MANAGER: 'hover:bg-yellow-100',
-  EVALUATOR: 'hover:bg-indigo-100',
+  ADMIN: 'hover:bg-red-100 dark:hover:bg-red-900',
+  MANAGER: 'hover:bg-yellow-100 dark:hover:bg-yellow-900',
+  EVALUATOR: 'hover:bg-indigo-100 dark:hover:bg-indigo-900',
 };
 
 const ROLES = ['ADMIN', 'MANAGER', 'EVALUATOR'];
@@ -142,17 +142,17 @@ export default function UsersList({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-100">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Username</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">API Key</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Role</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">Actions</th>
+    <div className="rounded-xl bg-white/80 dark:bg-gray-900 shadow border border-gray-100 dark:border-gray-800 overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead className="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">API Key</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
           {loading ? (
             <tr>
               <td colSpan={4} className="py-10 text-center text-indigo-500 font-semibold">
@@ -173,7 +173,7 @@ export default function UsersList({
                   {editing === u.username ? (
                     <div className="flex items-center gap-2">
                       <input
-                        className="rounded border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        className="dark:text-white rounded border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                         value={usernameDraft}
                         onChange={e => setUsernameDraft(e.target.value)}
                         autoFocus
@@ -183,7 +183,7 @@ export default function UsersList({
                         }}
                       />
                       <button
-                        className="text-indigo-600 hover:text-indigo-900 font-bold text-xs cursor-pointer"
+                        className="text-indigo-600 hover:text-indigo-900 dark:text-white font-bold text-xs cursor-pointer"
                         onClick={() => handleSaveUsername(u.username)}
                       >
                         Save
@@ -198,7 +198,7 @@ export default function UsersList({
                   ) : (
                     <div className="flex items-center gap-2">
                       <span
-                        className="font-mono text-sm text-indigo-800 cursor-pointer hover:underline"
+                        className="font-mono text-sm text-indigo-800 dark:text-white cursor-pointer hover:underline"
                         onClick={() => handleEditUsername(u.username)}
                       >
                         {u.username}
@@ -214,16 +214,16 @@ export default function UsersList({
                 {/* Censored API Key and copy */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-700 select-all">
+                    <span className="dark:bg-gray-900 dark:text-white font-mono text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-700 select-all">
                       {censorApiKey(u.apiKey)}
                     </span>
                     <button
-                      className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer"
+                      className="dark:text-white dark:hover:text-indigo-900 p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer"
                       onClick={() => handleCopy(u.apiKey, u.username)}
                       title="Copy API Key"
                     >
                       {copied === u.username ? (
-                        <span className="text-green-600 font-semibold text-xs">Copied!</span>
+                        <FiCheck size={16} className="text-green-600" />
                       ) : (
                         <FiCopy size={16} className="cursor-pointer" />
                       )}

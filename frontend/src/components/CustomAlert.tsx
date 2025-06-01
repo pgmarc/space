@@ -30,7 +30,7 @@ export default function CustomAlert({ message, onClose, type = 'info' }: CustomA
     case 'danger':
       icon = (
         <svg
-          className="w-10 h-10 text-red-400 mb-2"
+          className="w-10 h-10 text-red-400 dark:text-red-300 mb-2"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -40,15 +40,15 @@ export default function CustomAlert({ message, onClose, type = 'info' }: CustomA
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01" />
         </svg>
       );
-      color = 'text-red-700';
-      border = 'border-red-200';
-      bg = 'bg-red-500';
-      hover = 'hover:bg-red-600';
+      color = 'text-red-700 dark:text-red-200';
+      border = 'border-red-200 dark:border-red-500';
+      bg = 'bg-red-500 dark:bg-red-600';
+      hover = 'hover:bg-red-600 dark:hover:bg-red-700';
       break;
     case 'warning':
       icon = (
         <svg
-          className="w-10 h-10 text-yellow-600 mb-2"
+          className="w-10 h-10 text-yellow-600 dark:text-yellow-400 mb-2"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -61,15 +61,15 @@ export default function CustomAlert({ message, onClose, type = 'info' }: CustomA
           />
         </svg>
       );
-      color = 'text-yellow-700';
-      border = 'border-yellow-200';
-      bg = 'bg-yellow-500';
-      hover = 'hover:bg-yellow-600';
+      color = 'text-yellow-700 dark:text-yellow-200';
+      border = 'border-yellow-200 dark:border-yellow-500';
+      bg = 'bg-yellow-500 dark:bg-yellow-600';
+      hover = 'hover:bg-yellow-600 dark:hover:bg-yellow-700';
       break;
     default:
       icon = (
         <svg
-          className="w-10 h-10 text-indigo-400 mb-2"
+          className="w-10 h-10 text-indigo-400 dark:text-indigo-300 mb-2"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -79,10 +79,10 @@ export default function CustomAlert({ message, onClose, type = 'info' }: CustomA
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
         </svg>
       );
-      color = 'text-indigo-700';
-      border = 'border-indigo-200';
-      bg = 'bg-indigo-500';
-      hover = 'hover:bg-indigo-600';
+      color = 'text-indigo-700 dark:text-indigo-200';
+      border = 'border-indigo-200 dark:border-indigo-500';
+      bg = 'bg-indigo-500 dark:bg-indigo-600';
+      hover = 'hover:bg-indigo-600 dark:hover:bg-indigo-700';
   }
 
   return createPortal(
@@ -91,14 +91,14 @@ export default function CustomAlert({ message, onClose, type = 'info' }: CustomA
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: 'spring', duration: 0.3 }}
-          className={`bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center border border-indigo-100`}
+          className={`bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center border ${border}`}
         >
           <div className="flex flex-col items-center gap-2">
             {icon}

@@ -13,7 +13,7 @@ import StatCard from '@/components/StatCard';
 import LineChartCard from '@/components/LineChartCard';
 
 export default function WelcomePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     contracts: undefined as number | undefined,
     services: undefined as number | undefined,
@@ -44,12 +44,12 @@ export default function WelcomePage() {
   }, [user.apiKey]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 py-10 px-2">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 py-10 px-2">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-400 to-purple-400 drop-shadow-lg text-center mb-16"
+        className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-400 to-purple-400 dark:from-indigo-300 dark:via-blue-300 dark:to-purple-400 drop-shadow-lg text-center mb-16"
       >
         Welcome to SPACE
       </motion.h1>

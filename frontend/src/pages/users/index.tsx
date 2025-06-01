@@ -80,9 +80,9 @@ export default function UsersPage() {
   return (
     <div className="max-w-3xl mx-auto py-10 px-2 md:px-0">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-indigo-800">Users</h1>
+        <h1 className="text-3xl font-bold text-indigo-800 dark:text-gray-100">Users</h1>
         <button
-          className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-900"
           onClick={() => setAddUserOpen(true)}
         >
           <svg

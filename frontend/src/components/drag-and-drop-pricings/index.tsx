@@ -97,7 +97,9 @@ export default function DragDropPricings({
       <motion.ul
         layout
         className={`space-y-2 min-h-[60px] ${
-          type === 'active' ? 'bg-green-50/30 border-green-100' : 'bg-gray-50/50 border-gray-200'
+          type === 'active'
+            ? 'bg-green-50/30 border-green-100 dark:bg-green-900/30 dark:border-green-800'
+            : 'bg-gray-50/50 border-gray-200 dark:bg-gray-900/40 dark:border-gray-800'
         } rounded-lg p-2 border relative`}
         onDragOver={e => {
           e.preventDefault();
@@ -143,18 +145,16 @@ export default function DragDropPricings({
               onDragEnd={handleDragEnd}
               onDragOver={e => handleDragOver(e, type, i)}
               onDrop={e => handleDrop(e, type, i)}
-              className={`bg-white/80 rounded shadow border border-gray-200 px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 cursor-move hover:bg-${
-                type === 'active' ? 'green-50' : 'gray-100'
-              } transition ${
-                dragged && dragged.pricing.version === pricing.version ? 'opacity-40' : ''
-              }`}
+              className={`bg-white/80 dark:bg-gray-900 rounded shadow border border-gray-200 dark:border-gray-800 px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 cursor-move hover:bg-$
+                {type === 'active' ? 'green-50 dark:bg-green-900/40' : 'gray-100 dark:bg-gray-800/60'} transition $
+                {dragged && dragged.pricing.version === pricing.version ? 'opacity-40' : ''}`}
               style={{ zIndex: dragged && dragged.pricing.version === pricing.version ? 50 : 1 }}
             >
-              <span className="font-mono text-xs bg-gray-100 rounded px-2 py-0.5 text-indigo-700">
+              <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 rounded px-2 py-0.5 text-indigo-700 dark:text-indigo-300">
                 {pricing.version}
               </span>
-              <span className="text-xs text-gray-500">{pricing.currency}</span>
-              <span className="text-xs text-gray-400 ml-auto">
+              <span className="text-xs text-gray-500 dark:text-gray-300">{pricing.currency}</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
                 {new Date(pricing.createdAt).toLocaleDateString()}
               </span>
             </li>

@@ -1,26 +1,11 @@
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import SettingToggle from '@/components/SettingToggle';
 import useAuth from '@/hooks/useAuth';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function SettingsPage() {
   const { logout } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Persist dark mode in localStorage and update html class
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', '1');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', '0');
-    }
-  }, [darkMode]);
-
-  useEffect(() => {
-    setDarkMode(localStorage.getItem('darkMode') === '1');
-  }, []);
+  const { darkMode, setDarkMode } = useSettings();
 
   return (
     <motion.div

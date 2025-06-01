@@ -62,11 +62,11 @@ export default function ServicesPage() {
     <div className="max-w-3xl mx-auto py-10 px-2 md:px-0">
       {!isTrulyEmpty && (
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-indigo-800">Services Management</h1>
+          <h1 className="text-3xl font-bold text-indigo-800 dark:text-gray-100">Services Management</h1>
           <AddServiceButton onClick={() => setAddModalOpen(true)} small />
         </div>
       )}
-      <p className="text-gray-500 mb-6">Browse and manage all available services. Click on a service to view its pricing versions and details.</p>
+      <p className="text-gray-500 dark:text-gray-300 mb-6">Browse and manage all available services. Click on a service to view its pricing versions and details.</p>
       <AddServiceModal open={addModalOpen} onClose={handleCreateClose} />
       <ServicesFilters filters={filters} setFilters={setFilters} />
       {loading ? (
@@ -79,8 +79,8 @@ export default function ServicesPage() {
           exit={{ opacity: 0, y: 20 }}
           className="flex flex-col items-center justify-center py-24"
         >
-          <div className="text-2xl font-bold text-indigo-700 mb-2">No services found</div>
-          <div className="text-gray-500 mb-6 text-center max-w-md">It looks like you haven't created any services yet. Start by adding your first service to manage pricing versions and more!</div>
+          <div className="text-2xl font-bold text-indigo-700 dark:text-gray-100 mb-2">No services found</div>
+          <div className="text-gray-500 dark:text-gray-300 mb-6 text-center max-w-md">It looks like you haven't created any services yet. Start by adding your first service to manage pricing versions and more!</div>
           <AddServiceButton onClick={() => setAddModalOpen(true)} />
         </motion.div>
       ) : (
@@ -92,7 +92,7 @@ export default function ServicesPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="text-center text-gray-400 py-20"
+                className="text-center text-gray-400 dark:text-gray-500 py-20"
               >
                 No services found with the current filters.
               </motion.div>
@@ -105,14 +105,14 @@ export default function ServicesPage() {
                     whileHover={{ scale: 1.03, boxShadow: "0 4px 24px 0 rgba(99,102,241,0.10)" }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => navigate(`/services/${encodeURIComponent(service.name)}`)}
-                    className="flex items-center gap-4 w-full bg-white/80 rounded-lg shadow border border-gray-200 px-6 py-5 transition cursor-pointer hover:bg-indigo-50 focus:outline-none"
+                    className="flex items-center gap-4 w-full bg-white/80 dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-800 px-6 py-5 transition cursor-pointer hover:bg-indigo-50 dark:hover:bg-gray-800 focus:outline-none"
                   >
-                    <span className="bg-indigo-100 text-indigo-600 rounded-full p-2">
+                    <span className="bg-indigo-100 dark:bg-gray-800 text-indigo-600 dark:text-indigo-300 rounded-full p-2">
                       <FiServer size={28} />
                     </span>
                     <div className="flex-1 text-left">
-                      <div className="font-semibold text-lg text-indigo-800">{service.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="font-semibold text-lg text-indigo-800 dark:text-gray-100">{service.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-300 mt-1">
                         {Object.keys(service.activePricings).length} active pricing{Object.keys(service.activePricings).length === 1 ? '' : 's'}
                         {service.archivedPricings && Object.keys(service.archivedPricings).length > 0 && (
                           <span> &middot; {Object.keys(service.archivedPricings).length} archived</span>
@@ -128,7 +128,7 @@ export default function ServicesPage() {
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <button
-                className="px-3 py-1 rounded border text-sm font-medium bg-white shadow hover:bg-indigo-50 disabled:opacity-50"
+                className="px-3 py-1 rounded border text-sm font-medium bg-white dark:bg-gray-900 shadow hover:bg-indigo-50 dark:hover:bg-gray-800 disabled:opacity-50 dark:text-gray-200 dark:border-gray-800"
                 onClick={() => setFilters(f => ({ ...f, page: Math.max(1, currentPage - 1) }))}
                 disabled={currentPage === 1}
               >
@@ -137,14 +137,14 @@ export default function ServicesPage() {
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={`page-${i+1}`}
-                  className={`px-3 py-1 rounded border text-sm font-medium ${currentPage === i + 1 ? 'bg-indigo-100 text-indigo-700 border-indigo-400' : 'bg-white hover:bg-indigo-50'}`}
+                  className={`px-3 py-1 rounded border text-sm font-medium ${currentPage === i + 1 ? 'bg-indigo-100 dark:bg-gray-800 text-indigo-700 dark:text-indigo-300 border-indigo-400 dark:border-indigo-600' : 'bg-white dark:bg-gray-900 hover:bg-indigo-50 dark:hover:bg-gray-800 dark:text-gray-200 dark:border-gray-800'}`}
                   onClick={() => setFilters(f => ({ ...f, page: i + 1 }))}
                 >
                   {i + 1}
                 </button>
               ))}
               <button
-                className="px-3 py-1 rounded border text-sm font-medium bg-white shadow hover:bg-indigo-50 disabled:opacity-50"
+                className="px-3 py-1 rounded border text-sm font-medium bg-white dark:bg-gray-900 shadow hover:bg-indigo-50 dark:hover:bg-gray-800 disabled:opacity-50 dark:text-gray-200 dark:border-gray-800"
                 onClick={() => setFilters(f => ({ ...f, page: Math.min(totalPages, currentPage + 1) }))}
                 disabled={currentPage === totalPages}
               >
