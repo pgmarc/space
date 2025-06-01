@@ -15,7 +15,7 @@ class AnalyticsRepository extends RepositoryBase {
         },
       },
       {
-        $sort: { _id: -1 },
+        $sort: { _id: 1 },
       },
       {
         $limit: 6, // Get the last 6 days (the current day will be recovered from memory)
