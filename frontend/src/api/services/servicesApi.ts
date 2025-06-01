@@ -60,6 +60,22 @@ export async function changePricingAvailability(apiKey: string, serviceName: str
   })
 }
 
+export async function createService(apiKey: string, iPricing: File): Promise<Service> {
+  const formData = new FormData();
+  formData.append("pricing", iPricing);
+
+  return axios.post('/services', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'x-api-key': apiKey,
+    },
+  }).then(async (response) => {
+    return response.data as Service;
+  }).catch(error => {
+    throw new Error("Failed to create service. Error: " + (error.response?.data?.error || error.message));
+  })
+  }
+
 async function _retrievePricingsFromService(apiKey: string, serviceName: string): Promise<Service> {
   const [serviceActivePricings, serviceArchivedPricings] = await Promise.all([
     getPricingsFromService(apiKey, serviceName, "active"),
@@ -75,6 +91,6 @@ async function _retrievePricingsFromService(apiKey: string, serviceName: string)
   return {
     name: serviceName,
     activePricings: mapPricings(serviceActivePricings),
-    archivedPricings: mapPricings(serviceArchivedPricings),
+    archivedPricings: serviceArchivedPricings ? mapPricings(serviceArchivedPricings) : {},
   };
 }

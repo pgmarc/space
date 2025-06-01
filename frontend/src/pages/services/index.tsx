@@ -7,15 +7,26 @@ import ServicesFilters from "../../components/services-filters";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiServer } from "react-icons/fi";
+import AddServiceModal from '../../components/AddServiceModal';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [filters, setFilters] = useState<ServiceQueryFilters>({ page: 1, limit: 10, order: 'asc' });
   const [loading, setLoading] = useState<boolean>(true);
   const [total, setTotal] = useState<number>(0);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  function handleCreateClose(service?: Service) {
+    if (service) {
+      setServices(prev => [...prev, service]);
+      setTotal(prev => prev + 1);
+    }
+    
+    setAddModalOpen(false)
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -31,8 +42,20 @@ export default function ServicesPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-2 md:px-0">
-      <h1 className="text-3xl font-bold text-indigo-800 mb-2">Services Management</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold text-indigo-800">Services Management</h1>
+        <button
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          onClick={() => setAddModalOpen(true)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Service
+        </button>
+      </div>
       <p className="text-gray-500 mb-6">Browse and manage all available services. Click on a service to view its pricing versions and details.</p>
+      <AddServiceModal open={addModalOpen} onClose={handleCreateClose} />
       <ServicesFilters filters={filters} setFilters={setFilters} />
       {loading ? (
         <ServicesLoader />
@@ -67,7 +90,7 @@ export default function ServicesPage() {
                       <div className="font-semibold text-lg text-indigo-800">{service.name}</div>
                       <div className="text-xs text-gray-500 mt-1">
                         {Object.keys(service.activePricings).length} active pricing{Object.keys(service.activePricings).length === 1 ? '' : 's'}
-                        {Object.keys(service.archivedPricings).length > 0 && (
+                        {service.archivedPricings && Object.keys(service.archivedPricings).length > 0 && (
                           <span> &middot; {Object.keys(service.archivedPricings).length} archived</span>
                         )}
                       </div>
