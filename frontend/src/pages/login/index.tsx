@@ -37,7 +37,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.7, type: 'spring' }}
-          className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-400 to-purple-400 mb-6 drop-shadow-lg text-center"
+          className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-400 to-purple-400 dark:from-indigo-300 dark:via-blue-300 dark:to-purple-400 mb-6 drop-shadow-lg text-center"
         >
           Welcome to SPACE
         </motion.h1>
@@ -50,11 +50,11 @@ export default function LoginPage() {
         >
           <FormError message={error} />
           <div>
-            <label className="block text-indigo-800 text-sm font-bold mb-2" htmlFor="username">
+            <label className="block text-indigo-800 dark:text-indigo-200 text-sm font-bold mb-2" htmlFor="username">
               Username
             </label>
             <input
-              className="shadow appearance-none border border-indigo-200 rounded-lg w-full py-2 px-3 text-indigo-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 bg-white/80 placeholder-indigo-300 transition-all"
+              className="shadow appearance-none border border-indigo-200 dark:border-gray-700 rounded-lg w-full py-2 px-3 text-indigo-900 dark:text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-indigo-800 focus:border-blue-300 dark:focus:border-indigo-700 bg-white/80 dark:bg-gray-900/80 placeholder-indigo-300 dark:placeholder-gray-500 transition-all"
               id="username"
               type="text"
               placeholder="Enter your username"
@@ -64,11 +64,11 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-indigo-800 text-sm font-bold mb-2" htmlFor="password">
+            <label className="block text-indigo-800 dark:text-indigo-200 text-sm font-bold mb-2" htmlFor="password">
               Password
             </label>
             <input
-              className="shadow appearance-none border border-indigo-200 rounded-lg w-full py-2 px-3 text-indigo-900 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 bg-white/80 placeholder-indigo-300 transition-all"
+              className="shadow appearance-none border border-indigo-200 dark:border-gray-700 rounded-lg w-full py-2 px-3 text-indigo-900 dark:text-gray-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-indigo-800 focus:border-blue-300 dark:focus:border-indigo-700 bg-white/80 dark:bg-gray-900/80 placeholder-indigo-300 dark:placeholder-gray-500 transition-all"
               id="password"
               type="password"
               placeholder="Enter your password"
@@ -80,7 +80,7 @@ export default function LoginPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
-            className="cursor-pointer mt-2 bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 hover:from-indigo-300 hover:to-purple-300 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
+            className="cursor-pointer mt-2 bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 dark:from-indigo-600 dark:via-blue-700 dark:to-purple-700 hover:from-indigo-300 hover:to-purple-300 dark:hover:from-indigo-500 dark:hover:to-purple-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-indigo-800 focus:ring-offset-2"
             type="submit"
           >
             Log In
