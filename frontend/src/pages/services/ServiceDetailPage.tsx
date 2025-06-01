@@ -3,9 +3,9 @@ import { useParams } from "react-router";
 import { changePricingAvailability, getPricingsFromService } from "@/api/services/servicesApi";
 import useAuth from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import DragDropPricings from "./DragDropPricings";
+import DragDropPricings from "../../components/drag-and-drop-pricings";
 import type { Pricing } from "@/types/Services";
-import { useCustomAlert } from '@/utils/useCustomAlert';
+import { useCustomAlert } from '@/hooks/useCustomAlert';
 
 export default function ServiceDetailPage() {
   const { name } = useParams<{ name: string }>();
