@@ -1,4 +1,5 @@
 import axios from '@/lib/axios';
+import type { Analytic } from '@/types/Analytics';
 
 // Obtiene el número total de contratos gestionados por SPACE
 export async function getContractsCount(apiKey: string): Promise<number> {
@@ -53,20 +54,40 @@ export async function getActivePricingsCount(apiKey: string): Promise<number> {
 }
 
 // Obtiene las métricas de llamadas a la API y evaluaciones (simulado, requiere endpoint real)
-export async function getApiCallsStats(apiKey: string): Promise<any> {
-  // Aquí deberías llamar a un endpoint real de métricas si existe
-  // Simulación: devuelve datos de ejemplo
-  return {
-    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-    data: [120, 98, 150, 130, 170, 90, 110],
-  };
+export async function getApiCallsStats(apiKey: string): Promise<Analytic> {
+  return axios.get('/analytics/api-calls', {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  }).then(response => {
+    return response.data;
+  }).catch(error => {
+    console.error('Error fetching API calls stats:', error);
+  });
+
+
+  // return {
+  //   labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+  //   data: [120, 98, 150, 130, 170, 90, 110],
+  // };
 }
 
-export async function getEvaluationsStats(apiKey: string): Promise<any> {
-  // Aquí deberías llamar a un endpoint real de métricas si existe
-  // Simulación: devuelve datos de ejemplo
-  return {
-    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-    data: [30, 25, 40, 35, 50, 20, 28],
-  };
+export async function getEvaluationsStats(apiKey: string): Promise<Analytic> {
+  
+  return axios.get('/analytics/evaluations', {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  }).then(response => {
+    return response.data;
+  }).catch(error => {
+    console.error('Error fetching evaluations stats:', error);
+  });
+
+  // return {
+  //   labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+  //   data: [80, 70, 90, 60, 100, 50, 75],
+  // };
 }

@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { apiKeyAuthMiddleware } from './ApiKeyAuthMiddleware';
+import { analyticsTrackerMiddleware } from './AnalyticsMiddleware';
 
 const loadGlobalMiddlewares = (app: express.Application) => {
   app.use(express.json());
@@ -23,6 +24,9 @@ const loadGlobalMiddlewares = (app: express.Application) => {
   // Apply API Key authentication middleware to all routes
   // except those defined as public
   app.use(apiKeyAuthMiddleware);
+
+  // Apply analytics tracking middleware
+  app.use(analyticsTrackerMiddleware);
 };
 
 export default loadGlobalMiddlewares;

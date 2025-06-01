@@ -7,14 +7,14 @@
       "name": "Debug TSX Execution",
       "runtimeExecutable": "pnpx",
       "args": [
-        "tsx",
-        "--watch",
-        "api/src/main/index.ts"
+      "tsx",
+      "--watch",
+      "src/main/index.ts"
       ],
       "smartStep": true,
       "console": "integratedTerminal",
       "envFile": "${workspaceRoot}/api/.env",
-      "cwd": "${workspaceRoot}"
+      "cwd": "${workspaceRoot}/api"
     },
     {
       "type": "node",

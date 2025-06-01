@@ -21,18 +21,18 @@ class CacheService {
     return value ? JSON.parse(value) : null;
   }
 
-  async set(key: string, value: any, expirationInSeconds?: number) {
+  async set(key: string, value: any, expirationInSeconds: number = 300, replaceIfExists: boolean = false) {
     if (!this.redisClient) {
       throw new Error('Redis client not initialized');
     }
 
     const previousValue = await this.redisClient?.get(key);
-    if (previousValue && previousValue !== JSON.stringify(value)) {
+    if (previousValue && previousValue !== JSON.stringify(value) && !replaceIfExists) {
       throw new Error('Value already exists in cache, please use a different key.');
     }
 
     await this.redisClient?.set(key, JSON.stringify(value), {
-      EX: expirationInSeconds ?? 300,
+      EX: expirationInSeconds,
     });
   }
 
