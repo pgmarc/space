@@ -138,6 +138,26 @@ export async function addPricingVersion(apiKey: string, serviceName: string, iPr
     });
 }
 
+export async function disableService(apiKey: string, serviceName: string): Promise<boolean> {
+  return axios
+    .delete(`/services/${serviceName}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    })
+    .then((response) => {
+      return response.status === 204;
+    })
+    .catch(error => {
+      throw new Error(
+        `Failed to disable service ${serviceName}. Error: ${
+          error.response?.data?.error || error.message
+        }`
+      );
+    });
+}
+
 export async function deletePricingVersion(apiKey: string, serviceName: string, version: string): Promise<boolean> {
   return axios
     .delete(`/services/${serviceName}/pricings/${version}`, {

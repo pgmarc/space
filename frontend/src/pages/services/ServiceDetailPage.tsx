@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import { changePricingAvailability, getPricingsFromService } from "@/api/services/servicesApi";
+import { useNavigate, useParams } from "react-router";
+import { changePricingAvailability, disableService, getPricingsFromService } from "@/api/services/servicesApi";
 import useAuth from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import DragDropPricings from "../../components/drag-and-drop-pricings";
 import type { Pricing, Service } from "@/types/Services";
 import { useCustomAlert } from '@/hooks/useCustomAlert';
 import AddVersionModal from '../../components/AddVersionModal';
+import ServiceOptionsMenu from '../../components/ServiceOptionsMenu';
+import { useCustomConfirm } from '@/hooks/useCustomConfirm';
 
 export default function ServiceDetailPage() {
   const { name } = useParams<{ name: string }>();
@@ -17,6 +19,9 @@ export default function ServiceDetailPage() {
   const [confirm, setConfirm] = useState<null | { pricing: Pricing; to: "active" | "archived" }>(null);
   const [showAlert, alertElement] = useCustomAlert();
   const [addVersionOpen, setAddVersionOpen] = useState(false);
+  const [showConfirm, confirmElement] = useCustomConfirm();
+
+  const router = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -84,20 +89,37 @@ export default function ServiceDetailPage() {
     setAddVersionOpen(false);
   }
 
+  // Handler para el menú de opciones
+  function handleDisableService() {
+    showConfirm(`Are you sure you want to disable service ${name}? This action is potentially destructive. It will remove this service from all contracts. Any contract that includes only this service will be deactivated.`, 'danger')
+      .then(confirmed => {
+        if (confirmed) {
+          disableService(user.apiKey, name!)
+            .then(async (isDisabled) => {
+              if (!isDisabled) {
+                await showAlert(`Service ${name} could not be disabled. Please try again later.`);
+              }else{
+                await showAlert(`Service ${name} has been successfully disabled.`);
+                router('/services');
+              }
+            }).catch(error => {
+              showAlert(`Failed to disable service ${name}. Error: ${error.message}`);
+            })
+          console.log(`service ${name} is going to be disabled`);
+        }
+      });
+  }
+
   return (
     <div className="max-w-2xl mx-auto py-10 px-2 md:px-0">
       {alertElement}
+      {confirmElement}
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-3xl font-bold text-indigo-800">{name}</h1>
-        <button
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          onClick={() => setAddVersionOpen(true)}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Version
-        </button>
+        <ServiceOptionsMenu
+          onAddVersion={() => setAddVersionOpen(true)}
+          onDisableService={handleDisableService}
+        />
       </div>
       <AddVersionModal open={addVersionOpen} onClose={handleAddVersionClose} serviceName={name ?? ''} />
       <p className="text-gray-500 mb-6">All pricing versions for this service. Drag & drop to archive a pricing.</p>
