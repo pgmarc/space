@@ -5,7 +5,12 @@ import { apiKeyAuthMiddleware } from './ApiKeyAuthMiddleware';
 
 const loadGlobalMiddlewares = (app: express.Application) => {
   app.use(express.json());
-  app.use(cors());
+  app.use(cors({
+    origin: process.env.ENVIRONMENT === "development" ? '*' : "http://localhost:5403", // Allow all origins, adjust as necessary for your security needs
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+    allowedHeaders: ['Content-Type', 'x-api-key'], // Specify allowed headers
+    credentials: true // Allow credentials if needed
+  }));
   app.use(helmet(
     {
       crossOriginResourcePolicy: false // allows loading of files from /public
