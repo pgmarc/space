@@ -129,18 +129,18 @@ export default function AddServiceModal({ open, onClose }: AddServiceModalProps)
             {error && <div className="text-red-500 text-sm mt-2 mb-1">{error}</div>}
             <div className="flex gap-3 mt-4 w-full">
               <button
-                className="flex-1 px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
-                onClick={handleUpload}
-              >
-                Upload
-              </button>
-              <button
-                className="flex-1 px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+                className="cursor-pointer flex-1 px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
                 onClick={() => {
                   onClose(undefined);
                 }}
               >
                 Cancel
+              </button>
+              <button
+                className="cursor-pointer flex-1 px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                onClick={handleUpload}
+              >
+                Upload
               </button>
             </div>
           </motion.div>

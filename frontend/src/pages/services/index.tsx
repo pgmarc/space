@@ -9,6 +9,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiServer } from "react-icons/fi";
 import AddServiceModal from '../../components/AddServiceModal';
 
+function AddServiceButton({ onClick, small = false }: { onClick: () => void; small?: boolean }) {
+  return (
+    <button
+      className={`flex items-center gap-2 cursor-pointer ${small ? 'px-3 py-2 text-sm' : 'px-5 py-3'} rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-300 ${small ? '' : 'mx-auto'}`}
+      onClick={onClick}
+    >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Service
+    </button>
+  );
+}
+
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [filters, setFilters] = useState<ServiceQueryFilters>({ page: 1, limit: 10, order: 'asc' });
@@ -30,9 +44,11 @@ export default function ServicesPage() {
 
   useEffect(() => {
     setLoading(true);
+    getServices(user.apiKey, { page: 1, limit: 1000, order: 'asc' }).then((data: Service[]) => {
+      setTotal(data.length);
+    });
     getServices(user.apiKey, filters).then((data: Service[]) => {
       setServices(data);
-      setTotal(data.length);
       setLoading(false);
     });
   }, [filters, user.apiKey]);
@@ -40,31 +56,39 @@ export default function ServicesPage() {
   const totalPages = Math.max(1, Math.ceil(total / (filters.limit ?? 10)));
   const currentPage = filters.page ?? 1;
 
+  const isTrulyEmpty = total === 0 && !loading;
+
   return (
     <div className="max-w-3xl mx-auto py-10 px-2 md:px-0">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-3xl font-bold text-indigo-800">Services Management</h1>
-        <button
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          onClick={() => setAddModalOpen(true)}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Service
-        </button>
-      </div>
+      {!isTrulyEmpty && (
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold text-indigo-800">Services Management</h1>
+          <AddServiceButton onClick={() => setAddModalOpen(true)} small />
+        </div>
+      )}
       <p className="text-gray-500 mb-6">Browse and manage all available services. Click on a service to view its pricing versions and details.</p>
       <AddServiceModal open={addModalOpen} onClose={handleCreateClose} />
       <ServicesFilters filters={filters} setFilters={setFilters} />
       {loading ? (
         <ServicesLoader />
+      ) : isTrulyEmpty ? (
+        <motion.div
+          key="empty-true"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="flex flex-col items-center justify-center py-24"
+        >
+          <div className="text-2xl font-bold text-indigo-700 mb-2">No services found</div>
+          <div className="text-gray-500 mb-6 text-center max-w-md">It looks like you haven't created any services yet. Start by adding your first service to manage pricing versions and more!</div>
+          <AddServiceButton onClick={() => setAddModalOpen(true)} />
+        </motion.div>
       ) : (
         <>
           <AnimatePresence>
             {services.length === 0 ? (
               <motion.div
-                key="empty"
+                key="empty-filter"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -100,7 +124,7 @@ export default function ServicesPage() {
               </motion.div>
             )}
           </AnimatePresence>
-          {/* Paginación */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <button
