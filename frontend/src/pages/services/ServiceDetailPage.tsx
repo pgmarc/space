@@ -4,8 +4,9 @@ import { changePricingAvailability, getPricingsFromService } from "@/api/service
 import useAuth from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import DragDropPricings from "../../components/drag-and-drop-pricings";
-import type { Pricing } from "@/types/Services";
+import type { Pricing, Service } from "@/types/Services";
 import { useCustomAlert } from '@/hooks/useCustomAlert';
+import AddVersionModal from '../../components/AddVersionModal';
 
 export default function ServiceDetailPage() {
   const { name } = useParams<{ name: string }>();
@@ -15,6 +16,7 @@ export default function ServiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<null | { pricing: Pricing; to: "active" | "archived" }>(null);
   const [showAlert, alertElement] = useCustomAlert();
+  const [addVersionOpen, setAddVersionOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -60,10 +62,38 @@ export default function ServiceDetailPage() {
     setConfirm(null);
   }
 
+  async function handleAddVersionClose(service?: Service){
+    if (service) {
+
+      const [serviceActivePricings, serviceArchivedPricings] = await Promise.all([
+        getPricingsFromService(user.apiKey, service.name, "active"),
+        getPricingsFromService(user.apiKey, service.name, "archived"),
+      ]);
+
+      // Actualizar las listas de precios después de agregar una nueva versión
+      setActivePricings(serviceActivePricings);
+      setArchivedPricings(serviceArchivedPricings);
+    }
+    
+    setAddVersionOpen(false);
+  }
+
   return (
     <div className="max-w-2xl mx-auto py-10 px-2 md:px-0">
       {alertElement}
-      <h1 className="text-3xl font-bold text-indigo-800 mb-2">{name}</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold text-indigo-800">{name}</h1>
+        <button
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          onClick={() => setAddVersionOpen(true)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Version
+        </button>
+      </div>
+      <AddVersionModal open={addVersionOpen} onClose={handleAddVersionClose} serviceName={name ?? ''} />
       <p className="text-gray-500 mb-6">All pricing versions for this service. Drag & drop to archive a pricing.</p>
       {loading ? (
         <div className="flex flex-col items-center py-20">
@@ -102,16 +132,16 @@ export default function ServiceDetailPage() {
             </p>
             <div className="flex gap-4 mt-2">
               <button
-                className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
-                onClick={confirmArchive}
-              >
-                Yes, {confirm.to === "archived" ? "archive" : "activate"}
-              </button>
-              <button
                 className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
                 onClick={() => setConfirm(null)}
               >
                 Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                onClick={confirmArchive}
+              >
+                Yes, {confirm.to === "archived" ? "archive" : "activate"}
               </button>
             </div>
           </div>

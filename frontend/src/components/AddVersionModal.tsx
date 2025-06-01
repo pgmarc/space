@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Service } from '@/types/Services';
-import { createService } from '@/api/services/servicesApi';
+import { addPricingVersion } from '@/api/services/servicesApi';
 import useAuth from '@/hooks/useAuth';
+import type { Service } from '@/types/Services';
 
-interface AddServiceModalProps {
+interface AddVersionModalProps {
   open: boolean;
   onClose: (service?: Service) => void;
+  serviceName: string;
 }
 
-export default function AddServiceModal({ open, onClose }: AddServiceModalProps) {
+export default function AddVersionModal({ open, onClose, serviceName }: AddVersionModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -56,14 +57,15 @@ export default function AddServiceModal({ open, onClose }: AddServiceModalProps)
       return;
     }
     setError('');
-    createService(user.apiKey, file)
+    addPricingVersion(user.apiKey, serviceName, file)
       .then((service: Service) => {
         setFile(null);
         onClose(service);
       })
-      .catch((err: Error) => {
-        setError(err.message);
+      .catch(async error => {
+        setError(error.message);
       });
+    onClose();
   };
 
   return (
@@ -82,14 +84,12 @@ export default function AddServiceModal({ open, onClose }: AddServiceModalProps)
             transition={{ type: 'spring', duration: 0.3 }}
             className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full flex flex-col items-center border border-indigo-100"
           >
-            <h2 className="text-xl font-bold text-indigo-700 mb-2">Add New Service</h2>
+            <h2 className="text-xl font-bold text-indigo-700 mb-2">Add New Pricing Version</h2>
             <p className="text-gray-600 mb-4 text-center">
-              Upload a YAML file (.yml or .yaml) to add a new service and its pricing versions.
+              Upload a YAML file (.yml or .yaml) to add a new pricing version for <span className="font-semibold text-indigo-700">{serviceName}</span>.
             </p>
             <div
-              className={`w-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
-                dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-indigo-200 bg-indigo-100/60'
-              }`}
+              className={`w-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-indigo-200 bg-indigo-100/60'}`}
               onClick={() => inputRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={handleDrag}
@@ -131,9 +131,7 @@ export default function AddServiceModal({ open, onClose }: AddServiceModalProps)
             <div className="flex gap-3 mt-4 w-full">
               <button
                 className="cursor-pointer flex-1 px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
-                onClick={() => {
-                  onClose(undefined);
-                }}
+                onClick={() => { onClose() }}
               >
                 Cancel
               </button>
