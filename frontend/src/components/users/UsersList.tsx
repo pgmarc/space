@@ -3,7 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiEdit2, FiCopy, FiKey, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import useAuth from '@/hooks/useAuth';
 import type { User } from '@/types/User';
-import { updateUsername, changeUserRole, changeUserPassword } from '@/api/users/usersApi';
+import {
+  updateUsername,
+  changeUserRole,
+  changeUserPassword,
+  deleteUser,
+} from '@/api/users/usersApi';
 import { useCustomAlert } from '@/hooks/useCustomAlert';
 import { useCustomConfirm } from '@/hooks/useCustomConfirm';
 import ChangePasswordForm from './ChangePasswordForm';
@@ -116,6 +121,24 @@ export default function UsersList({
     } catch (e: any) {
       throw e; // The error is displayed directly in the form
     }
+  }
+
+  // Confirmación y borrado de usuario
+  async function handleDeleteUser(username: string) {
+    showConfirm(
+      `Are you sure you want to permanently delete the user "${username}"? This action cannot be undone and all user data will be lost.`,
+      'danger'
+    )
+      .then(async confirmed => {
+        if (confirmed) {
+          await deleteUser(loggedUser.apiKey, username);
+          showAlert('User deleted successfully', 'info');
+          if (onUserChanged) onUserChanged();
+        }
+      })
+      .catch(e => {
+        showAlert(e.message, 'danger');
+      });
   }
 
   return (
@@ -260,13 +283,38 @@ export default function UsersList({
                 </td>
                 {/* Acciones */}
                 <td className="px-4 py-3">
-                  <button
-                    className="flex items-center gap-1 px-3 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold cursor-pointer disabled:opacity-50"
-                    onClick={() => setPasswordModal(u.username)}
-                    disabled={u.role === 'ADMIN' && loggedUser?.role !== 'ADMIN'}
-                  >
-                    <FiKey size={14} className="cursor-pointer" /> Change password
-                  </button>
+                  <div className="flex gap-2 items-center">
+                    <button
+                      className="flex items-center gap-1 px-3 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold cursor-pointer disabled:opacity-50"
+                      onClick={() => setPasswordModal(u.username)}
+                      disabled={u.role === 'ADMIN' && loggedUser?.role !== 'ADMIN'}
+                    >
+                      <FiKey size={14} className="cursor-pointer" /> Change password
+                    </button>
+                    {loggedUser.role === 'ADMIN' && (
+                      <button
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold cursor-pointer transition-all"
+                        onClick={() => handleDeleteUser(u.username)}
+                        title="Delete user"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))

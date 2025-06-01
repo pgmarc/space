@@ -75,3 +75,19 @@ export async function changeUserPassword(apiKey: string, username: string, newPa
       );
     });
 }
+
+export async function deleteUser(apiKey: string, username: string) {
+  return axios
+    .delete(`/users/${username}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    })
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error(
+        'Failed to delete user. ' + (error.response?.data?.error || error.message)
+      );
+    });
+}
