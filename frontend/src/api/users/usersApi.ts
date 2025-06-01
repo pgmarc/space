@@ -91,3 +91,19 @@ export async function deleteUser(apiKey: string, username: string) {
       );
     });
 }
+
+export async function createUser(apiKey: string, user: { username: string; password: string; role: 'ADMIN' | 'MANAGER' | 'EVALUATOR' }) {
+  return axios
+    .post('/users', user, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    })
+    .then(response => response.data)
+    .catch(error => {
+      throw new Error(
+        'Failed to create user. ' + (error.response?.data?.error || error.message)
+      );
+    });
+}
