@@ -33,13 +33,9 @@ export default function LineChartCard({ title, labels, data, color = 'indigo', l
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData} margin={{ top: 16, right: 16, left: 0, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              {/* @ts-expect-error: Recharts types are incompatible, but the chart renders fine */}
               <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              {/* @ts-expect-error: Recharts types are incompatible, but the chart renders fine */}
               <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={32} />
-              {/* @ts-expect-error: Recharts types are incompatible, but the chart renders fine */}
               <Tooltip contentStyle={{ borderRadius: 12, background: '#fff', border: '1px solid #e5e7eb', fontSize: 13 }} />
-              {/* @ts-expect-error: Recharts types are incompatible, but the chart renders fine */}
               <Line
                 type="monotone"
                 dataKey="value"
