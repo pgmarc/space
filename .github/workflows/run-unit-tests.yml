@@ -49,8 +49,11 @@ jobs:
         with:
           redis-version: '7.x'
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - name: Install dependencies
-        run: npm i
+        run: pnpm i
 
       - name: Run tests
-        run: npm run test
+        run: pnpm run test
