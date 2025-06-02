@@ -107,6 +107,14 @@ pnpm run dev
 
 to start both the backend and frontend servers concurrently.
 
+If you have used the default configuration, i.e. you executed `pnpm run dev:setup:test`, you can then access the frontend of SPACE at [http://localhost:5173](http://localhost:5173), and can log in as an admin user using these credentials:
+
+- **Username:** `testAdmin`
+- **Password:** `test4dm1n`
+
+> [!NOTE]
+> The SPACE server will run on port `3000` with this default configuration.
+
 ## Tech Stack
 
 <div align="center">

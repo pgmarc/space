@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:setup:test": "pnpm run generate-test-env",
+    "generate-test-env": "chmod +x generate-test-env.sh && chmod +x retrieve-space-api-key.sh && ./generate-test-env.sh",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
