@@ -1664,7 +1664,7 @@ paths:
         - name: revert
           in: query
           description: >-
-            Indicates whether to revert an optimistic usage update performed during a previous evaluation. Cannot be used with `details`.
+            Indicates whether to revert an optimistic usage update performed during a previous evaluation.
 
 
             **IMPORTANT:** Reversions are only effective if the original optimistic update occurred within the last 2 minutes.
@@ -2894,6 +2894,10 @@ components:
               Value indicating the quota consumed of this usage limit by the
               user
             example: 10
+          example:
+            storage: 50
+            apiCalls: 1
+            bandwidth: 20
         limit:
           type: object
           description: >-
@@ -2907,6 +2911,10 @@ components:
               Value indicating the quota limit of this usage limit regarding the
               user contract
             example: 100
+          example:
+            storage: 500
+            apiCalls: 1000
+            bandwidth: 200
         eval:
           type: boolean
           description: >-
