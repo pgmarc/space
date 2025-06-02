@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  mongodb:
+      image: mongo:7.0.16
+      container_name: dev-space-mongodb
+      ports:
+        - "27017:27017"
+      env_file:
+        - ../../.env
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: 4dm1n
+        MONGO_INITDB_DATABASE: space_db
+      volumes:
+        - 'dev-space-mongodb:/data/db'
+        - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
+      networks:
+        - dev-network
+  redis:
+    image: redis:7.4.2
+    container_name: dev-space-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    volumes:
+      - 'space-redis_data:/data'
+    networks:
+        - dev-network
+volumes:
+  dev-space-mongodb:
+    driver: local
+  space-redis_data:
+    driver: local
+networks:
+  dev-network:
+    driver: bridge
