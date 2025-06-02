@@ -1,17 +1,19 @@
 {
-  "name": "space-api",
-  "version": "0.1.0",
-  "description": "SPACE API is an open-source project designed to provide a robust and scalable API for various applications.",
-  "main": "src/main/index.ts",
-  "type": "module",
+  "name": "space",
+  "version": "1.0.0",
+  "description": "SPACE is an open-source project designed to provide a robust and scalable solution for pricing-driven self adaptation.",
   "scripts": {
-    "dev": "tsx src/main/index.ts",
-    "test": "chmod +x run-tests.sh && ./run-tests.sh",
-    "test:ci": "chmod +x run-tests:ci.sh && ./run-tests:ci.sh",
-    "build": "tsc",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
+    "dev": "concurrently \"pnpm run dev:server\" \"pnpm run dev:client\"",
+    "dev:setup": "concurrently \"cd api && pnpm run dev:setup\"",
+    "dev:setup:test": "cd api && pnpm run dev:setup:test && cd .. && cd frontend && pnpm run dev:setup:test",
+    "dev:server": "cd api && pnpm run dev",
+    "dev:client": "cd frontend && pnpm run dev",
+    "test:server": "cd api && pnpm run test",
+    "test": "pnpm run test:server",
+    "build": "pnpm run build:server && pnpm run build:client",
+    "build:server": "cd api && pnpm run build",
+    "build:client": "cd frontend && pnpm run build",
+    "install": "concurrently \"cd api && pnpm install\" \"cd frontend && pnpm install\"",
     "prepare": "husky install"
   },
   "keywords": [
@@ -27,65 +29,23 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Alex-GF/space-api.git"
+    "url": "https://github.com/Alex-GF/space.git"
   },
   "bugs": {
-    "url": "https://github.com/Alex-GF/space-api/issues"
+    "url": "https://github.com/Alex-GF/space/issues"
   },
-  "homepage": "https://github.com/Alex-GF/space-api#readme",
+  "homepage": "https://github.com/Alex-GF/space#readme",
   "engines": {
     "node": ">=16.0.0"
   },
   "packageManager": "pnpm@10.9.0",
-  "dependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/js-yaml": "^4.0.9",
-    "@types/multer": "^1.4.12",
-    "awilix": "^12.0.5",
-    "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "date-fns": "^4.1.0",
-    "express": "^4.18.2",
-    "express-validator": "^7.2.1",
-    "helmet": "^8.1.0",
-    "jose": "^6.0.11",
-    "js-yaml": "^4.1.0",
-    "mongo-seeding": "^4.0.2",
-    "mongoose": "^8.14.0",
-    "multer": "1.4.5-lts.2",
-    "node-fetch": "^3.3.2",
-    "pricing4ts": "^0.10.0",
-    "redis": "^4.7.0",
-    "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
-  },
   "devDependencies": {
-    "@faker-js/faker": "^9.7.0",
-    "@types/express": "^4.17.17",
-    "@types/supertest": "^6.0.3",
-    "@vitest/coverage-v8": "^3.1.2",
-    "dotenv": "^16.5.0",
-    "husky": "^8.0.3",
-    "jiti": "^2.4.2",
-    "nodemon": "^3.0.1",
-    "prettier": "^3.0.3",
-    "socket.io-client": "^4.8.1",
-    "supertest": "^7.1.0",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.19.3",
-    "typescript": "^5.3.3",
-    "typescript-eslint": "^8.31.0",
-    "vitest": "^3.1.2"
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7"
   },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ]
   }
 }
