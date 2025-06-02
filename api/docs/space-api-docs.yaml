@@ -49,6 +49,8 @@ tags:
       users' iSubscriptions.
   - name: features
     description: Endpoints to perform evaluations once system is configured.
+  - name: analytics
+    description: Endpoints to retrieve information about the usage of SPACE.
 paths:
   /users/authenticate:
     post:
@@ -1734,6 +1736,106 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /analytics/api-calls:
+    get:
+      tags:
+        - analytics
+      security:
+        - ApiKeyAuth: []
+      summary: Retrieves the daily number of API calls processed by SPACE during the last 7 days.
+      description: >-
+        Retrieves the daily number of API calls processed by SPACE during the last 7 days.
+      operationId: getAnalyticsApiCalls
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  labels:
+                    type: array
+                    description: >-
+                      Array of days of the week for which the data is provided.
+                      The last element corresponds to the most recent day.
+                    items:
+                      type: string
+                      format: dayOfWeek
+                      description: Day of the week of the corresponding value from the `data` array.
+                      example: 'Mon'
+                    example: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                  data:
+                    type: array
+                    description: >-
+                      Array of integers representing the number of API calls
+                      processed by SPACE on each day of the week. The last
+                      element corresponds to the most recent day.
+                    items:
+                      type: integer
+                      description: Number of API calls processed on that date
+                      example: 1500
+                    example: [1234, 6565, 2959, 6498, 11020, 1700, 190, 2950]
+        '401':
+          description: Authentication required
+        '403':
+          description: Forbidden
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /analytics/evaluations:
+    get:
+      tags:
+        - analytics
+      security:
+        - ApiKeyAuth: []
+      summary: Retrieves the daily number of feature evaluations processed by SPACE during the last 7 days.
+      description: >-
+        Retrieves the daily number of feature evaluations processed by SPACE during the last 7 days.
+      operationId: getAnalyticsEvaluations
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  labels:
+                    type: array
+                    description: >-
+                      Array of days of the week for which the data is provided.
+                      The last element corresponds to the most recent day.
+                    items:
+                      type: string
+                      format: dayOfWeek
+                      description: Day of the week of the corresponding value from the `data` array.
+                      example: 'Mon'
+                    example: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                  data:
+                    type: array
+                    description: >-
+                      Array of integers representing the number of feature evaluations
+                      processed by SPACE on each day of the week. The last
+                      element corresponds to the most recent day.
+                    items:
+                      type: integer
+                      description: Number of feature evaluations processed on that date
+                      example: 1500
+                    example: [1234, 6565, 2959, 6498, 11020, 1700, 190, 2950]
+        '401':
+          description: Authentication required
+        '403':
+          description: Forbidden
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     User:
@@ -2913,13 +3015,10 @@ components:
     Error:
       type: object
       properties:
-        code:
-          type: string
-        message:
+        error:
           type: string
       required:
-        - code
-        - message
+        - error
   requestBodies:
     SubscriptionCompositionNovation:
       description: >-
