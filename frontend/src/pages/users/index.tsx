@@ -5,7 +5,6 @@ import UsersFilters from '@/components/users/UsersFilters';
 import UsersList from '@/components/users/UsersList';
 import AddUserModal from '@/components/users/AddUserModal';
 import { getUsers } from '@/api/users/usersApi';
-import { AnimatePresence, motion } from 'framer-motion';
 
 // Tipado para usuario
 interface UserEntry {
@@ -101,9 +100,6 @@ export default function UsersPage() {
       <UsersFilters
         filters={filters}
         setFilters={setFilters}
-        page={page}
-        setPage={setPage}
-        totalPages={totalPages}
       />
       <UsersList
         users={pagedUsers}

@@ -9,17 +9,11 @@ interface UsersFiltersProps {
     sortOrder: 'asc' | 'desc';
   };
   setFilters: (f: any) => void;
-  page: number;
-  setPage: (p: number) => void;
-  totalPages: number;
 }
 
 export default function UsersFilters({
   filters,
   setFilters,
-  page,
-  setPage,
-  totalPages,
 }: UsersFiltersProps) {
   return (
     <div className="flex flex-wrap items-end justify-evenly gap-2 mb-6">

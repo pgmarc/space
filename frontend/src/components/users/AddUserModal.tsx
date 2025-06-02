@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCustomAlert } from '@/hooks/useCustomAlert';
 import useAuth from '@/hooks/useAuth';
 import { createUser } from '@/api/users/usersApi';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
