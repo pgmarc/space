@@ -33,7 +33,7 @@ jobs:
           envkey_JWT_SALT: ${{ secrets.CI_JWT_SALT }}
           
           directory: .
-          file_name: .env
+          file_name: api/.env
           fail_on_empty: false
           sort_keys: false
 
