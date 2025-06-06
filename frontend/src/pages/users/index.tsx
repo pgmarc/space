@@ -42,7 +42,7 @@ export default function UsersPage() {
     setLoading(true);
     getUsers(user.apiKey)
       .then((data: UserEntry[]) => setUsers(data))
-      .catch((e: any) => showAlert(e.message || 'Failed to fetch users', 'danger'))
+      .catch((e) => showAlert(e.message ?? 'Failed to fetch users', 'danger'))
       .finally(() => setLoading(false));
   }, [user.apiKey, filters, refreshKey]);
 

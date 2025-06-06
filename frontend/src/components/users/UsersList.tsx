@@ -14,9 +14,12 @@ import { useCustomConfirm } from '@/hooks/useCustomConfirm';
 import ChangePasswordForm from './ChangePasswordForm';
 
 const ROLE_COLORS: Record<string, string> = {
-  ADMIN: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700',
-  MANAGER: 'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700',
-  EVALUATOR: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-900 dark:text-indigo-200 dark:border-indigo-700',
+  ADMIN:
+    'bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700',
+  MANAGER:
+    'bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700',
+  EVALUATOR:
+    'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-900 dark:text-indigo-200 dark:border-indigo-700',
 };
 const ROLE_TEXT_COLORS: Record<string, string> = {
   ADMIN: 'text-red-700 dark:text-red-200',
@@ -77,8 +80,8 @@ export default function UsersList({
         updateUser({ username: updated.username });
       }
       if (onUserChanged) onUserChanged();
-    } catch (e: any) {
-      showAlert(e.message, 'danger');
+    } catch (e) {
+      showAlert((e as Error).message, 'danger');
     }
   }
   function handleCopy(apiKey: string, username: string) {
@@ -94,7 +97,11 @@ export default function UsersList({
     )
       .then(async confirmed => {
         if (confirmed) {
-          const updated = await changeUserRole(loggedUser.apiKey, username, newRole as any);
+          const updated = await changeUserRole(
+            loggedUser.apiKey,
+            username,
+            newRole as User['role']
+          );
           showAlert('Role updated successfully', 'info');
           setRoleDropdown(null);
           if (username === loggedUser.username) {
@@ -113,14 +120,10 @@ export default function UsersList({
   }
   // New function to pass to ChangePasswordForm
   async function handleChangePassword(username: string, password: string) {
-    try {
-      await changeUserPassword(loggedUser.apiKey, username, password);
-      showAlert('Password changed successfully', 'info');
-      setPasswordModal(null);
-      if (onUserChanged) onUserChanged();
-    } catch (e: any) {
-      throw e; // The error is displayed directly in the form
-    }
+    await changeUserPassword(loggedUser.apiKey, username, password);
+    showAlert('Password changed successfully', 'info');
+    setPasswordModal(null);
+    if (onUserChanged) onUserChanged();
   }
 
   // Confirmación y borrado de usuario
@@ -146,10 +149,18 @@ export default function UsersList({
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">API Key</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Username
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              API Key
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Role
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
@@ -166,7 +177,7 @@ export default function UsersList({
               </td>
             </tr>
           ) : (
-            users.map((u: any) => (
+            users.map((u: User) => (
               <tr key={u.username} className="hover:bg-indigo-50/30 transition">
                 {/* Editable username */}
                 <td className="px-4 py-3">
