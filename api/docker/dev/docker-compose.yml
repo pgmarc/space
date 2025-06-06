@@ -16,7 +16,7 @@ services:
         - 'dev-space-mongodb:/data/db'
         - '../../src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh'
       networks:
-        - dev-network
+        - dev-space-network
   redis:
     image: redis:7.4.2
     container_name: dev-space-redis
@@ -25,14 +25,14 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
     volumes:
-      - 'space-redis_data:/data'
+      - 'dev-space-redis_data:/data'
     networks:
-        - dev-network
+        - dev-space-network
 volumes:
   dev-space-mongodb:
     driver: local
-  space-redis_data:
+  dev-space-redis_data:
     driver: local
 networks:
-  dev-network:
+  dev-space-network:
     driver: bridge
