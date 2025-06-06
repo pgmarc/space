@@ -60,6 +60,15 @@ class UserService {
       throw new Error('Not enough permissions: Only admins can update admin users.');
     }
 
+    // Validación: no permitir degradar al último admin
+    if (user.role === 'ADMIN' && userData.role && userData.role !== 'ADMIN') {
+      const allUsers = await this.userRepository.findAll();
+      const adminCount = allUsers.filter(u => u.role === 'ADMIN' && u.username !== username).length;
+      if (adminCount < 1) {
+        throw new Error('There must always be at least one ADMIN user in the system.');
+      }
+    }
+
     if (userData.username){
       const existingUser = await this.userRepository.findByUsername(userData.username);
       if (existingUser) {
@@ -97,6 +106,15 @@ class UserService {
       throw new Error('Not enough permissions: Only admins can update admin users.');
     }
 
+    // Validación: no permitir degradar al último admin
+    if (user.role === 'ADMIN' && role !== 'ADMIN') {
+      const allUsers = await this.userRepository.findAll();
+      const adminCount = allUsers.filter(u => u.role === 'ADMIN' && u.username !== username).length;
+      if (adminCount < 1) {
+        throw new Error('There must always be at least one ADMIN user in the system.');
+      }
+    }
+
     return this.userRepository.changeRole(username, role);
   }
 
@@ -115,6 +133,19 @@ class UserService {
   }
 
   async destroy(username: string) {
+    // Comprobar si el usuario a eliminar es admin
+    const user = await this.userRepository.findByUsername(username);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (user.role === 'ADMIN') {
+      // Contar admins restantes
+      const allUsers = await this.userRepository.findAll();
+      const adminCount = allUsers.filter(u => u.role === 'ADMIN' && u.username !== username).length;
+      if (adminCount < 1) {
+        throw new Error('There must always be at least one ADMIN user in the system.');
+      }
+    }
     const result = await this.userRepository.destroy(username);
     if (!result) {
       throw new Error('User not found');
