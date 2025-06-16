@@ -99,6 +99,14 @@ paths:
                     example: ADMIN
         '401':
           description: Invalid credentials
+        '422':
+          description: Request sent could not be processed properly
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldValidationError'
   /users:
     get:
       summary: Get all users
@@ -3027,6 +3035,28 @@ components:
           type: string
       required:
         - error
+    FieldValidationError:
+      type: object
+      properties:
+        type:
+          type: string
+          example: field
+        msg:
+          type: string
+          example: Password must be a string
+        path:
+          type: string
+          example: password
+        location:
+          type: string
+          example: body
+        value:
+          example: 1
+      required:
+        - type
+        - msg
+        - path
+        - location
   requestBodies:
     SubscriptionCompositionNovation:
       description: >-
