@@ -99,6 +99,12 @@ paths:
                     example: ADMIN
         '401':
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid credentials
         '422':
           description: Request sent could not be processed properly
           content:
