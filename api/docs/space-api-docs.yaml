@@ -1741,9 +1741,8 @@ components:
       type: object
       properties:
         id:
-          type: string
           description: Identifier of the service within MongoDB
-          example: 68050bd09890322c57842f6f
+          $ref: '#/components/schemas/ObjectId'
         name:
           type: string
           description: The name of the service
@@ -1756,8 +1755,7 @@ components:
             type: object
             properties:
               id:
-                type: string
-                example: 682395ccb4cdf5b14afed1cd
+                $ref: '#/components/schemas/ObjectId'
               url:
                 type: string
                 format: path
@@ -1770,8 +1768,7 @@ components:
             type: object
             properties:
               id:
-                type: string
-                example: 682395ccb4cdf5b14afed1cd
+                $ref: '#/components/schemas/ObjectId'
               url:
                 type: string
                 format: path
@@ -2891,6 +2888,12 @@ components:
       description: Random 32 byte string encoded in hexadecimal
       example: 0051e657dd30bc3a07583c20dcadc627211624ae8bf39acf05f08a3fdf2b434c
       pattern: '^[a-f0-9]{64}$'
+      readOnly: true
+    ObjectId:
+      type: string
+      description: ObjectId of the corresponding MongoDB document
+      example: 68050bd09890322c57842f6f
+      pattern: '^[a-f0-9]{24}$'
       readOnly: true
   requestBodies:
     SubscriptionCompositionNovation:
