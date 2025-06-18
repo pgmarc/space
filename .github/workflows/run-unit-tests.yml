@@ -1,11 +1,32 @@
 name: Integration Tests Run
-on:
-  pull_request:
-    branches:
-      - 'develop'
-      - 'main'
+on: push
 jobs:
   build:
+    services:
+      mongo:
+        image: mongo
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+        ports:
+          - 27017:27017
+        volumes:
+          - ./api/src/main/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+      redis:
+        image: redis
+        options: --health-cmd="redis-cli PING" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - 6379:6379
+    env:
+      ENVIRONMENT: testing
+      DATABASE_NAME: space_testing_db
+      MONGO_URI: mongodb://root:example@mongo:27017/space_testing_db?authSource=space_testing_db
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: 4dm1n
+      JWT_EXPIRATION: 1h
+      JWT_SECRET: mysecret
+      JWT_SALT: r7H9d2Xq8Lp0VzW3
+      REDIS_URL: redis://redis:6379
     name: Test
     runs-on: ubuntu-latest
     environment: testing
@@ -16,38 +37,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
-
-      - name: Make envfile
-        uses: SpicyPizza/create-envfile@v2.0
-        with:
-          envkey_ENVIRONMENT: "testing"
-          envkey_DATABASE_NAME: ${{ vars.CI_MONGO_INITDB_DATABASE }}
-          envkey_MONGO_URI: mongodb://localhost:27017/space_testing_db?authSource=space_testing_db
-          envkey_BASE_URL_PATH: "/api/v1"
-          envkey_ADMIN_USER: "admin"
-          envkey_ADMIN_PASSWORD: "4dm1n"
-          envkey_REDIS_URL: "redis://localhost:6379"
-          envkey_JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
-          envkey_JWT_EXPIRATION: "1h"
-          envkey_JWT_SALT: ${{ secrets.CI_JWT_SALT }}
-          
-          directory: .
-          file_name: api/.env
-          fail_on_empty: false
-          sort_keys: false
-
-      - name: Start MongoDBs
-        uses: supercharge/mongodb-github-action@1.10.0
-        with:
-          mongodb-version: '7.0.16'
-          mongodb-db: ${{ vars.CI_MONGO_INITDB_DATABASE }}
-          mongodb-port: ${{ vars.CI_MONGO_PORT }}
-
-      - name: Start Redis
-        uses: shogo82148/actions-setup-redis@v1
-        with:
-          redis-version: '7.x'
+          node-version: "20.x"
 
       - name: Install pnpm
         run: npm install -g pnpm
